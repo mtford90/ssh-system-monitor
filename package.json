@@ -1,0 +1,26 @@
+{
+  "name": "@mtford/ssh",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha ./tests/**/*.spec.js --require ./tests/babelHook.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "babel-core": "^6.21.0",
+    "babel-polyfill": "^6.20.0",
+    "babel-preset-es2015": "^6.18.0",
+    "babel-preset-stage-0": "^6.16.0",
+    "babel-preset-stage-1": "^6.16.0",
+    "chai": "^3.5.0",
+    "mocha": "^3.2.0",
+    "node-fetch": "^1.6.3"
+  },
+  "dependencies": {
+    "keymirror": "^0.1.1",
+    "lodash": "^4.17.2",
+    "ssh2": "^0.5.4"
+  }
+}
