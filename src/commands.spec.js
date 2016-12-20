@@ -22,7 +22,7 @@ describe('commands', () => {
   let conn = null
 
   before(async () => {
-    let server = config.servers[0]
+    let server = config.servers[0].ssh
     conn       = await getConnection(server)
   })
 

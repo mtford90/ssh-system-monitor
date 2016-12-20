@@ -7,12 +7,16 @@ export function constructPool (server) {
       return new Promise((resolve, reject) => {
         const client = new Client()
         client.once('ready', () => resolve(client))
-        client.connect(server)
+        const ssh = server.ssh
+        client.connect(ssh)
       })
     },
-    destroy: async client => {
-      client.end()
-    }
+    destroy: client => {
+      return new Promise((resolve, reject) => {
+        client.once('end', () => resolve())
+        client.end()
+      })
+    },
   }
 
   const opts = {

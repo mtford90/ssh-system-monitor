@@ -6,17 +6,26 @@ import {cpuUsage} from './commands'
 
 const assert = chai.assert
 
-describe('pool', () => {
+describe('pool', function () {
+  this.timeout(5000)
+
   let pool
 
   before(() => {
     pool = constructPool(config.servers[0])
   })
 
+  after(async () => {
+    await pool.drain()
+    pool.clear()
+  })
+
   it("acquire a client", async () => {
     const client = await pool.acquire()
 
     const usage = await cpuUsage(client)
+
+    await pool.release(client)
 
     console.log('usage', usage)
 

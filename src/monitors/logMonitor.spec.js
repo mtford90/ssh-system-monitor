@@ -1,24 +1,16 @@
 import chai from 'chai'
 import * as config from '../config'
-import {constructPool} from '../pool'
-import _ from 'lodash'
-import {cpuUsage} from '../commands'
-import {monitor} from './logMonitor'
+import logMonitor from './logMonitor'
 
 const assert = chai.assert
 
-describe('pool', () => {
-
-  before(() => {
-  })
-
+describe('logMonitor', () => {
   it("monitor servers", done => {
+    const m = logMonitor(config.servers, {rate: 250})
     // All this really does is check that monitor doesn't crash.
     // TODO: Clever way of intercepting the logs & inspecting them?
-    const terminate = monitor(config.servers, {rate: 250})
     setTimeout(() => {
-      terminate()
-      done()
+      m.terminate().then(() => done()).catch(done)
     }, 1000)
   })
 })
