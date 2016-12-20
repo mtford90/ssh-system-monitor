@@ -1,9 +1,7 @@
 import chai from 'chai'
-import * as config from '../src/config'
+import * as config from './config'
 import Client from 'ssh2'
-import {
-  cpuUsage, memoryInfo, swapUsedPercentage, memoryUsedPercentage, averageLoad, percentageDiskSpaceUsed
-} from '../src/commands'
+import * as commands from './commands'
 import _ from 'lodash'
 
 const assert = chai.assert
@@ -20,11 +18,11 @@ function getConnection (server) {
   })
 }
 
-describe('stats', () => {
+describe('commands', () => {
   let conn = null
 
   before(async () => {
-    let server = config.server
+    let server = config.servers[0]
     conn       = await getConnection(server)
   })
 
@@ -33,7 +31,7 @@ describe('stats', () => {
   })
 
   it('cpuUsage', async () => {
-    const usage = await cpuUsage(conn)
+    const usage = await commands.cpuUsage(conn)
 
     console.log('cpuUsage', usage)
 
@@ -43,7 +41,7 @@ describe('stats', () => {
   })
 
   it('memoryInfo', async () => {
-    const info = await memoryInfo(conn)
+    const info = await commands.memoryInfo(conn)
 
     console.log('info', info)
 
@@ -51,7 +49,7 @@ describe('stats', () => {
   })
 
   it('swapUsedPercentage', async () => {
-    const perc = await swapUsedPercentage(conn)
+    const perc = await commands.swapUsedPercentage(conn)
 
     console.log('perc', perc)
 
@@ -60,7 +58,7 @@ describe('stats', () => {
   })
 
   it('memoryUsedPercentage', async () => {
-    const perc = await memoryUsedPercentage(conn)
+    const perc = await commands.memoryUsedPercentage(conn)
 
     console.log('memoryUsed', perc)
 
@@ -69,7 +67,7 @@ describe('stats', () => {
   })
 
   it('averageLoad', async () => {
-    const load = await averageLoad(conn)
+    const load = await commands.averageLoad(conn)
 
     console.log('load', load)
 
@@ -83,7 +81,7 @@ describe('stats', () => {
   })
 
   it('percentage used', async () => {
-    const perc = await percentageDiskSpaceUsed(conn, '/')
+    const perc = await commands.percentageDiskSpaceUsed(conn, '/')
 
     console.log('perc', perc)
 
