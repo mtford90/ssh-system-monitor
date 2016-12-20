@@ -1,6 +1,7 @@
 import Client from 'ssh2'
 import keymirror from 'keymirror'
 import _ from 'lodash'
+import retry from 'retry'
 
 const MEM_INFO_KEY = keymirror({
   MemTotal:          null,
@@ -47,9 +48,8 @@ const MEM_INFO_KEY = keymirror({
  * @param {Client} client
  * @param {string} cmd
  * @returns {Promise}
- * @private
  */
-function _execute (client, cmd) {
+function execute (client, cmd) {
   return new Promise((resolve, reject) => {
     client.exec(cmd, (err, stream) => {
       if (err) reject(err)
@@ -57,7 +57,8 @@ function _execute (client, cmd) {
         stream.on('data', function (data) {
           resolve(data.toString())
         }).stderr.on('data', function (data) {
-          reject(new Error(data))
+          const errString = JSON.stringify(data.toString())
+          reject(new Error(`error executing ${cmd}: ${errString}`))
         })
       }
     })
@@ -66,9 +67,31 @@ function _execute (client, cmd) {
 
 /**
  * @param {Client} client
+ * @param {string} cmd
+ * @returns {Promise}
+ */
+function faultTolerantExecute (client, cmd) {
+  return new Promise((resolve, reject) => {
+    const timeout   = 1 * 1000
+    const operation = retry.operation({retries: 5, minTimeout: timeout, maxTimeout: timeout});
+    // TODO: Log retry attempts
+    operation.attempt(() => {
+      execute(client, cmd).then(resolve).catch(err => {
+        if (operation.retry(err)) {
+          return
+        }
+
+        reject(operation.mainError())
+      })
+    })
+  })
+}
+
+/**
+ * @param {Client} client
  */
 export async function cpuUsage (client) {
-  const data = await _execute(
+  const data = await faultTolerantExecute(
     client,
     'top -b -d1 -n1|grep -i "Cpu(s)"|head -c21|cut -d \' \' -f3|cut -d \'%\' -f1'
   )
@@ -80,7 +103,7 @@ export async function cpuUsage (client) {
  * @param {Client} client
  */
 export async function memoryInfo (client) {
-  const data = await _execute(
+  const data = await faultTolerantExecute(
     client,
     'cat /proc/meminfo',
   )
@@ -137,7 +160,7 @@ export async function memoryUsedPercentage (client) {
  * @param {Client} client
  */
 export async function averageLoad (client) {
-  let data = await _execute(
+  let data = await faultTolerantExecute(
     client,
     'uptime',
   )
@@ -162,7 +185,7 @@ export async function averageLoad (client) {
  * @param {string} path
  */
 export async function percentageDiskSpaceUsed (client, path) {
-  let data = await _execute(
+  let data = await faultTolerantExecute(
     client,
     'df ' + path + ' -h | tail -n 1',
   )

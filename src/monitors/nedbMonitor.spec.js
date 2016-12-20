@@ -6,7 +6,8 @@ import monitor from './nedbMonitor'
 const assert = chai.assert
 
 describe('nedbMonitor', function () {
-  this.timeout(5000)
+  this.timeout(10000)
+
   it("monitor servers", done => {
     const m = monitor(config.servers, {rate: 250})
     // All this really does is check that monitor doesn't crash.

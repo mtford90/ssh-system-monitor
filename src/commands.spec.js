@@ -18,7 +18,9 @@ function getConnection (server) {
   })
 }
 
-describe('commands', () => {
+describe('commands', function () {
+  this.timeout(10000)
+
   let conn = null
 
   before(async () => {

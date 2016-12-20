@@ -20,8 +20,8 @@ export function constructPool (server) {
   }
 
   const opts = {
-    max: 10,
-    min: 2,
+    max: 3,
+    min: 1,
   }
 
   const pool = genericPool.createPool(factory, opts)

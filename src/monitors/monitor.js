@@ -24,7 +24,7 @@ function asyncInterval (fn, n = 1000) {
         working = false
       }).catch(err => {
         working = false
-        // TODO: Log error properly
+        // TODO: These errors happen occasionally but should be optional to silence them
         console.log(`Error in asyncInterval:\n`, err.stack)
       })
     }
@@ -55,6 +55,14 @@ export function monitor (servers, opts = {}) {
   const intervals = {}
   const emitter   = new EventEmitter()
 
+  emitter.latest = {}
+
+  servers.forEach(s => {
+    if (s.ssh && s.ssh.host) {
+      emitter.latest[s.ssh.host] = {}
+    }
+  })
+
   opts = {
     rate: 1000,
     ...opts,
@@ -83,6 +91,10 @@ export function monitor (servers, opts = {}) {
         const fn     = commands[type]
         const value  = await fn.apply(fn, [client, ...args])
         pool.release(client)
+
+        // Store the latest values
+        if (server.ssh && server.ssh.host) emitter.latest[server.ssh.host][type] = value
+
         emitter.emit('data', {type, server: cleanServer(server), value})
       }, opts.rate)
     }
