@@ -44,7 +44,7 @@ describe('/api', function () {
 
   it("latest stat for a host", async () => {
     const data   = await once(m, 'data')
-    const stat = data.type
+    const stat   = data.type
     const host   = data.server.ssh.host
     const body   = await http.get(`http://localhost:3000/api/latest/${stat}`, {host: host})
     const latest = m.latest
@@ -61,5 +61,10 @@ describe('/api', function () {
     assert(monitorValue)
     assert(returnedValue)
     assert.equal(monitorValue, returnedValue)
+  })
+
+  it("config", async () => {
+    const body = await http.get(`http://localhost:3000/api/config`)
+    console.log('responseBody', body)
   })
 })

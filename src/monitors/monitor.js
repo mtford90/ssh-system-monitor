@@ -10,6 +10,7 @@ import {
   COMMAND_AVERAGE_LOAD,
   COMMAND_PERCENTAGE_DISK_SPACE_USED
 } from '../commands/constants'
+import {cleanServer} from '../util/data'
 
 export const ERROR_POOL_FACTORY_CREATE  = 'factoryCreateError'
 export const ERROR_POOL_FACTORY_DESTROY = 'factoryDestroyError'
@@ -42,17 +43,6 @@ function asyncInterval (fn, n = 10000) {
   return () => clearInterval(interval)
 }
 
-/**
- * Remove any properties from server config that should never be in the logs e.g. private key
- * @param server
- */
-function cleanServer (server) {
-  server    = {...server}
-  const ssh = {...server.ssh}
-  if (ssh) delete ssh.privateKey
-  server.ssh = ssh
-  return server
-}
 
 
 /**
@@ -165,6 +155,8 @@ export function monitor (servers, opts = {}) {
       })
     )
   }
+
+  emitter.servers = servers
 
   return emitter
 }
