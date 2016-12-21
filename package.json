@@ -6,7 +6,8 @@
   "scripts": {
     "test": "mocha ./tests/**/*.spec.js --require ./tests/babelHook.js",
     "example-log-monitor": "babel-node examples/log-monitor -b es2015,stage-0",
-    "example-nedb-express-api": "babel-node examples/api-express-nedb -b es2015,stage-0"
+    "example-api-express-nedb": "babel-node examples/api-express-nedb -b es2015,stage-0",
+    "example-alert-slack": "babel-node examples/alert-slack -b es2015,stage-0"
   },
   "author": "",
   "license": "ISC",
@@ -29,6 +30,7 @@
     "lodash": "^4.17.2",
     "nedb": "^1.8.0",
     "retry": "^0.10.1",
+    "slack-node": "^0.1.8",
     "ssh2": "^0.5.4"
   }
 }

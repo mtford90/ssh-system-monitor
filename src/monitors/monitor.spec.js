@@ -2,7 +2,7 @@ import chai from 'chai'
 import {monitor} from './monitor'
 import _ from 'lodash'
 import {servers} from '../../examples/config'
-import {COMMAND_PERCENTAGE_DISK_SPACE_USED} from '../commands/constants'
+import {DiskSpaceUsed} from '../commands/constants'
 
 const assert = chai.assert
 
@@ -36,7 +36,7 @@ describe('monitor', function () {
 
     m.on('data', data => {
       console.log('received data', data)
-      const dataType = COMMAND_PERCENTAGE_DISK_SPACE_USED
+      const dataType = DiskSpaceUsed
       const path     = '/'
 
       if (data.type === dataType) {

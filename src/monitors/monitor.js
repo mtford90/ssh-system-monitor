@@ -4,11 +4,11 @@ import * as commands from '../commands/index'
 import EventEmitter from 'events'
 
 import {
-  COMMAND_CPU_USAGE,
-  COMMAND_SWAP_USED_PERCENTAGE,
-  COMMAND_MEMORY_USED_PERCENTAGE,
-  COMMAND_AVERAGE_LOAD,
-  COMMAND_PERCENTAGE_DISK_SPACE_USED
+  CpuUsage,
+  SwapUsed,
+  MemoryUsed,
+  AverageLoad,
+  DiskSpaceUsed
 } from '../commands/constants'
 import {cleanServer} from '../util/data'
 
@@ -67,7 +67,7 @@ export function monitor (servers, opts = {}) {
         diskSpaceUsed[path] = null
       })
 
-      latest[COMMAND_PERCENTAGE_DISK_SPACE_USED] = diskSpaceUsed
+      latest[DiskSpaceUsed] = diskSpaceUsed
       emitter.latest[s.ssh.host]                 = latest
     }
   })
@@ -115,13 +115,13 @@ export function monitor (servers, opts = {}) {
     const paths = (server.paths || [])
 
     const _intervals = [
-      simpleCommandInterval(COMMAND_CPU_USAGE),
-      simpleCommandInterval(COMMAND_SWAP_USED_PERCENTAGE),
-      simpleCommandInterval(COMMAND_MEMORY_USED_PERCENTAGE),
-      simpleCommandInterval(COMMAND_AVERAGE_LOAD),
+      simpleCommandInterval(CpuUsage),
+      simpleCommandInterval(SwapUsed),
+      simpleCommandInterval(MemoryUsed),
+      simpleCommandInterval(AverageLoad),
       ...paths.map(path => {
         return asyncInterval(async () => {
-          const type = COMMAND_PERCENTAGE_DISK_SPACE_USED
+          const type = DiskSpaceUsed
 
           const value = await acquireAndReleaseClient(client => commands.percentageDiskSpaceUsed(client, path))
 
