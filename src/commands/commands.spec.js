@@ -1,8 +1,8 @@
 import chai from 'chai'
-import * as config from '../app/config'
 import Client from 'ssh2'
-import * as commands from './commands'
+import * as commands from './index'
 import _ from 'lodash'
+import {servers} from '../../examples/config'
 
 const assert = chai.assert
 
@@ -24,8 +24,8 @@ describe('commands', function () {
   let conn = null
 
   before(async () => {
-    let server = config.servers[0].ssh
-    conn       = await getConnection(server)
+    let server    = servers[0].ssh
+    conn          = await getConnection(server)
   })
 
   after(() => {

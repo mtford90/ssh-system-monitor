@@ -1,8 +1,8 @@
 import chai from 'chai'
-import * as config from '../../app/config'
 import nedbMonitor from '../monitors/nedbMonitor'
 import api from './index'
 import * as http from '../util/http'
+import {servers} from '../../examples/config'
 
 const assert = chai.assert
 
@@ -21,7 +21,7 @@ describe('/api', function () {
   let app = null
 
   before(() => {
-    m   = nedbMonitor(config.servers, {rate: 250})
+    m   = nedbMonitor(servers, {rate: 250})
     app = api(m)
   })
 

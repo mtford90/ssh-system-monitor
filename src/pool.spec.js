@@ -1,8 +1,8 @@
 import chai from 'chai'
-import * as config from '../app/config'
 import {constructPool} from './pool'
 import _ from 'lodash'
-import {cpuUsage} from './commands'
+import {cpuUsage} from './commands/index'
+import {servers} from '../examples/config'
 
 const assert = chai.assert
 
@@ -12,7 +12,7 @@ describe('pool', function () {
   let pool
 
   before(() => {
-    pool = constructPool(config.servers[0])
+    pool = constructPool(servers[0])
   })
 
   after(async () => {

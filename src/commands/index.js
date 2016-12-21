@@ -3,6 +3,7 @@ import keymirror from 'keymirror'
 import _ from 'lodash'
 import retry from 'retry'
 
+
 const MEM_INFO_KEY = keymirror({
   MemTotal:          null,
   MemFree:           null,

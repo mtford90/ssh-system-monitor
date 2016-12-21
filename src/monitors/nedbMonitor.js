@@ -9,6 +9,7 @@ import DataStore from 'nedb'
  * @param {object[]} servers - a list of server configurations
  * @param {object} [opts]
  * @param {object} [opts.nedb] - options passed to nedb
+ * @param {number} [opts.rate] - rate in ms. Defaults to 10000ms (10s)
  * @returns {function(): *} - call to stop the monitor
  */
 export default function (servers, opts = {}) {

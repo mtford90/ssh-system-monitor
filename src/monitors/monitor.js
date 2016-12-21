@@ -1,10 +1,19 @@
 import _ from 'lodash'
 import {constructPool} from '../pool'
-import * as commands from '../commands'
+import * as commands from '../commands/index'
 import EventEmitter from 'events'
 
-const ERROR_POOL_FACTORY_CREATE  = 'factoryCreateError'
-const ERROR_POOL_FACTORY_DESTROY = 'factoryDestroyError'
+import {
+  COMMAND_CPU_USAGE,
+  COMMAND_SWAP_USED_PERCENTAGE,
+  COMMAND_MEMORY_USED_PERCENTAGE,
+  COMMAND_AVERAGE_LOAD,
+  COMMAND_PERCENTAGE_DISK_SPACE_USED
+} from '../commands/constants'
+
+export const ERROR_POOL_FACTORY_CREATE  = 'factoryCreateError'
+export const ERROR_POOL_FACTORY_DESTROY = 'factoryDestroyError'
+
 
 /**
  * Wraps setInterval ensuring that the function doesn't trigger if
@@ -49,6 +58,7 @@ function cleanServer (server) {
 /**
  * @param {object[]} servers
  * @param {object} [opts]
+ * @param {number} [opts.rate] - rate in ms. Defaults to 10000ms (10s)
  */
 export function monitor (servers, opts = {}) {
   const pools     = {}
@@ -59,12 +69,21 @@ export function monitor (servers, opts = {}) {
 
   servers.forEach(s => {
     if (s.ssh && s.ssh.host) {
-      emitter.latest[s.ssh.host] = {}
+      const paths         = s.paths || []
+      const latest        = {}
+      const diskSpaceUsed = {}
+
+      paths.forEach(path => {
+        diskSpaceUsed[path] = null
+      })
+
+      latest[COMMAND_PERCENTAGE_DISK_SPACE_USED] = diskSpaceUsed
+      emitter.latest[s.ssh.host]                 = latest
     }
   })
 
   opts = {
-    rate: 1000,
+    rate: 10000,
     ...opts,
   }
 
@@ -85,13 +104,17 @@ export function monitor (servers, opts = {}) {
 
     pools[idx] = pool
 
-    const applyOnInterval = function (type, ...args) {
-      return asyncInterval(async () => {
-        const client = await pool.acquire()
-        const fn     = commands[type]
-        const value  = await fn.apply(fn, [client, ...args])
-        pool.release(client)
+    const acquireAndReleaseClient = async (fn) => {
+      const client = await pool.acquire()
+      const res    = await fn(client)
+      pool.release(client)
+      return res
+    }
 
+    const simpleCommandInterval = function (type) {
+      return asyncInterval(async () => {
+        const cmd   = commands[type]
+        const value = await acquireAndReleaseClient(client => cmd(client))
         // Store the latest values
         if (server.ssh && server.ssh.host) emitter.latest[server.ssh.host][type] = value
 
@@ -99,12 +122,31 @@ export function monitor (servers, opts = {}) {
       }, opts.rate)
     }
 
+    const paths = (server.paths || [])
+
     const _intervals = [
-      applyOnInterval('cpuUsage'),
-      applyOnInterval('swapUsedPercentage'),
-      applyOnInterval('memoryUsedPercentage'),
-      applyOnInterval('averageLoad'),
-      applyOnInterval('percentageDiskSpaceUsed', '/'),
+      simpleCommandInterval(COMMAND_CPU_USAGE),
+      simpleCommandInterval(COMMAND_SWAP_USED_PERCENTAGE),
+      simpleCommandInterval(COMMAND_MEMORY_USED_PERCENTAGE),
+      simpleCommandInterval(COMMAND_AVERAGE_LOAD),
+      ...paths.map(path => {
+        return asyncInterval(async () => {
+          const type = COMMAND_PERCENTAGE_DISK_SPACE_USED
+
+          const value = await acquireAndReleaseClient(client => commands.percentageDiskSpaceUsed(client, path))
+
+          if (server.ssh && server.ssh.host) {
+            emitter.latest[server.ssh.host][type][path] = value
+          }
+
+          emitter.emit('data', {
+            type,
+            server: cleanServer(server),
+            value,
+            path,
+          })
+        }, opts.rate)
+      })
     ]
 
     intervals[idx] = _intervals

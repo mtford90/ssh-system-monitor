@@ -1,0 +1,5 @@
+export const COMMAND_CPU_USAGE                  = 'cpuUsage'
+export const COMMAND_SWAP_USED_PERCENTAGE       = 'swapUsedPercentage'
+export const COMMAND_MEMORY_USED_PERCENTAGE     = 'memoryUsedPercentage'
+export const COMMAND_AVERAGE_LOAD               = 'averageLoad'
+export const COMMAND_PERCENTAGE_DISK_SPACE_USED = 'percentageDiskSpaceUsed'
