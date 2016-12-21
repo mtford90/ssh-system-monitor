@@ -1,5 +1,5 @@
 import chai from 'chai'
-import * as config from './config'
+import * as config from '../app/config'
 import {constructPool} from './pool'
 import _ from 'lodash'
 import {cpuUsage} from './commands'

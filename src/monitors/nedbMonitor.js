@@ -6,9 +6,9 @@ import {monitor} from './monitor'
 import DataStore from 'nedb'
 
 /**
- * @param {object[]} servers
+ * @param {object[]} servers - a list of server configurations
  * @param {object} [opts]
- * @param {object} [opts.nedb]
+ * @param {object} [opts.nedb] - options passed to nedb
  * @returns {function(): *} - call to stop the monitor
  */
 export default function (servers, opts = {}) {

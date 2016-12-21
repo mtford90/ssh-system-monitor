@@ -49,8 +49,10 @@ export async function get (path, params) {
 
   if (params) {
     const encoded = _encodeQueryParams(params)
-    path += encoded
+    path += `?${encoded}`
   }
+
+  console.log(`GET ${path}`)
 
   const res        = await fetch(path, opts)
   let responseBody = await res.text()
@@ -61,6 +63,8 @@ export async function get (path, params) {
   catch (err) {}
 
   if (_.isString(responseBody)) {
+    console.log(`GET ${path}`, responseBody)
+
     return responseBody
   }
   else {
@@ -70,6 +74,8 @@ export async function get (path, params) {
       err.message = responseBody.message
       throw err
     }
+
+    console.log(`GET ${path}`, JSON.stringify(responseBody))
 
     return responseBody
   }

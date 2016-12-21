@@ -1,5 +1,5 @@
 import chai from 'chai'
-import * as config from './config'
+import * as config from '../app/config'
 import Client from 'ssh2'
 import * as commands from './commands'
 import _ from 'lodash'

@@ -20,7 +20,7 @@ export function constructPool (server) {
   }
 
   const opts = {
-    max: 3,
+    max: 10,
     min: 1,
   }
 

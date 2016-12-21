@@ -11,10 +11,10 @@ const ERROR_POOL_FACTORY_DESTROY = 'factoryDestroyError'
  * the previous iteration hasn't finished executing (async)
  *
  * @param {function} fn
- * @param {number} [n]
+ * @param {number} [n] - rate in ms. Defaults to 10000ms (10s)
  * @returns {function(): *}
  */
-function asyncInterval (fn, n = 1000) {
+function asyncInterval (fn, n = 10000) {
   let working = false
 
   const interval = setInterval(() => {

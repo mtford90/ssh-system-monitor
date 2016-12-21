@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "mocha ./tests/**/*.spec.js --require ./tests/babelHook.js"
+    "test": "mocha ./tests/**/*.spec.js --require ./tests/babelHook.js",
+    "example-log-monitor": "babel-node examples/log-monitor -b es2015,stage-0",
+    "example-nedb-express-api": "babel-node examples/api-express-nedb -b es2015,stage-0"
   },
   "author": "",
   "license": "ISC",

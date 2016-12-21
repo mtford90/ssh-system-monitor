@@ -1,5 +1,5 @@
 import chai from 'chai'
-import * as config from '../config'
+import * as config from '../../app/config'
 import logMonitor from './logMonitor'
 
 const assert = chai.assert

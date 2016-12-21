@@ -1,6 +1,6 @@
 
 import chai from 'chai'
-import * as config from '../config'
+import * as config from '../../app/config'
 import monitor from './nedbMonitor'
 
 const assert = chai.assert

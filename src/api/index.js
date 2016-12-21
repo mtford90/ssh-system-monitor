@@ -3,7 +3,7 @@ import bodyParser from 'body-parser'
 import cors from 'cors'
 import _ from 'lodash'
 
-export default function (monitor, opts = {}) {
+export default function start (monitor, opts = {}) {
   opts = {
     cors: true,
     ...opts,
@@ -21,19 +21,17 @@ export default function (monitor, opts = {}) {
     const host = req.query.host
     const stat = req.params.stat
 
-    let data = null
-
     if (host) {
-      data = monitor.latest[host][stat]
+      const value = monitor.latest[host][stat]
+      res.status(200).send(JSON.stringify({ok: true, value}))
     }
     else {
-      data = {}
+      const data = {}
       _.forEach(monitor.latest, (stats, host) => {
         data[host] = stats[stat]
       })
+      res.status(200).send(JSON.stringify({ok: true, data}))
     }
-
-    res.status(200).send(JSON.stringify({ok: true, data}))
   })
 
   const port = process.env.PORT || 3000
