@@ -3,6 +3,9 @@ require("babel-core/register")({
     "es2015",
     "stage-0",
     "stage-1",
+  ],
+  plugins: [
+    "transform-flow-strip-types",
   ]
 })
 

@@ -1,7 +1,7 @@
 import chai from 'chai'
 import {constructPool} from './pool'
 import _ from 'lodash'
-import {cpuUsage} from './commands/index'
+import {cpuUsage} from './platforms/linux/system'
 import {servers} from '../examples/config'
 
 const assert = chai.assert

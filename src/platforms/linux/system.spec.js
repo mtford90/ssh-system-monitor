@@ -1,31 +1,19 @@
 import chai from 'chai'
-import Client from 'ssh2'
-import * as commands from './index'
+import * as commands from './system'
 import _ from 'lodash'
-import {servers} from '../../examples/config'
+import {servers} from '../../../examples/config'
+import {getClient} from '../../util/ssh'
 
 const assert = chai.assert
 
-function getConnection (server) {
-  return new Promise((resolve, reject) => {
-    const client = new Client()
-    let listener = () => {
-      client.removeListener('ready', listener)
-      resolve(client)
-    }
-    client.on('ready', listener)
-    client.connect(server)
-  })
-}
-
-describe('commands', function () {
+describe('system', function () {
   this.timeout(10000)
 
   let conn = null
 
   before(async () => {
-    let server    = servers[0].ssh
-    conn          = await getConnection(server)
+    let server = servers[0].ssh
+    conn       = await getClient(server)
   })
 
   after(() => {

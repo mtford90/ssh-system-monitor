@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import {constructPool} from '../pool'
-import * as commands from '../commands/index'
+import * as commands from '../platforms/linux/system'
 import EventEmitter from 'events'
 
 import {
@@ -9,7 +9,7 @@ import {
   MemoryUsed,
   AverageLoad,
   DiskSpaceUsed
-} from '../commands/constants'
+} from '../platforms/linux/constants'
 import {cleanServer} from '../util/data'
 
 export const ERROR_POOL_FACTORY_CREATE  = 'factoryCreateError'

@@ -7,7 +7,7 @@ import {
   MemoryUsed,
   AverageLoad,
   DiskSpaceUsed
-} from '../commands/constants'
+} from '../platforms/linux/constants'
 
 
 function getCPUUsageAlert (data) {

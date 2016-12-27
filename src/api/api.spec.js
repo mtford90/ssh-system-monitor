@@ -39,7 +39,9 @@ describe('/api', function () {
     const host          = data.server.ssh.host
     const monitorValue  = m.latest[host][stat]
     const returnedValue = body.data[host]
-    assert.equal(monitorValue, returnedValue)
+    assert.equal(monitorValue['1'], returnedValue['1'])
+    assert.equal(monitorValue['5'], returnedValue['5'])
+    assert.equal(monitorValue['15'], returnedValue['15'])
   })
 
   it("latest stat for a host", async () => {
@@ -58,8 +60,8 @@ describe('/api', function () {
     console.log('monitorValue', monitorValue)
     console.log('returnedValue', returnedValue)
 
-    assert(monitorValue)
-    assert(returnedValue)
+    assert(monitorValue !== undefined && monitorValue !== null)
+    assert(returnedValue !== undefined && returnedValue !== null)
     assert.equal(monitorValue, returnedValue)
   })
 

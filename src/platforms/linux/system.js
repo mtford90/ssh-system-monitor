@@ -1,8 +1,7 @@
 import Client from 'ssh2'
 import keymirror from 'keymirror'
 import _ from 'lodash'
-import retry from 'retry'
-
+import {faultTolerantExecute} from '../../util/ssh'
 
 const MEM_INFO_KEY = keymirror({
   MemTotal:          null,
@@ -45,48 +44,6 @@ const MEM_INFO_KEY = keymirror({
   DirectMap2M:       null,
 })
 
-/**
- * @param {Client} client
- * @param {string} cmd
- * @returns {Promise}
- */
-function execute (client, cmd) {
-  return new Promise((resolve, reject) => {
-    client.exec(cmd, (err, stream) => {
-      if (err) reject(err)
-      else {
-        stream.on('data', function (data) {
-          resolve(data.toString())
-        }).stderr.on('data', function (data) {
-          const errString = JSON.stringify(data.toString())
-          reject(new Error(`error executing ${cmd}: ${errString}`))
-        })
-      }
-    })
-  })
-}
-
-/**
- * @param {Client} client
- * @param {string} cmd
- * @returns {Promise}
- */
-function faultTolerantExecute (client, cmd) {
-  return new Promise((resolve, reject) => {
-    const timeout   = 1 * 1000
-    const operation = retry.operation({retries: 5, minTimeout: timeout, maxTimeout: timeout});
-    // TODO: Log retry attempts
-    operation.attempt(() => {
-      execute(client, cmd).then(resolve).catch(err => {
-        if (operation.retry(err)) {
-          return
-        }
-
-        reject(operation.mainError())
-      })
-    })
-  })
-}
 
 /**
  * @param {Client} client

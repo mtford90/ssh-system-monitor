@@ -2,7 +2,7 @@ import chai from 'chai'
 import {monitor} from './monitor'
 import _ from 'lodash'
 import {servers} from '../../examples/config'
-import {DiskSpaceUsed} from '../commands/constants'
+import {DiskSpaceUsed} from '../platforms/linux/constants'
 
 const assert = chai.assert
 
