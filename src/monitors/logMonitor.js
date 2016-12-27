@@ -6,10 +6,10 @@
 
 import Monitor from './monitor'
 import type {MonitorOptions} from './monitor'
-import type {Server} from '../types'
+import type {ServerDefinition} from '../types'
 
 export default class LogMonitor extends Monitor {
-  constructor (servers: Server[], opts: MonitorOptions) {
+  constructor (servers: ServerDefinition[], opts: MonitorOptions) {
     super(servers, opts)
 
     this.on('data', data => {

@@ -1,13 +1,6 @@
 import Slack from 'slack-node'
 import {isString} from 'lodash'
-
-import {
-  CpuUsage,
-  SwapUsed,
-  MemoryUsed,
-  AverageLoad,
-  DiskSpaceUsed
-} from '../platforms/linux/constants'
+import Stats from '../types'
 
 
 function getCPUUsageAlert (data) {

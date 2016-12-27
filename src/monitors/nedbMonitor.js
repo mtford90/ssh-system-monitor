@@ -7,7 +7,7 @@
 import Monitor from './monitor'
 import DataStore from 'nedb'
 import type {MonitorOptions} from './monitor'
-import type {Server} from '../types'
+import type {ServerDefinition} from '../types'
 
 // https://github.com/louischatriot/nedb
 type NEDBOptions = {
@@ -25,7 +25,7 @@ type NEDBOptions = {
 export default class NEDBMonitor extends Monitor {
   db: DataStore
 
-  constructor (servers: Server[], monitorOptions?: MonitorOptions, nedbOptions?: NEDBOptions) {
+  constructor (servers: ServerDefinition[], monitorOptions?: MonitorOptions, nedbOptions?: NEDBOptions) {
     super(servers, monitorOptions)
     this.db = new DataStore(nedbOptions)
     this.ensureIndices(['value', 'type', 'host']).catch(err => {

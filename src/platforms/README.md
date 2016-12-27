@@ -1,1 +1,1 @@
-Server stats, process info etc on various platforms e.g. linux
+ServerDefinition stats, process info etc on various platforms e.g. linux

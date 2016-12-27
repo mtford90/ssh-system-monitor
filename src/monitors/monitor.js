@@ -6,7 +6,7 @@ import * as system from '../platforms/linux/system'
 import EventEmitter from 'events'
 import {Pool} from 'generic-pool'
 import Client from 'ssh2'
-import type {Server, Stat} from '../types'
+import type {ServerDefinition, Datum, ProcessDefinition} from '../types'
 import {cleanServer} from '../util/data'
 import type {AverageLoad} from '../platforms/linux/system'
 
@@ -36,32 +36,70 @@ export type MonitorOptions = {
   rate?: number,
 }
 
+export type ServerStats = {
+  cpuUsage: number | null,
+  swapUsedPercentage: number | null,
+  memoryUsedPercentage: number | null,
+  averageLoad: AverageLoad | null,
+  percentageDiskSpaceUsed: {
+    [path:string]: number | null
+  },
+  processInfo: {
+    [processId:string]: string | null
+  }
+}
+
+
 export default class Monitor extends EventEmitter {
   opts: MonitorOptions
-  servers: Server[]
+  servers: ServerDefinition[]
   pools: {[id:number]: Pool}           = {}
-  latest: {
-    [host:string]: {
-      cpuUsage?: number,
-      swapUsedPercentage?: number,
-      memoryUsedPercentage?: number,
-      averageLoad?: AverageLoad,
-      percentageDiskSpaceUsed?: {
-        [path:string]: number
-      },
-    }
-  }                                    = {}
+  latest: {[host:string]: ServerStats}
   intervals: {[id:number]: Function[]} = {}
 
-  constructor (servers: Server[], opts?: MonitorOptions = {}) {
+  constructor (servers: ServerDefinition[], opts?: MonitorOptions = {}) {
     super()
     this.servers = servers
     this.opts    = {
       rate: 10000,
       ...opts,
     }
+    this._initLatest(servers)
 
     this._start()
+  }
+
+  _initLatest (servers: ServerDefinition[]) {
+    const latest = {}
+
+    servers.map((s: ServerDefinition) => {
+      const host = s.ssh.host
+
+      const paths: string[]                = s.paths || []
+      const processes: ProcessDefinition[] = s.processes || []
+
+      const percentageDiskSpaceUsed = {}
+      const processInfo             = {}
+
+      paths.forEach((p: string) => {
+        percentageDiskSpaceUsed[p] = null
+      })
+
+      processes.map((p: ProcessDefinition) => {
+        processInfo[p.id] = null
+      })
+
+      latest[host] = {
+        cpuUsage:             null,
+        swapUsedPercentage:   null,
+        memoryUsedPercentage: null,
+        averageLoad:          null,
+        percentageDiskSpaceUsed,
+        processes,
+      }
+    })
+
+    this.latest = latest
   }
 
   async _acquireAndReleaseClient (id: number, fn: (client: Client) => Promise<any>): any {
@@ -72,23 +110,33 @@ export default class Monitor extends EventEmitter {
     return res
   }
 
-  simpleCommandInterval (id: number, type: Stat): Function {
+  emitData (datum: Datum) {
+    this.emit('data', datum)
+  }
+
+  // TODO: Can't be doing this
+  simpleCommandInterval (id: number, type: 'cpuUsage' | 'swapUsedPercentage' | 'memoryUsedPercentage' | 'averageLoad'): Function {
     return asyncInterval(async () => {
-      const cmd: Function  = system[type]
-      const server: Server = this.servers[id]
-      const value          = await this._acquireAndReleaseClient(id, client => cmd(client))
+      const cmd: Function            = system[type]
+      const server: ServerDefinition = this.servers[id]
+      const value                    = await this._acquireAndReleaseClient(id, client => cmd(client))
 
       this.latest[server.ssh.host][type] = value
-
-      this.emit('data', {type, server: cleanServer(server), value})
+      this.emitData({
+        type,
+        server: cleanServer(server),
+        value,
+        extra:  {}
+      })
     }, this.opts.rate)
   }
 
   _start () {
     const servers = this.servers
-    servers.map((s: Server) => {
+    servers.map((s: ServerDefinition) => {
       const paths         = s.paths || []
-      const latest        = {}
+      const host          = s.ssh.host
+      const latest        = this.latest[host]
       const diskSpaceUsed = {}
 
       paths.forEach(path => {
@@ -96,10 +144,10 @@ export default class Monitor extends EventEmitter {
       })
 
       latest.percentageDiskSpaceUsed = diskSpaceUsed
-      this.latest[s.ssh.host]        = latest
+      this.latest[host]              = latest
     })
 
-    _.forEach(servers, (server: Server, idx: number) => {
+    _.forEach(servers, (server: ServerDefinition, idx: number) => {
       const pool      = constructPool(server)
       this.pools[idx] = pool
 
@@ -124,20 +172,26 @@ export default class Monitor extends EventEmitter {
         this.simpleCommandInterval(idx, 'averageLoad'),
         ...paths.map(path => {
           return asyncInterval(async () => {
-            const type = 'percentageDiskSpaceUsed'
 
-            const value = await this._acquireAndReleaseClient(idx, client => system.percentageDiskSpaceUsed(client, path))
+            const value: number = (await this._acquireAndReleaseClient(idx, client => system.percentageDiskSpaceUsed(client, path)))
 
             if (server.ssh && server.ssh.host) {
-              this.latest[server.ssh.host][type][path] = value
+              if (!this.latest[server.ssh.host].percentageDiskSpaceUsed) {
+                this.latest[server.ssh.host].percentageDiskSpaceUsed = {}
+              }
+
+              this.latest[server.ssh.host].percentageDiskSpaceUsed[path] = value
             }
 
-            this.emit('data', {
-              type,
-              server: cleanServer(server),
+            this.emitData({
+              type:  'percentageDiskSpaceUsed',
+              server,
               value,
-              path,
+              extra: {
+                path,
+              }
             })
+
           }, this.opts.rate)
         })
       ]

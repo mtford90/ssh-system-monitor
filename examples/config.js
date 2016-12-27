@@ -4,27 +4,45 @@ import child_process from 'child_process'
 
 const privateKey = child_process.execSync('cat /Users/mike/.ssh/id_rsa').toString()
 
-import type {Server} from '../src/types'
+import type {ServerDefinition, ProcessDefinition} from '../src/types'
 
-export const servers: Server[] = [
+const operatorProcesses: ProcessDefinition[] = [
   {
-    name:  'Operator Dev',
-    ssh:   {
+    grep: 'node /app/src/push.js',
+    id:   'push',
+    name: 'Push Service'
+  },
+  {
+    grep: 'node /app/src/paying.js',
+    id:   'paying',
+    name: 'Paying Service'
+  },
+]
+
+export const servers: ServerDefinition[] = [
+  {
+    name:      'Operator Dev',
+    ssh:       {
       host:     'operator-dev.barchick.com',
       username: 'root',
       privateKey,
     },
-    paths: [
+    paths:     [
       '/'
-    ]
+    ],
+    processes: operatorProcesses
   },
   {
-    name: 'Operator Prod',
-    ssh:  {
+    name:      'Operator Prod',
+    ssh:       {
       host:     'operator.barchick.com',
       username: 'root',
       privateKey,
-    }
+    },
+    paths:     [
+      '/'
+    ],
+    processes: operatorProcesses
   },
   {
     name: 'Portal Dev',
