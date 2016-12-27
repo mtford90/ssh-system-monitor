@@ -1,5 +1,5 @@
 import chai from 'chai'
-import nedbMonitor from '../monitors/nedbMonitor'
+import NEDBMonitor from '../monitors/nedbMonitor'
 import api from './index'
 import * as http from '../util/http'
 import {servers} from '../../examples/config'
@@ -15,13 +15,13 @@ function once (emitter, event) {
 }
 
 describe('/api', function () {
-  this.timeout(5000)
+  this.timeout(20000)
 
   let m   = null
   let app = null
 
   before(() => {
-    m   = nedbMonitor(servers, {rate: 250})
+    m   = new NEDBMonitor(servers, {rate: 250})
     app = api(m)
   })
 
@@ -33,7 +33,7 @@ describe('/api', function () {
   it("latest stat for all hosts", async () => {
     const data = await once(m, 'data')
     const stat = data.type
-    const body = await http.get(`http://localhost:3000/api/latest/${stat}`)
+    const body = await http.getJSON(`http://localhost:3000/api/latest/${stat}`)
     console.log('responseBody', body)
     console.log('m.latest', m.latest)
     const host          = data.server.ssh.host
@@ -48,7 +48,7 @@ describe('/api', function () {
     const data   = await once(m, 'data')
     const stat   = data.type
     const host   = data.server.ssh.host
-    const body   = await http.get(`http://localhost:3000/api/latest/${stat}`, {host: host})
+    const body   = await http.getJSON(`http://localhost:3000/api/latest/${stat}`, {host: host})
     const latest = m.latest
 
     const monitorValue  = latest[host][stat]
@@ -66,7 +66,7 @@ describe('/api', function () {
   })
 
   it("config", async () => {
-    const body = await http.get(`http://localhost:3000/api/config`)
+    const body = await http.getJSON(`http://localhost:3000/api/config`)
     console.log('responseBody', body)
   })
 })

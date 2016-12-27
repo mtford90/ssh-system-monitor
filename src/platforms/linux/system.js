@@ -1,3 +1,5 @@
+/* @flow */
+
 import Client from 'ssh2'
 import keymirror from 'keymirror'
 import _ from 'lodash'
@@ -45,10 +47,7 @@ const MEM_INFO_KEY = keymirror({
 })
 
 
-/**
- * @param {Client} client
- */
-export async function cpuUsage (client) {
+export async function cpuUsage (client: Client): Promise<number> {
   const data = await faultTolerantExecute(
     client,
     'top -b -d1 -n1|grep -i "Cpu(s)"|head -c21|cut -d \' \' -f3|cut -d \'%\' -f1'
@@ -57,10 +56,7 @@ export async function cpuUsage (client) {
   return parseFloat(data)
 }
 
-/**
- * @param {Client} client
- */
-export async function memoryInfo (client) {
+export async function memoryInfo (client: Client): Promise<Object> {
   const data = await faultTolerantExecute(
     client,
     'cat /proc/meminfo',
@@ -87,10 +83,7 @@ export async function memoryInfo (client) {
   return info
 }
 
-/**
- * @param {Client} client
- */
-export async function swapUsedPercentage (client) {
+export async function swapUsedPercentage (client: Client): Promise<number> {
   const info = await memoryInfo(client)
 
   const swapFree  = info[MEM_INFO_KEY.SwapFree];
@@ -101,10 +94,7 @@ export async function swapUsedPercentage (client) {
   return perc
 }
 
-/**
- * @param {Client} client
- */
-export async function memoryUsedPercentage (client) {
+export async function memoryUsedPercentage (client: Client): Promise<number> {
   const info       = await memoryInfo(client)
   const memoryFree = info[MEM_INFO_KEY.MemFree];
   const cached     = info[MEM_INFO_KEY.Cached];
@@ -114,10 +104,13 @@ export async function memoryUsedPercentage (client) {
   return perc
 }
 
-/**
- * @param {Client} client
- */
-export async function averageLoad (client) {
+export type AverageLoad = {
+  '1': number,
+  '5': number,
+  '15': number,
+}
+
+export async function averageLoad (client: Client): Promise<AverageLoad> {
   let data = await faultTolerantExecute(
     client,
     'uptime',
@@ -125,24 +118,16 @@ export async function averageLoad (client) {
 
   let averages = data.split('load average:');
 
-
   averages = averages[averages.length - 1].trim().split(' ');
 
-  averages = {
-    1:  parseFloat(averages[0]),
-    5:  parseFloat(averages[1]),
-    15: parseFloat(averages[2])
+  return {
+    '1':  parseFloat(averages[0]),
+    '5':  parseFloat(averages[1]),
+    '15': parseFloat(averages[2]),
   };
-
-  return averages
 }
 
-
-/**
- * @param {Client} client
- * @param {string} path
- */
-export async function percentageDiskSpaceUsed (client, path) {
+export async function percentageDiskSpaceUsed (client: Client, path: string): Promise<number> {
   let data = await faultTolerantExecute(
     client,
     'df ' + path + ' -h | tail -n 1',

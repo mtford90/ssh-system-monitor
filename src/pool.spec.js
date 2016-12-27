@@ -7,7 +7,7 @@ import {servers} from '../examples/config'
 const assert = chai.assert
 
 describe('pool', function () {
-  this.timeout(10000)
+  this.timeout(20000)
 
   let pool
 

@@ -7,7 +7,7 @@ import {getClient} from '../../util/ssh'
 const assert = chai.assert
 
 describe('system', function () {
-  this.timeout(10000)
+  this.timeout(20000)
 
   let conn = null
 

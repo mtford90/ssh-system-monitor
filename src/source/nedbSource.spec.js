@@ -2,7 +2,7 @@ import chai from 'chai'
 
 const assert = chai.assert
 
-describe('nedbMonitor', function () {
+describe('NEDBMonitor', function () {
   this.timeout(10000)
 
 

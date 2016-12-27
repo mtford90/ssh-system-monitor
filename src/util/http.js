@@ -1,18 +1,42 @@
+/* @flow */
+
 import _ from 'lodash'
 
-function _encodeQueryParams (query) {
+function _encodeQueryParams (query: Object): string {
   const encoded = Object.keys(query)
     .map(k => encodeURIComponent(k) + '=' + encodeURIComponent(query[k]))
     .join('&')
   return encoded
 }
 
-export async function post (path, params, body) {
-  const opts = {
+// https://developer.mozilla.org/en-US/docs/Web/API/GlobalFetch/fetch
+export type FetchOptions = {
+  method?: 'POST' | 'GET' | 'DELETE' | 'HEAD' | 'OPTIONS' | 'PATCH' | 'PUT' | null,
+  headers?: Object | null,
+  body?: string | Blob | FormData | URLSearchParams | null,
+  mode?: 'cors' | 'no-cors' | 'same-origin' | null,
+  credentials?: 'omit' | 'same-origin' | 'include' | null,
+  cache?: 'default' | 'no-store' | 'reload' | 'no-cache' | 'force-cache' | 'only-if-cached' | null,
+  redirect?: 'follow' | 'error' | 'manual' | null,
+  referrer?: 'no-referrer' | 'client' | string | null,
+  referrerPolicy?: 'no-referrer' | 'no-referrer-when-downgrade' | 'origin-only' | 'origin-when-cross-origin' | 'unsafe-url' | '' | null,
+  integrity?: string | null,
+}
+
+export class APIError extends Error {
+  code: number
+
+  constructor (msg: any) {
+    super(msg)
+  }
+}
+
+export async function post (path: string, params: Object, body: Object) {
+  const opts: FetchOptions = {
     method:  'POST',
     headers: {
       'Accept':       'application/json',
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
     }
   }
 
@@ -28,8 +52,9 @@ export async function post (path, params, body) {
   const res = await fetch(path, opts)
 
   const responseBody = await res.json()
+
   if (!responseBody.ok) {
-    const err   = new Error(responseBody.message || 'Error')
+    const err   = new APIError(responseBody.message || 'Error')
     err.code    = responseBody.code
     err.message = responseBody.message
     throw err
@@ -38,7 +63,7 @@ export async function post (path, params, body) {
   return responseBody
 }
 
-export async function get (path, params) {
+export async function get (path: string, params?: Object): Promise<string> {
   const opts = {
     method:  'GET',
     headers: {
@@ -54,29 +79,32 @@ export async function get (path, params) {
 
   console.log(`GET ${path}`)
 
-  const res        = await fetch(path, opts)
-  let responseBody = await res.text()
+  const res                  = await fetch(path, opts)
+  const responseText: string = await res.text()
+
+  console.log(`GET ${path}`, responseText)
+
+  return responseText
+
+}
+
+export async function getJSON (path: string, params?: Object): Promise<Object> {
+  const responseText: string = await get(path, params)
+
+  let responseObject: Object | null = null
 
   try {
-    responseBody = JSON.parse(responseBody)
+    responseObject = JSON.parse(responseText)
   }
-  catch (err) {}
-
-  if (_.isString(responseBody)) {
-    console.log(`GET ${path}`, responseBody)
-
-    return responseBody
+  catch (err) {
+    throw new APIError(`API didn't return JSON...`)
   }
-  else {
-    if (responseBody && !responseBody.ok) {
-      const err   = new Error(responseBody.message || 'Error')
-      err.code    = responseBody.code
-      err.message = responseBody.message
-      throw err
-    }
 
-    console.log(`GET ${path}`, JSON.stringify(responseBody))
-
-    return responseBody
+  if (!responseObject.ok) {
+    const err = new APIError(responseText.message || 'Error')
+    err.code  = responseObject.code
+    throw err
   }
+
+  return responseObject
 }

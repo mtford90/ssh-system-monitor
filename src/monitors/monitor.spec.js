@@ -1,5 +1,5 @@
 import chai from 'chai'
-import {monitor} from './monitor'
+import Monitor from './monitor'
 import _ from 'lodash'
 import {servers} from '../../examples/config'
 import {DiskSpaceUsed} from '../platforms/linux/constants'
@@ -7,10 +7,10 @@ import {DiskSpaceUsed} from '../platforms/linux/constants'
 const assert = chai.assert
 
 describe('monitor', function () {
-  this.timeout(10000)
+  this.timeout(20000)
 
   it("emits data", done => {
-    const m = monitor(servers, {rate: 250})
+    const m = new Monitor(servers, {rate: 250})
 
     m.on('data', data => {
       console.log('data', data)
@@ -32,7 +32,7 @@ describe('monitor', function () {
   })
 
   it("emits percentage disk space used", done => {
-    const m = monitor(servers, {rate: 250})
+    const m = new Monitor(servers, {rate: 250})
 
     m.on('data', data => {
       console.log('received data', data)

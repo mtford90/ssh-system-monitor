@@ -1,11 +1,18 @@
+/* @flow */
+
 import express from 'express'
 import bodyParser from 'body-parser'
 import cors from 'cors'
 import _ from 'lodash'
 import {cleanServer} from '../util/data'
+import Monitor from '../monitors/monitor'
 
-export default function start (monitor, opts = {}) {
-  opts = {
+export type ApiOptions = {
+  cors: boolean
+}
+
+export default function start (monitor: Monitor, opts: {cors: boolean}) {
+  const _opts: ApiOptions = {
     cors: true,
     ...opts,
   }
@@ -14,7 +21,7 @@ export default function start (monitor, opts = {}) {
   app.use(bodyParser.json())
   app.use(bodyParser.urlencoded({extended: true}))
 
-  if (opts.cors) {
+  if (_opts.cors) {
     app.use(cors())
   }
 

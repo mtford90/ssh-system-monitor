@@ -1,29 +1,62 @@
+/** @flow **/
+
 /**
  * A monitor that inserts all data into an nedb instance
  */
 
-import {monitor} from './monitor'
+import Monitor from './monitor'
 import DataStore from 'nedb'
+import type {MonitorOptions} from './monitor'
+import type {Server} from '../types'
 
-/**
- * @param {object[]} servers - a list of server configurations
- * @param {object} [opts]
- * @param {object} [opts.nedb] - options passed to nedb
- * @param {number} [opts.rate] - rate in ms. Defaults to 10000ms (10s)
- * @returns {function(): *} - call to stop the monitor
- */
-export default function (servers, opts = {}) {
-  const m = monitor(servers, opts)
+// https://github.com/louischatriot/nedb
+type NEDBOptions = {
+  filename?: string,
+  inMemoryOnly?: boolean,
+  timestampData?: boolean,
+  autoload?: boolean,
+  afterSerialization?: (data: string) => string,
+  beforeDeserialization?: (data: string) => string,
+  corruptAlertThreshold?: number,
+  compareStrings?: (a: string, b: string) => -1 | 0 | 1,
+}
 
-  const nedbOpts = {
-    ...(opts.nedb || {})
+
+export default class NEDBMonitor extends Monitor {
+  db: DataStore
+
+  constructor (servers: Server[], monitorOptions?: MonitorOptions, nedbOptions?: NEDBOptions) {
+    super(servers, monitorOptions)
+    this.db = new DataStore(nedbOptions)
+    this.ensureIndices(['value', 'type', 'host']).catch(err => {
+      console.log("error configuring indices", err)
+    })
+
+    this.on('data', data => {
+      data = {...data}
+
+      const server = data.server
+      const ssh    = server.ssh
+
+      if (ssh) {
+        data.host = ssh.host
+      }
+
+      this.db.insert(data, (err, doc) => {
+        if (err) {
+          console.log('Error inserting into nedb', err.stack) // TODO
+          this.emit('error', {type: 'nedb', err})
+        }
+        else {
+          console.log('inserted into nedb', doc)
+        }
+      })
+    })
   }
 
-  const db = new DataStore(nedbOpts)
-
-  const ensureIndex = function (fieldName) {
+  ensureIndex (fieldName: string): Promise<void> {
     return new Promise((resolve, reject) => {
-      db.ensureIndex({fieldName}, err => {
+      this.db.ensureIndex({fieldName}, err => {
         if (err) {
           console.log(`error creating index for ${fieldName}`)
           reject(err)
@@ -36,38 +69,8 @@ export default function (servers, opts = {}) {
     })
   }
 
-  Promise.all([
-    ensureIndex('value'),
-    ensureIndex('type'),
-    ensureIndex('host'),
-  ]).then(() => {
-    console.log('created all indices')
-  }).catch(err => {
-    console.log('error creating indices', err.stack)
-  })
-
-  m.on('data', data => {
-    data = {...data}
-
-    const server = data.server
-    const ssh    = server.ssh
-
-    if (ssh) {
-      data.host = ssh.host
-    }
-
-    db.insert(data, (err, doc) => {
-      if (err) {
-        console.log('Error inserting into nedb', err.stack) // TODO
-        m.emit('error', {type: 'nedb', err})
-      }
-      else {
-        console.log('inserted into nedb', doc)
-      }
-    })
-  })
-
-  m.database = db
-
-  return m
+  ensureIndices (fieldNames: string[]): Promise<void[]> {
+    return Promise.all(fieldNames.map((fieldName: string) => this.ensureIndex(fieldName)))
+  }
 }
+

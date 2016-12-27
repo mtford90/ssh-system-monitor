@@ -1,7 +1,10 @@
+/* @flow */
+
 import genericPool from 'generic-pool'
 import Client from 'ssh2'
+import type {Server} from './types'
 
-export function constructPool (server) {
+export function constructPool (server: Server) {
   const factory = {
     create:  () => {
       return new Promise((resolve, reject) => {

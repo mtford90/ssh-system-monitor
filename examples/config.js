@@ -1,11 +1,15 @@
+/* @flow */
+
 import child_process from 'child_process'
 
 const privateKey = child_process.execSync('cat /Users/mike/.ssh/id_rsa').toString()
 
-export const servers = [
+import type {Server} from '../src/types'
+
+export const servers: Server[] = [
   {
-    name: 'Operator Dev',
-    ssh:  {
+    name:  'Operator Dev',
+    ssh:   {
       host:     'operator-dev.barchick.com',
       username: 'root',
       privateKey,
@@ -29,7 +33,6 @@ export const servers = [
       username: 'root',
       privateKey,
     }
-
   },
   {
     name: 'Portal Prod',
