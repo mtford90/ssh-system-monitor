@@ -1,8 +1,8 @@
 /* @flow */
 
 import Router from 'express'
-import Monitor from '../monitors/monitor'
-import {cleanServer} from '../util/data'
+import Monitor from '../../monitors/monitor'
+import {cleanServer} from '../../util/data'
 import _ from 'lodash'
 
 export default function (monitor: Monitor) {

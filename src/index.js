@@ -6,3 +6,4 @@ import slack from './alerting/slack'
 
 export const monitors = {log, nedb}
 export const alerting = {slack}
+

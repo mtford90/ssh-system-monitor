@@ -1,12 +1,15 @@
-import {start, monitors} from '../../src'
-import {servers} from '../config'
+require("babel-core/register")({
+  presets: [
+    "es2015",
+    "stage-0",
+    "stage-1",
+  ],
+  plugins: [
+    "transform-decorators-legacy",
+    "transform-flow-strip-types",
+  ]
+});
 
-const monitor = monitors.nedb(servers)
+require('babel-polyfill');
 
-const server = start(monitor)
-
-const terminate = () => {
-  server.close()
-}
-
-process.on('SIGTERM', terminate).on('SIGINT', terminate).on('SIGHUP', terminate)
+module.exports = require('./example.babel');

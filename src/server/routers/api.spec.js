@@ -1,8 +1,8 @@
 import chai from 'chai'
-import NEDBMonitor from '../monitors/nedbMonitor'
-import api from './index'
-import * as http from '../util/http'
-import {servers} from '../../examples/config'
+import NEDBMonitor from '../../monitors/nedbMonitor'
+import api from '../server.babel'
+import * as http from '../../util/http'
+import {servers} from '../../../examples/config'
 
 const assert = chai.assert
 
