@@ -51,12 +51,13 @@ export type ServerStats = {
   }
 }
 
+export type LatestStats = {[host:string]: ServerStats}
 
 export default class Monitor extends EventEmitter {
   opts: MonitorOptions
   servers: ServerDefinition[]
   pools: {[id:number]: Pool}           = {}
-  latest: {[host:string]: ServerStats}
+  latest: LatestStats                  = {}
   intervals: {[id:number]: Function[]} = {}
 
   constructor (servers: ServerDefinition[], opts?: MonitorOptions = {}) {

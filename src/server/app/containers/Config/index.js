@@ -3,7 +3,6 @@
 import React, {Component, PropTypes} from 'react';
 import {connect} from 'react-redux'
 import type {ServerDefinition} from '../../../../types'
-import {$fetchConfig} from './redux'
 import {pretty} from '../../../../util/json'
 
 type Props = {
@@ -14,21 +13,13 @@ type Props = {
 @connect(
   state => {
     return {
-      config: state.config.config,
-    }
-  },
-  dispatch => {
-    return {
-      $fetchConfig: () => dispatch($fetchConfig())
+      config: state.root.config,
     }
   }
 )
 export default class Config extends Component {
   props: Props
 
-  componentDidMount () {
-    this.props.$fetchConfig()
-  }
 
   render () {
     console.log('rendering Home')

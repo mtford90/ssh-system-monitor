@@ -8,6 +8,8 @@ import MenuItem from 'material-ui/MenuItem';
 import RaisedButton from 'material-ui/RaisedButton';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import {withRouter} from 'react-router'
+import {connect} from 'react-redux'
+import {$fetchConfig} from './redux/reducers/root'
 
 type Props = {
   title: string,
@@ -15,6 +17,14 @@ type Props = {
   children?: any,
 };
 
+@connect(
+  null,
+  dispatch => {
+    return {
+      $fetchConfig: () => dispatch($fetchConfig())
+    }
+  }
+)
 @withRouter
 class Layout extends Component {
   state: {
@@ -30,6 +40,10 @@ class Layout extends Component {
     this.state = {
       open: false,
     };
+  }
+
+  componentDidMount () {
+    this.props.$fetchConfig()
   }
 
   handleToggle = () => {
@@ -59,16 +73,6 @@ class Layout extends Component {
               }
             >
               Home
-            </MenuItem>
-            <MenuItem
-              onClick={
-                () => {
-                  this.setState({open: !this.state.open});
-                  this.props.router.push('/about');
-                }
-              }
-            >
-              About
             </MenuItem>
             <MenuItem
               onClick={
