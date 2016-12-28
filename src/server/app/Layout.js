@@ -10,7 +10,7 @@ import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import {withRouter} from 'react-router'
 import {connect} from 'react-redux'
 import {$fetchConfig} from './redux/reducers/root'
-import type {Datum} from '../../types/index'
+import type {MonitorDatum} from '../../types/index'
 
 type Props = {
   title: string,
@@ -47,7 +47,7 @@ class Layout extends Component {
     this.props.$fetchConfig()
 
     const socket = window.io.connect();
-    socket.on('data', (data: Datum) => {
+    socket.on('data', (data: MonitorDatum) => {
       console.log(data);
     });
   }

@@ -6,7 +6,7 @@ import _ from 'lodash'
 import {servers} from '../../examples/config'
 import {describe, it} from 'mocha'
 import {Stats} from '../types'
-import type {Datum, Stat, ServerDefinition} from '../types/index'
+import type {MonitorDatum, Stat, ServerDefinition} from '../types/index'
 
 const assert = chai.assert
 
@@ -39,7 +39,7 @@ describe('monitor', function () {
     it("emits percentage disk space used", done => {
       const m = new Monitor(servers, {rate: 250})
 
-      m.on('data', (data: Datum) => {
+      m.on('data', (data: MonitorDatum) => {
         console.log('received data', data)
         const dataType = Stats.percentageDiskSpaceUsed
         const path     = '/'
@@ -82,7 +82,7 @@ describe('monitor', function () {
 
       const m = new Monitor([server], {rate: 250})
 
-      m.on('data', (data: Datum) => {
+      m.on('data', (data: MonitorDatum) => {
         const type: Stat = data.type
 
         if (type === Stats.processInfo) {

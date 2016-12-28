@@ -4,6 +4,7 @@ import Client from 'ssh2'
 import {faultTolerantExecute} from '../../util/ssh'
 import _ from 'lodash'
 import moment from 'moment'
+import type {ProcessInfo} from '../../types/index'
 
 const FIELDS = [
   'pid',
@@ -18,16 +19,6 @@ const FIELDS = [
 // args must always go last
 FIELDS.push('args')
 
-export type ProcessInfo = {
-  pid: number,
-  pcpu: number,
-  size: number,
-  vsize: number,
-  rss: number,
-  etime: number,
-  user: string,
-  started: number,
-}
 
 function parse (process: Object): ProcessInfo | null {
   const zipped = _.zipObject(FIELDS, process)

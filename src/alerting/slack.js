@@ -53,7 +53,7 @@ function getAlertText (data) {
       return getSwapUsageAlert(data)
     case MemoryUsed:
       return getMemoryUsageAlert(data)
-    case AverageLoad:
+    case SystemAverageLoad:
       return getAverageLoadAlert(data)
     case DiskSpaceUsed:
       return getDiskSpaceUsedAlert(data)

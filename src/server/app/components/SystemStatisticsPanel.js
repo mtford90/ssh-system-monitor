@@ -2,10 +2,10 @@
 
 import React, {Component, PropTypes, Element} from 'react';
 import type {ServerDefinition} from '../../../types/index'
-import type {ServerStats} from '../../../monitors/monitor'
+import type {HostStatsCollection} from '../../../monitors/monitor'
 
 type SystemStatisticsPanelProps = {
-  stats: ServerStats,
+  stats: HostStatsCollection,
   server: ServerDefinition,
 };
 

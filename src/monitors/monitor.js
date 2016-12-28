@@ -4,13 +4,11 @@ import _ from 'lodash'
 import {constructPool} from '../pool'
 import * as system from '../platforms/linux/system'
 import * as process from '../platforms/linux/process'
-import type {ProcessInfo} from '../platforms/linux/process'
 import EventEmitter from 'events'
 import {Pool} from 'generic-pool'
 import Client from 'ssh2'
-import type {ServerDefinition, Datum, ProcessDefinition} from '../types'
-import {cleanServer} from '../util/data'
-import type {AverageLoad} from '../platforms/linux/system'
+import type {ServerDefinition, MonitorDatum, ProcessDefinition, HostStatsCollection, ProcessInfo} from '../types'
+import {cleanServer, initLatestStats} from '../util/data'
 
 export const ERROR_POOL_FACTORY_CREATE  = 'factoryCreateError'
 export const ERROR_POOL_FACTORY_DESTROY = 'factoryDestroyError'
@@ -38,27 +36,11 @@ export type MonitorOptions = {
   rate?: number,
 }
 
-export type ServerStats = {
-  cpuUsage: number | null,
-  swapUsedPercentage: number | null,
-  memoryUsedPercentage: number | null,
-  averageLoad: AverageLoad | null,
-  percentageDiskSpaceUsed: {
-    [path:string]: number | null
-  },
-  processInfo: {
-    [processId:string]: ProcessInfo | null
-  }
-}
-
-
-export type LatestStats = {[host:string]: ServerStats}
-
 export default class Monitor extends EventEmitter {
   opts: MonitorOptions
   servers: ServerDefinition[]
   pools: {[id:number]: Pool}           = {}
-  latest: LatestStats                  = {}
+  latest: {[host:string]: HostStatsCollection} = {}
   intervals: {[id:number]: Function[]} = {}
 
   constructor (servers: ServerDefinition[], opts?: MonitorOptions = {}) {
@@ -68,42 +50,10 @@ export default class Monitor extends EventEmitter {
       rate: 10000,
       ...opts,
     }
-    this._initLatest(servers)
+
+    this.latest = initLatestStats(servers)
 
     this._start()
-  }
-
-  _initLatest (servers: ServerDefinition[]) {
-    const latest = {}
-
-    servers.map((s: ServerDefinition) => {
-      const host = s.ssh.host
-
-      const paths: string[]                = s.paths || []
-      const processes: ProcessDefinition[] = s.processes || []
-
-      const percentageDiskSpaceUsed = {}
-      const processInfo             = {}
-
-      paths.forEach((p: string) => {
-        percentageDiskSpaceUsed[p] = null
-      })
-
-      processes.forEach((p: ProcessDefinition) => {
-        processInfo[p.id] = null
-      })
-
-      latest[host] = {
-        cpuUsage:             null,
-        swapUsedPercentage:   null,
-        memoryUsedPercentage: null,
-        averageLoad:          null,
-        percentageDiskSpaceUsed,
-        processInfo,
-      }
-    })
-
-    this.latest = latest
   }
 
   async _acquireAndReleaseClient (id: number, fn: (client: Client) => Promise<any>): any {
@@ -114,7 +64,7 @@ export default class Monitor extends EventEmitter {
     return res
   }
 
-  emitData (datum: Datum) {
+  emitData (datum: MonitorDatum) {
     this.emit('data', datum)
   }
 

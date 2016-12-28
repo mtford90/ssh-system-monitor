@@ -3,7 +3,7 @@
 import React, {Component, PropTypes} from 'react';
 import {connect} from 'react-redux'
 import {$fetchLatest} from '../../redux/reducers/root'
-import type {LatestStats, ServerStats} from '../../../../monitors/monitor'
+import type {LatestStats, HostStatsCollection} from '../../../../monitors/monitor'
 import type {ServerDefinition} from '../../../../types/index'
 import _ from 'lodash'
 import SystemStatisticsPanel from '../../components/SystemStatisticsPanel'
@@ -26,7 +26,7 @@ class Home extends Component {
 
     return (
       <div style={{backgroundColor: 'white'}}>
-        {_.map(latestStats, (serverStats: ServerStats, host: string) => {
+        {_.map(latestStats, (serverStats: HostStatsCollection, host: string) => {
           const server: ? ServerDefinition = this.props.config[host]
 
           console.log('host', host)

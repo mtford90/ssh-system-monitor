@@ -4,6 +4,7 @@ import Client from 'ssh2'
 import keymirror from 'keymirror'
 import _ from 'lodash'
 import {faultTolerantExecute} from '../../util/ssh'
+import type {SystemAverageLoad} from '../../types/index'
 
 const MEM_INFO_KEY = keymirror({
   MemTotal:          null,
@@ -104,13 +105,9 @@ export async function memoryUsedPercentage (client: Client): Promise<number> {
   return perc
 }
 
-export type AverageLoad = {
-  '1': number,
-  '5': number,
-  '15': number,
-}
 
-export async function averageLoad (client: Client): Promise<AverageLoad> {
+
+export async function averageLoad (client: Client): Promise<SystemAverageLoad> {
   let data = await faultTolerantExecute(
     client,
     'uptime',

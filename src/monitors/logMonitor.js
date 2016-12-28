@@ -6,13 +6,13 @@
 
 import Monitor from './monitor'
 import type {MonitorOptions} from './monitor'
-import type {ServerDefinition, Datum, ProcessDefinition} from '../types'
+import type {ServerDefinition, MonitorDatum, ProcessDefinition} from '../types'
 
 export default class LogMonitor extends Monitor {
   constructor (servers: ServerDefinition[], opts: MonitorOptions) {
     super(servers, opts)
 
-    this.on('data', (data: Datum) => {
+    this.on('data', (data: MonitorDatum) => {
       const {server, value, type}             = data
 
       const path: ? string               = data.extra.path
