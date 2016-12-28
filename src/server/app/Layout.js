@@ -78,6 +78,16 @@ class Layout extends Component {
               onClick={
                 () => {
                   this.setState({open: !this.state.open});
+                  this.props.router.push('/system');
+                }
+              }
+            >
+              System
+            </MenuItem>
+            <MenuItem
+              onClick={
+                () => {
+                  this.setState({open: !this.state.open});
                   this.props.router.push('/config');
                 }
               }

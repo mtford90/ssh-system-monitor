@@ -27,13 +27,13 @@ export default class SystemStatisticsPanel extends Component {
           </strong>
         </div>
         <div>
-          CPU Usage: {toPercentage(cpuUsage)}
+          CPU Usage: {toPercentage(cpuUsage || 0)}
         </div>
         <div>
-          Swap Used: {toPercentage(swapUsedPercentage)}
+          Swap Used: {toPercentage(swapUsedPercentage || 0)}
         </div>
         <div>
-          Memory Used: {toPercentage(memoryUsedPercentage)}
+          Memory Used: {toPercentage(memoryUsedPercentage || 0)}
         </div>
       </div>
     )
