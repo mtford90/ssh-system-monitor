@@ -7,7 +7,7 @@ import loaders from './loaders.config'
 import plugins from './plugins.config'
 
 module.exports = {
-  entry:   './app/index',
+  entry:   path.resolve(path.join(__dirname, '../app/index')),
   output:  {
     path:     path.join(__dirname, 'dist'),
     filename: 'bundle.[chunkhash].js',

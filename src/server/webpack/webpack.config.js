@@ -9,12 +9,12 @@ module.exports = {
   entry:   [
     'webpack-hot-middleware/client',
     'babel-polyfill',
-    './app/index',
+    path.resolve(path.join(__dirname, '../app/index')),
   ],
   output:  {
     path:       path.join(__dirname, '../dist'),
     filename:   'bundle.js',
-    publicPath: '/dist',
+    publicPath: '/dist/',
   },
   plugins: [
     new webpack.HotModuleReplacementPlugin(),

@@ -44,7 +44,7 @@ class Layout extends Component {
             title={this.props.title}
             iconElementLeft={
               <RaisedButton
-                label="Toggle Drawer"
+                label="Toggle Menu"
                 onTouchTap={this.handleToggle}
               />
             }

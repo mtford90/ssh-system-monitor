@@ -1,6 +1,5 @@
 import React from 'react';
 import {render} from 'react-dom';
-import {install} from 'offline-plugin/runtime';
 import './style.css';
 import {Provider} from 'react-redux'
 import routes from './routes'
@@ -40,4 +39,3 @@ if (module.hot) {
   reducerModules.forEach(path => module.hot.accept(path, replaceRootReducer))
 }
 
-install()
