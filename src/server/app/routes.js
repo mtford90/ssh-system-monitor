@@ -5,6 +5,7 @@ import Layout from './Layout';
 import About from './containers/About';
 import Home from './containers/Home';
 import {syncHistoryWithStore} from 'react-router-redux'
+import Config from './containers/Config/index'
 
 export default function routes (store) {
   let history = browserHistory
@@ -26,6 +27,10 @@ export default function routes (store) {
           <Route
             path="about"
             component={About}
+          />
+          <Route
+            path="config"
+            component={Config}
           />
         </Route>
       </Route>

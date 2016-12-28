@@ -6,14 +6,14 @@ import RaisedButton from 'material-ui/RaisedButton';
 import {connect} from 'react-redux'
 import {withRouter} from 'react-router'
 
-// @connect(
-//   state => {
-//     return {}
-//   },
-//   dispatch => {
-//     return {}
-//   },
-// )
+@connect(
+  state => {
+    return {}
+  },
+  dispatch => {
+    return {}
+  },
+)
 @withRouter
 export default class About extends Component {
   render () {

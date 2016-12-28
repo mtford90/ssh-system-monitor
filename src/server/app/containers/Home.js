@@ -3,15 +3,15 @@
 import React, {Component, PropTypes} from 'react';
 import {connect} from 'react-redux'
 import Button from '../components/Button'
-//
-// @connect(
-//   state => {
-//     return {}
-//   },
-//   dispatch => {
-//     return {}
-//   }
-// )
+
+@connect(
+  state => {
+    return {}
+  },
+  dispatch => {
+    return {}
+  }
+)
 export default class Home extends Component {
   render () {
     console.log('rendering Home')

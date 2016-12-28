@@ -70,6 +70,16 @@ class Layout extends Component {
             >
               About
             </MenuItem>
+            <MenuItem
+              onClick={
+                () => {
+                  this.setState({open: !this.state.open});
+                  this.props.router.push('/config');
+                }
+              }
+            >
+              Config
+            </MenuItem>
           </Drawer>
           <div>{this.props.children}</div>
         </div>
