@@ -9,22 +9,22 @@ import RaisedButton from 'material-ui/RaisedButton';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import {withRouter} from 'react-router'
 import {connect} from 'react-redux'
-import {$fetchConfig} from './redux/reducers/root'
-import type {MonitorDatum} from '../../types/index'
+import {$listen} from './redux/reducers/root'
 
 type Props = {
   title: string,
   onClick: () => void,
   children?: any,
+  $listen: Function,
 };
 
 @connect(
   null,
   dispatch => {
     return {
-      $fetchConfig: () => dispatch($fetchConfig())
+      $listen: () => dispatch($listen())
     }
-  }
+  },
 )
 @withRouter
 class Layout extends Component {
@@ -43,17 +43,12 @@ class Layout extends Component {
     };
   }
 
-  componentDidMount () {
-    this.props.$fetchConfig()
-
-    const socket = window.io.connect();
-    socket.on('data', (data: MonitorDatum) => {
-      console.log(data);
-    });
-  }
-
   handleToggle = () => {
     this.setState({open: !this.state.open});
+  }
+
+  componentDidMount () {
+    this.props.$listen()
   }
 
   render () {

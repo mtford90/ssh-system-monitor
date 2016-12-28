@@ -7,8 +7,15 @@ import * as process from '../platforms/linux/process'
 import EventEmitter from 'events'
 import {Pool} from 'generic-pool'
 import Client from 'ssh2'
-import type {ServerDefinition, MonitorDatum, ProcessDefinition, HostStatsCollection, ProcessInfo} from '../types'
-import {cleanServer, initLatestStats} from '../util/data'
+import type {
+  ServerDefinition,
+  MonitorDatum,
+  ProcessDefinition,
+  HostStatsCollection,
+  ProcessInfo,
+  SimpleDataType,
+} from '../types'
+import {initLatestStats, receiveMonitorDatum} from '../util/data'
 
 export const ERROR_POOL_FACTORY_CREATE  = 'factoryCreateError'
 export const ERROR_POOL_FACTORY_DESTROY = 'factoryDestroyError'
@@ -39,9 +46,9 @@ export type MonitorOptions = {
 export default class Monitor extends EventEmitter {
   opts: MonitorOptions
   servers: ServerDefinition[]
-  pools: {[id:number]: Pool}           = {}
+  pools: {[id:number]: Pool}                   = {}
   latest: {[host:string]: HostStatsCollection} = {}
-  intervals: {[id:number]: Function[]} = {}
+  intervals: {[id:number]: Function[]}         = {}
 
   constructor (servers: ServerDefinition[], opts?: MonitorOptions = {}) {
     super()
@@ -69,20 +76,22 @@ export default class Monitor extends EventEmitter {
   }
 
   // TODO: Can't be doing this
-  simpleCommandInterval (id: number, type: 'cpuUsage' | 'swapUsedPercentage' | 'memoryUsedPercentage' | 'averageLoad'): Function {
+  simpleCommandInterval (id: number, dataType: SimpleDataType): Function {
     return asyncInterval(async () => {
-      const cmd: Function            = system[type]
-      const server: ServerDefinition = this.servers[id]
+      const cmd: Function            = system[dataType]
       const value                    = await this._acquireAndReleaseClient(id, client => cmd(client))
+      const server: ServerDefinition = this.servers[id]
 
-      this.latest[server.ssh.host][type] = value
-      this.emitData({
-        type,
-        server:    cleanServer(server),
+      const datum: MonitorDatum = {
+        type:      dataType,
+        server,
         value,
         extra:     {},
         timestamp: Date.now()
-      })
+      }
+
+      this.latest = receiveMonitorDatum(this.latest, datum)
+      this.emitData(datum)
     }, this.opts.rate)
   }
 
@@ -130,9 +139,7 @@ export default class Monitor extends EventEmitter {
           return asyncInterval(async () => {
             const value: number = (await this._acquireAndReleaseClient(idx, client => system.percentageDiskSpaceUsed(client, path)))
 
-            this.latest[server.ssh.host].percentageDiskSpaceUsed[path] = value
-
-            this.emitData({
+            const datum: MonitorDatum = {
               type:      'percentageDiskSpaceUsed',
               server,
               value,
@@ -140,18 +147,19 @@ export default class Monitor extends EventEmitter {
                 path,
               },
               timestamp: Date.now()
-            })
+            }
+
+            this.latest = receiveMonitorDatum(this.latest, datum)
+            this.emitData(datum)
 
           }, this.opts.rate)
         }),
         ...processes.map((p: ProcessDefinition) => {
           return asyncInterval(async () => {
-            const host               = server.ssh.host
             const value: ProcessInfo = await this._acquireAndReleaseClient(idx, client => process.info(client, p.grep))
 
-            this.latest[host].processInfo[p.id] = value
 
-            this.emitData({
+            const datum: MonitorDatum = {
               type:      'processInfo',
               server,
               value,
@@ -159,7 +167,10 @@ export default class Monitor extends EventEmitter {
                 process: p
               },
               timestamp: Date.now()
-            })
+            }
+
+            this.latest = receiveMonitorDatum(this.latest, datum)
+            this.emitData(datum)
           }, this.opts.rate)
         })
       ]

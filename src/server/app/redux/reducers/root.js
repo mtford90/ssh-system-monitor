@@ -1,90 +1,60 @@
-import {latest} from '../../data/api/index'
-import {getJSON} from '../../../../util/http'
+/* @flow */
+import type {ServerDefinition, LatestHostStats, MonitorDatum} from '../../../../types/index'
+import {receiveMonitorDatum} from '../../../../util/data'
 
 //
 // Action types
 //
 
-export const ACTION_TYPE_FETCH_LATEST   = 'Config/FETCH_LATEST'
-export const ACTION_TYPE_RECEIVE_LATEST = 'Config/RECEIVE_LATEST'
-export const ACTION_TYPE_FETCH_CONFIG   = 'Config/FETCH_CONFIG'
-export const ACTION_TYPE_RECEIVE_CONFIG = 'Config/RECEIVE_CONFIG'
-
+export const ACTION_TYPE_RECEIVE_LATEST        = 'root/RECEIVE_LATEST'
+export const ACTION_TYPE_RECEIVE_CONFIG        = 'root/RECEIVE_CONFIG'
+export const ACTION_TYPE_RECEIVE_MONITOR_DATUM = 'root/RECEIVE_MONITOR_DATUM'
 //
 // Actions
 //
 
-export function fetchLatest () {
-  return {
-    type: ACTION_TYPE_FETCH_LATEST
-  }
-}
-
-export function receiveLatest (latest) {
+export function receiveLatest (latest: LatestHostStats) {
   return {
     type: ACTION_TYPE_RECEIVE_LATEST,
     latest
   }
 }
 
-export function fetchConfig () {
-  return {
-    type: ACTION_TYPE_FETCH_CONFIG
-  }
-}
-
-export function receiveConfig (config) {
+export function receiveConfig (config: ServerDefinition[]) {
   return {
     type: ACTION_TYPE_RECEIVE_CONFIG,
     config
   }
 }
 
-//
-// Thunks
-//
-
-export function $fetchLatest () {
-  return dispatch => {
-    dispatch(fetchLatest())
-    latest().then(latest => dispatch(receiveLatest(latest))).catch(err => {
-      // TODO
-      console.error('error fetching config', err.stack)
-    })
+export function receiveDatum (datum: MonitorDatum) {
+  return {
+    type: ACTION_TYPE_RECEIVE_MONITOR_DATUM,
+    datum
   }
 }
 
-export function $fetchConfig () {
-  return dispatch => {
-    dispatch(fetchConfig())
-    getJSON('/api/config').then((res) => {
-      const config = res.config
-      dispatch(receiveConfig(config))
-    }).catch(err => {
-      // TODO
-      console.error('error fetching config', err.stack)
-    })
+export function $listen () {
+  return (dispatch: (Object) => any) => {
+    const socket = window.io.connect();
+    socket.on('data', (datum: MonitorDatum) => {
+      dispatch(receiveDatum(datum))
+    });
   }
 }
 
-//
-// Reducer
-//
-
-const DEFAULT_STATE = {
-  latest:           {},
-  config:           [],
-  isFetchingConfig: false,
+type RootReduxState = {
+  latest: LatestHostStats,
+  config: ServerDefinition[],
 }
 
-export default function (state = DEFAULT_STATE, action) {
-  if (action.type === ACTION_TYPE_FETCH_CONFIG) {
-    return {
-      ...state,
-      isFetchingConfig: true,
-    }
-  }
-  else if (action.type === ACTION_TYPE_RECEIVE_CONFIG) {
+const DEFAULT_STATE: RootReduxState = {
+  latest: {},
+  config: [],
+}
+
+export default function (state: RootReduxState = DEFAULT_STATE, action: Object) {
+  if (action.type === ACTION_TYPE_RECEIVE_CONFIG) {
     return {
       ...state,
       isFetchingConfig: false,
@@ -95,6 +65,12 @@ export default function (state = DEFAULT_STATE, action) {
     return {
       ...state,
       latest: action.latest
+    }
+  }
+  else if (action.type === ACTION_TYPE_RECEIVE_MONITOR_DATUM) {
+    return {
+      ...state,
+      latest: receiveMonitorDatum(state.latest, action.datum)
     }
   }
 

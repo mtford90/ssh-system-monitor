@@ -33,7 +33,7 @@ export type ProcessDefinition = {
 // Defines the data type emitted by monitors
 export type MonitorDatum = {
   server: ServerDefinition,
-  type: Stat,
+  type: DataType,
   value: any,
   extra: {
     path?: string, // when type is percentageDiskSpaceUsed
@@ -74,4 +74,8 @@ export type SystemAverageLoad = {
   '15': number,
 }
 
-export type Stat =  $Keys<typeof Stats>;
+export type LatestHostStats = {[host:string]: HostStatsCollection}
+
+export type DataType =  'cpuUsage' | 'swapUsedPercentage' | 'memoryUsedPercentage' | 'averageLoad' | 'percentageDiskSpaceUsed' | 'processInfo'
+export type SimpleDataType = 'cpuUsage' | 'swapUsedPercentage' | 'memoryUsedPercentage' | 'averageLoad'
+

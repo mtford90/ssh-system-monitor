@@ -2,16 +2,16 @@
 
 import Router from 'express'
 import Monitor from '../../monitors/monitor'
-import type {LatestStats} from '../../monitors/monitor'
 import {cleanServer} from '../../util/data'
 import _ from 'lodash'
 import {stringify} from '../../util/json'
+import type {LatestHostStats} from '../../types/index'
 
 export default function (monitor: Monitor) {
   const router = Router()
 
   router.get('/latest', (req, res) => {
-    const latest: LatestStats = monitor.latest
+    const latest: LatestHostStats = monitor.latest
 
     res.status(200).send(stringify({ok: true, latest}))
   })
