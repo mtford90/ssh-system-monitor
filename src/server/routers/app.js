@@ -14,12 +14,18 @@ import webpack from 'webpack'
 // Needed for onTouchTap
 import injectTapEventPlugin from 'react-tap-event-plugin';
 import Monitor from '../../monitors/monitor'
+import {receiveConfig, receiveLatest} from '../app/redux/reducers/root'
 injectTapEventPlugin();
 
 const NODE_ENV: NodeEnv = env.NODE_ENV
 
 export default function (monitor: Monitor) {
-  const store  = getStore()
+  // Seed the SSR app with latest data from the monitor!
+  const store = getStore({}, {logger: false})
+  store.dispatch(receiveConfig(monitor.servers))
+  store.dispatch(receiveLatest(monitor.latest))
+  monitor.on('data', () => store.dispatch(receiveLatest(monitor.latest)))
+
   const router = Router()
 
   if (NODE_ENV === 'development') {

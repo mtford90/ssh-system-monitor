@@ -1,7 +1,7 @@
-//
 import {latest} from '../../data/api/index'
 import {getJSON} from '../../../../util/http'
-import type {ServerDefinition} from '../../../../types/index'
+
+//
 // Action types
 //
 
