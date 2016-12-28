@@ -51,6 +51,7 @@ export type ServerStats = {
   }
 }
 
+
 export type LatestStats = {[host:string]: ServerStats}
 
 export default class Monitor extends EventEmitter {

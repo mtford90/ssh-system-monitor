@@ -3,6 +3,7 @@ import NEDBMonitor from '../../monitors/nedbMonitor'
 import api from '../server.babel'
 import * as http from '../../util/http'
 import {servers} from '../../../examples/config'
+import env from '../env'
 
 const assert = chai.assert
 
@@ -33,7 +34,7 @@ describe('/api', function () {
   it("latest stat for all hosts", async () => {
     const data = await once(m, 'data')
     const stat = data.type
-    const body = await http.getJSON(`http://localhost:3000/api/latest/${stat}`)
+    const body = await http.getJSON(`http://localhost:${env.PORT}/api/latest/${stat}`)
     console.log('responseBody', body)
     console.log('m.latest', m.latest)
     const host          = data.server.ssh.host
@@ -48,7 +49,7 @@ describe('/api', function () {
     const data   = await once(m, 'data')
     const stat   = data.type
     const host   = data.server.ssh.host
-    const body   = await http.getJSON(`http://localhost:3000/api/latest/${stat}`, {host: host})
+    const body   = await http.getJSON(`http://localhost:${env.PORT}/api/latest/${stat}`, {host: host})
     const latest = m.latest
 
     const monitorValue  = latest[host][stat]
@@ -66,7 +67,7 @@ describe('/api', function () {
   })
 
   it("config", async () => {
-    const body = await http.getJSON(`http://localhost:3000/api/config`)
+    const body = await http.getJSON(`http://localhost:${env.PORT}/api/config`)
     console.log('responseBody', body)
   })
 })
