@@ -3,6 +3,8 @@
 import _ from 'lodash'
 import {constructPool} from '../pool'
 import * as system from '../platforms/linux/system'
+import * as process from '../platforms/linux/process'
+import type {ProcessInfo} from '../platforms/linux/process'
 import EventEmitter from 'events'
 import {Pool} from 'generic-pool'
 import Client from 'ssh2'
@@ -45,7 +47,7 @@ export type ServerStats = {
     [path:string]: number | null
   },
   processInfo: {
-    [processId:string]: string | null
+    [processId:string]: ProcessInfo | null
   }
 }
 
@@ -85,7 +87,7 @@ export default class Monitor extends EventEmitter {
         percentageDiskSpaceUsed[p] = null
       })
 
-      processes.map((p: ProcessDefinition) => {
+      processes.forEach((p: ProcessDefinition) => {
         processInfo[p.id] = null
       })
 
@@ -95,7 +97,7 @@ export default class Monitor extends EventEmitter {
         memoryUsedPercentage: null,
         averageLoad:          null,
         percentageDiskSpaceUsed,
-        processes,
+        processInfo,
       }
     })
 
@@ -124,9 +126,10 @@ export default class Monitor extends EventEmitter {
       this.latest[server.ssh.host][type] = value
       this.emitData({
         type,
-        server: cleanServer(server),
+        server:    cleanServer(server),
         value,
-        extra:  {}
+        extra:     {},
+        timestamp: Date.now()
       })
     }, this.opts.rate)
   }
@@ -163,7 +166,8 @@ export default class Monitor extends EventEmitter {
         this.emit('error', {type, err})
       })
 
-      const paths = (server.paths || [])
+      const paths: string[]                = (server.paths || [])
+      const processes: ProcessDefinition[] = (server.processes || [])
 
       const _intervals = [
         this.simpleCommandInterval(idx, 'cpuUsage'),
@@ -172,26 +176,38 @@ export default class Monitor extends EventEmitter {
         this.simpleCommandInterval(idx, 'averageLoad'),
         ...paths.map(path => {
           return asyncInterval(async () => {
-
             const value: number = (await this._acquireAndReleaseClient(idx, client => system.percentageDiskSpaceUsed(client, path)))
 
-            if (server.ssh && server.ssh.host) {
-              if (!this.latest[server.ssh.host].percentageDiskSpaceUsed) {
-                this.latest[server.ssh.host].percentageDiskSpaceUsed = {}
-              }
-
-              this.latest[server.ssh.host].percentageDiskSpaceUsed[path] = value
-            }
+            this.latest[server.ssh.host].percentageDiskSpaceUsed[path] = value
 
             this.emitData({
-              type:  'percentageDiskSpaceUsed',
+              type:      'percentageDiskSpaceUsed',
               server,
               value,
-              extra: {
+              extra:     {
                 path,
-              }
+              },
+              timestamp: Date.now()
             })
 
+          }, this.opts.rate)
+        }),
+        ...processes.map((p: ProcessDefinition) => {
+          return asyncInterval(async () => {
+            const host               = server.ssh.host
+            const value: ProcessInfo = await this._acquireAndReleaseClient(idx, client => process.info(client, p.grep))
+
+            this.latest[host].processInfo[p.id] = value
+
+            this.emitData({
+              type:      'processInfo',
+              server,
+              value,
+              extra:     {
+                process: p
+              },
+              timestamp: Date.now()
+            })
           }, this.opts.rate)
         })
       ]

@@ -34,8 +34,10 @@ export type Datum = {
   type: Stat,
   value: any,
   extra: {
-    [key:string]: any
-  }
+    path?: string, // when type is percentageDiskSpaceUsed
+    process?: ProcessDefinition // when type is processInfo
+  },
+  timestamp: number,
 }
 
 export type Stat =  $Keys<typeof Stats>;

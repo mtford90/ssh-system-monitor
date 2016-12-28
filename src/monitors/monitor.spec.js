@@ -6,7 +6,7 @@ import _ from 'lodash'
 import {servers} from '../../examples/config'
 import {describe, it} from 'mocha'
 import {Stats} from '../types'
-import type {Datum} from '../types/index'
+import type {Datum, Stat, ServerDefinition} from '../types/index'
 
 const assert = chai.assert
 
@@ -76,7 +76,21 @@ describe('monitor', function () {
   })
 
   describe("processes", function () {
-    const m = new Monitor([servers[0]], {rate: 250})
+
+    it("process", done => {
+      const server: ServerDefinition = servers[0]
+
+      const m = new Monitor([server], {rate: 250})
+
+      m.on('data', (data: Datum) => {
+        const type: Stat = data.type
+
+        if (type === Stats.processInfo) {
+          console.log('data', data)
+          m.terminate().then(() => done()).catch(done)
+        }
+      })
+    })
 
 
   })

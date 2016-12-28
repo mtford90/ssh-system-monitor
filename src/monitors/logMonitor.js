@@ -6,14 +6,17 @@
 
 import Monitor from './monitor'
 import type {MonitorOptions} from './monitor'
-import type {ServerDefinition} from '../types'
+import type {ServerDefinition, Datum, ProcessDefinition} from '../types'
 
 export default class LogMonitor extends Monitor {
   constructor (servers: ServerDefinition[], opts: MonitorOptions) {
     super(servers, opts)
 
-    this.on('data', data => {
-      const {server, value, path, type} = data
+    this.on('data', (data: Datum) => {
+      const {server, value, type}             = data
+
+      const path: ? string               = data.extra.path
+      const process: ? ProcessDefinition = data.extra.process
 
       const name = server.name
 
@@ -27,7 +30,9 @@ export default class LogMonitor extends Monitor {
         case 'averageLoad':
           return console.log(`{${name}} Average CPU Load: 1m: ${value["1"]}, 5m: ${value["5"]}, 15m: ${value["15"]}`)
         case 'percentageDiskSpaceUsed':
-          return console.log(`{${name}} Disk space used for '${path}': ${value}`)
+          return console.log(`{${name}} Disk space used for '${path || ''}': ${value}`)
+        case 'processInfo':
+          return console.log(`Process info for ${name}: '${process ? process.name || process.id : ''}': ${JSON.stringify(process)}`)
         default:
           throw new Error(`Log monitor doesnt know how to handle data type ${type}`)
       }

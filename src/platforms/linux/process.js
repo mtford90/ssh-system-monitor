@@ -8,26 +8,28 @@ import moment from 'moment'
 const FIELDS = [
   'pid',
   'pcpu',
-  'size',
+  'size', // Measure of how many pages have been modified
+  'rss', // Portion of process that happens to be using real memory at the moment
+  'vsize', // Main measure of process size
   'etime',
   'user',
-  'vsize',
 ]
 
 // args must always go last
 FIELDS.push('args')
 
-export type Process = {
+export type ProcessInfo = {
   pid: number,
   pcpu: number,
   size: number,
+  vsize: number,
+  rss: number,
   etime: number,
   user: string,
-  vsize: number,
   started: number,
 }
 
-function parse (process: Object) : Process | null {
+function parse (process: Object): ProcessInfo | null {
   const zipped = _.zipObject(FIELDS, process)
 
   if (zipped.pid) {
@@ -35,6 +37,7 @@ function parse (process: Object) : Process | null {
     zipped.size  = parseInt(zipped.size)
     zipped.vsize = parseInt(zipped.vsize)
     zipped.pcpu  = parseFloat(zipped.pcpu)
+    zipped.rss   = parseFloat(zipped.rss)
 
     const yo = zipped.etime.split('-')
     let days = 0
@@ -56,8 +59,8 @@ function parse (process: Object) : Process | null {
   return null
 }
 
-export async function info (client: Client, grep: string): Promise<Process[]> {
-  const cmd = `ps --no-headers -Ao "${FIELDS.join(',')}" | grep ${grep}`
+export async function info (client: Client, grep: string): Promise<ProcessInfo[]> {
+  const cmd = `ps --no-headers -Ao "${FIELDS.join(',')}" | grep "${grep}" | grep -v grep`
 
   const data = await faultTolerantExecute(
     client,
