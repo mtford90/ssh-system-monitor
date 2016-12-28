@@ -1,0 +1,1 @@
+This is the react app for interactivity with the ssh monitor
