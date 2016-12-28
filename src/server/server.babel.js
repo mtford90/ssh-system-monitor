@@ -7,9 +7,11 @@ import Monitor from '../monitors/monitor'
 import favicon from 'serve-favicon'
 import path from 'path'
 import env from './env'
+import ws from 'socket.io'
 
 import getApiRouter from './routers/api'
-import appRouter from './routers/app'
+import getAppRouter from './routers/app'
+import type {Datum} from '../types/index'
 
 export type ApiOptions = {
   cors?: boolean
@@ -33,13 +35,24 @@ export default function start (monitor: Monitor, opts?: ApiOptions = {}) {
   }
 
   const apiRouter = getApiRouter(monitor)
+  const appRouter = getAppRouter(monitor)
 
   app.use('/api', apiRouter)
   app.use('/', appRouter)
 
   const port = env.PORT
 
-  return app.listen(port, () => {
+  const server = app.listen(port, () => {
     console.log(`App is running at http://localhost:${port}/`)
   })
+
+  const io = ws(server)
+
+  io.on('connection', socket => {
+    monitor.on('data', (datum: Datum) => {
+      socket.emit('data', datum);
+    })
+  })
+
+  return server
 }

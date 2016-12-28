@@ -10,6 +10,7 @@ import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import {withRouter} from 'react-router'
 import {connect} from 'react-redux'
 import {$fetchConfig} from './redux/reducers/root'
+import type {Datum} from '../../types/index'
 
 type Props = {
   title: string,
@@ -44,6 +45,11 @@ class Layout extends Component {
 
   componentDidMount () {
     this.props.$fetchConfig()
+
+    const socket = window.io.connect();
+    socket.on('data', (data: Datum) => {
+      console.log(data);
+    });
   }
 
   handleToggle = () => {

@@ -1,5 +1,4 @@
 import {applyMiddleware, createStore as _createStore} from 'redux'
-import {composeWithDevTools} from 'redux-devtools-extension';
 import thunkMiddleware from 'redux-thunk'
 import reducers from './reducers'
 import createLogger from 'redux-logger'
@@ -11,11 +10,9 @@ export function getStore (preloadedState = {}) {
     _store = _createStore(
       reducers,
       preloadedState,
-      composeWithDevTools(
-        applyMiddleware(
-          thunkMiddleware,
-          createLogger()
-        )
+      applyMiddleware(
+        thunkMiddleware,
+        createLogger()
       )
     )
   }

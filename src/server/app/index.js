@@ -5,12 +5,11 @@ import {Provider} from 'react-redux'
 import routes from './routes'
 import {getStore} from './redux/store'
 
-const rootEl = document.getElementById('root');
-
 // Needed for onTouchTap
-// http://stackoverflow.com/a/34015469/988941
 import injectTapEventPlugin from 'react-tap-event-plugin';
 injectTapEventPlugin();
+
+const rootEl = document.getElementById('root');
 
 const NODE_ENV = process.env.NODE_ENV
 const IS_PROD  = NODE_ENV === 'production'
