@@ -116,7 +116,8 @@ export default function (monitor, opts = {}) {
             console.log('error using slack webhook', err)
           }
           else {
-            console.log(`successfully sent message via ${webhook}`)
+            // TODO
+            // console.log(`successfully sent message via ${webhook}`)
           }
         })
 

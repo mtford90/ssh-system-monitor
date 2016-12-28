@@ -77,12 +77,14 @@ export async function get (path: string, params?: Object): Promise<string> {
     path += `?${encoded}`
   }
 
-  console.log(`GET ${path}`)
+  // TODO
+  // console.log(`GET ${path}`)
 
   const res                  = await fetch(path, opts)
   const responseText: string = await res.text()
 
-  console.log(`GET ${path}`, responseText)
+  // TODO
+  // console.log(`GET ${path}`, responseText)
 
   return responseText
 

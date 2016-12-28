@@ -48,7 +48,8 @@ export default class NEDBMonitor extends Monitor {
           this.emit('error', {type: 'nedb', err})
         }
         else {
-          console.log('inserted into nedb', doc)
+          // TODO
+          // console.log('inserted into nedb', doc)
         }
       })
     })
@@ -62,7 +63,8 @@ export default class NEDBMonitor extends Monitor {
           reject(err)
         }
         else {
-          console.log(`Created index for ${fieldName}`)
+          // TODO
+          // console.log(`Created index for ${fieldName}`)
           resolve()
         }
       })
