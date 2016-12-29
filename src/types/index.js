@@ -9,17 +9,26 @@ export const Stats = {
   processInfo:             'processInfo',
 }
 
+// Logs to be consumed
+export type LogDefinition = {
+  name: string,
+  cmd: string,
+}
+
+export type SSH2Options = {
+  host: string,
+  username: string,
+  password?: string,
+  privateKey?: string,
+}
+
 // A server that will be monitored
 export type ServerDefinition = {
   name: string,
-  ssh: {
-    host: string,
-    username: string,
-    password?: string,
-    privateKey?: string,
-  },
+  ssh: SSH2Options,
   paths?: string[],
   processes?: ProcessDefinition[],
+  logs?: LogDefinition[],
 }
 
 // A process that will be monitored

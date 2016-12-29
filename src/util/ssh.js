@@ -1,13 +1,10 @@
+/* @flow */
+
 import Client from 'ssh2'
 import retry from 'retry'
+import type {SSH2Options} from '../types/index'
 
-/**
- * Wraps ssh2 connection in a promise
- *
- * @param {object} server - ssh2 server definition
- * @returns {Promise}
- */
-export function getClient (server) {
+export function getClient (opts: SSH2Options): Promise<Client> {
   return new Promise((resolve, reject) => {
     const client = new Client()
     let listener = () => {
@@ -15,7 +12,7 @@ export function getClient (server) {
       resolve(client)
     }
     client.on('ready', listener)
-    client.connect(server)
+    client.connect(opts)
   })
 }
 
@@ -24,7 +21,7 @@ export function getClient (server) {
  * @param {string} cmd
  * @returns {Promise}
  */
-export function execute (client, cmd) {
+export function execute (client: Client, cmd: string): Promise<string> {
   return new Promise((resolve, reject) => {
     client.exec(cmd, (err, stream) => {
       if (err) reject(err)
@@ -40,18 +37,14 @@ export function execute (client, cmd) {
   })
 }
 
-/**
- * @param {Client} client
- * @param {string} cmd
- * @param {number} timeout - timeout on command execution before retry in ms
- * @returns {Promise}
- */
-export function faultTolerantExecute (client, cmd, timeout = 5000) {
+export function faultTolerantExecute (client: Client, cmd: string, timeout: number = 5000): Promise<string> {
   return new Promise((resolve, reject) => {
     const operation = retry.operation({retries: 5, minTimeout: timeout, maxTimeout: timeout});
     // TODO: Log retry attempts
     operation.attempt(() => {
-      execute(client, cmd).then(resolve).catch(err => {
+      execute(client, cmd).then((str: string) => {
+        resolve(str)
+      }).catch(err => {
         if (operation.retry(err)) {
           return
         }
