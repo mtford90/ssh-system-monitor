@@ -1,10 +1,10 @@
 /* @flow */
 
-import NEDBMonitor from '../../src/monitors/nedbMonitor'
+import Monitor from '../../src/monitors/monitor'
 import start from '../../src/server/server.babel'
 import {servers} from '../config'
 
-const monitor = new NEDBMonitor(servers)
+const monitor = new Monitor(servers)
 
 const server = start(monitor)
 

@@ -20,6 +20,7 @@ import type {
 import {initLatestStats, receiveMonitorDatum} from '../util/data'
 import DockerLogger from '../logging/dockerLogger'
 import Logger from '../logging/logger'
+import {SSHDataStore} from '../storage/DataStore'
 
 export const ERROR_POOL_FACTORY_CREATE  = 'factoryCreateError'
 export const ERROR_POOL_FACTORY_DESTROY = 'factoryDestroyError'
@@ -45,9 +46,8 @@ function asyncInterval (fn: Function, n: number = 10000): Function {
 
 export type MonitorOptions = {
   rate?: number,
+  store?: SSHDataStore,
 }
-
-
 
 /**
  * This is for testing purposes - allows use of async/await for cleaner tests.
@@ -103,14 +103,19 @@ export default class Monitor extends EventEmitter {
   constructor (servers: ServerDefinition[], opts?: MonitorOptions = {}) {
     super()
     this.servers = servers
-    this.opts    = {
+
+    opts = {
       rate: 10000,
       ...opts,
     }
 
+    this.opts = opts
+
     this.latest = initLatestStats(servers)
 
     this._start()
+
+    this._listenToStorage()
   }
 
   async _acquireAndReleaseClient (id: number, fn: (client: Client) => Promise<any>): any {
@@ -147,6 +152,40 @@ export default class Monitor extends EventEmitter {
       this.latest = receiveMonitorDatum(this.latest, datum)
       this.emitData(datum)
     }, this.opts.rate)
+  }
+
+  /**
+   * If a store was provided, store all data!
+   * @private
+   */
+  _listenToStorage () {
+    const store = this.opts.store
+    if (store) {
+      const indices = ['value', 'type', 'host']
+
+      store.init(indices).then(() => {
+        // TODO: debug logs
+        this.on('data', (datum: MonitorDatum) => {
+          store.storeMonitorDatum(datum).then(() => {
+            // TODO: debug logs
+            console.log('successfully stored monitor datum', datum)
+          }).catch(err => {
+            console.log('error storing monitor datum', err.stack)
+          })
+        })
+
+        this.on('log', (datum: LoggerDatum) => {
+          store.storeLoggerDatum(datum).then(() => {
+            // TODO: debug logs
+            console.log('successfully stored logger datum', datum)
+          }).catch(err => {
+            console.log('error storing log datum', err.stack)
+          })
+        })
+      }).catch(err => {
+        console.log('error initialising data store', err.stack)
+      })
+    }
   }
 
   _start () {

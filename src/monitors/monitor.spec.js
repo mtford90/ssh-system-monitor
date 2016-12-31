@@ -7,6 +7,7 @@ import {servers} from '../../examples/config'
 import {describe, it} from 'mocha'
 import {Stats} from '../types'
 import type {MonitorDatum, DataType, ServerDefinition, LoggerDatum} from '../types/index'
+import NEDBDataStore from '../storage/NEDBDataStore'
 
 const assert = chai.assert
 
@@ -37,7 +38,6 @@ describe('monitor', function () {
 
       await m.terminate()
     })
-
     it("emits percentage disk space used", async () => {
       const m = new Monitor(servers, {rate: 250})
 
@@ -108,5 +108,32 @@ describe('monitor', function () {
 
       await m.terminate()
     })
+  })
+
+  describe("storage", function () {
+    it("stores in nedb", async () => {
+      const m = new Monitor(
+        [servers[0]],
+        {
+          rate:  250,
+          store: new NEDBDataStore()
+        }
+      )
+
+      const loggerDatum: LoggerDatum = await waitForLoggerDatum(
+        m,
+      )
+
+      const monitorDatum: MonitorDatum = await waitForMonitorDatum(
+        m,
+      )
+
+      console.log('loggerDatum', loggerDatum)
+      console.log('monitorDatum', monitorDatum)
+
+      await m.terminate()
+    })
+
+
   })
 })
