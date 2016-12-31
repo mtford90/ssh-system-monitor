@@ -1,4 +1,4 @@
-/** @flow **/
+/* @flow */
 
 /**
  * A monitor that inserts all data into an nedb instance
@@ -7,7 +7,7 @@
 import Monitor from './monitor'
 import DataStore from 'nedb'
 import type {MonitorOptions} from './monitor'
-import type {ServerDefinition} from '../types'
+import type {MonitorDatum, ServerDefinition, LoggerDatum} from '../types/index'
 
 // https://github.com/louischatriot/nedb
 type NEDBOptions = {
@@ -32,24 +32,28 @@ export default class NEDBMonitor extends Monitor {
       console.log("error configuring indices", err)
     })
 
-    this.on('data', data => {
-      data = {...data}
-
-      const server = data.server
-      const ssh    = server.ssh
-
-      if (ssh) {
-        data.host = ssh.host
-      }
-
-      this.db.insert(data, (err, doc) => {
+    this.on('data', (datum: MonitorDatum) => {
+      this.db.insert({...datum, type: 'MonitorDatum'}, (err, doc) => {
         if (err) {
           console.log('Error inserting into nedb', err.stack) // TODO
           this.emit('error', {type: 'nedb', err})
         }
         else {
           // TODO
-          // console.log('inserted into nedb', doc)
+          console.log('inserted into nedb', doc)
+        }
+      })
+    })
+
+    this.on('log', (datum: LoggerDatum) => {
+      this.db.insert({...datum, type: 'LoggerDatum'}, (err, doc) => {
+        if (err) {
+          console.log('Error inserting into nedb', err.stack) // TODO
+          this.emit('error', {type: 'nedb', err})
+        }
+        else {
+          // TODO
+          console.log('inserted into nedb', doc)
         }
       })
     })
@@ -64,7 +68,7 @@ export default class NEDBMonitor extends Monitor {
         }
         else {
           // TODO
-          // console.log(`Created index for ${fieldName}`)
+          console.log(`Created index for ${fieldName}`)
           resolve()
         }
       })
