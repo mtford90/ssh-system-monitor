@@ -30,7 +30,12 @@ export const servers: ServerDefinition[] = [
     paths:     [
       '/'
     ],
-    processes: operatorProcesses
+    processes: operatorProcesses,
+    logs:      [{
+      grep: `docker logs --tail 1 -f (docker ps | grep "services.push.1" | awk \'{print $1}\')`,
+      type: 'command',
+      name: 'services.push',
+    }]
   },
   {
     name:      'Operator Prod',

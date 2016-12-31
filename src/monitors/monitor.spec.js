@@ -1,12 +1,12 @@
 /* @flow */
 
 import chai from 'chai'
-import Monitor from './monitor'
+import Monitor, {waitForMonitorDatum, waitForLoggerDatum} from './monitor'
 import _ from 'lodash'
 import {servers} from '../../examples/config'
 import {describe, it} from 'mocha'
 import {Stats} from '../types'
-import type {MonitorDatum, DataType, ServerDefinition} from '../types/index'
+import type {MonitorDatum, DataType, ServerDefinition, LoggerDatum} from '../types/index'
 
 const assert = chai.assert
 
@@ -14,86 +14,99 @@ describe('monitor', function () {
   this.timeout(20000)
 
   describe("basic stats", function () {
-    it("emits data", done => {
+    it("emits data", async () => {
       const m = new Monitor(servers, {rate: 250})
 
-      m.on('data', data => {
-        console.log('data', data)
-        console.log('m.latest', m.latest)
+      const data: MonitorDatum = await waitForMonitorDatum(m)
 
-        if (!_.every(_.map(servers, s => m.latest[s.ssh.host]))) {
-          done(new Error(`latest values were not configured for every host`))
-        }
+      console.log('data', data)
+      console.log('m.latest', m.latest)
 
-        const host     = data.server.ssh.host
-        const dataType = data.type
+      assert(
+        _.every(_.map(servers, s => m.latest[s.ssh.host])),
+        `latest values were not configured for every host`
+      )
 
-        if (m.latest[host][dataType] === undefined) {
-          done(new Error(`Latest data wasn't stored for data type ${host}.${dataType}`))
-        }
+      const host               = data.server.ssh.host
+      const dataType: DataType = data.type
 
-        m.terminate().then(() => done()).catch(done)
-      })
+      assert(
+        m.latest[host][dataType] !== undefined,
+        `Latest data wasn't stored for data type ${host}.${dataType}`
+      )
+
+      await m.terminate()
     })
 
-    it("emits percentage disk space used", done => {
+    it("emits percentage disk space used", async () => {
       const m = new Monitor(servers, {rate: 250})
 
-      m.on('data', (data: MonitorDatum) => {
-        console.log('received data', data)
-        const dataType = Stats.percentageDiskSpaceUsed
-        const path     = '/'
+      const dataType = Stats.percentageDiskSpaceUsed
+      const path     = '/'
 
-        if (data.type === dataType) {
-          const latest = m.latest
+      const data: MonitorDatum = await waitForMonitorDatum(
+        m,
+        datum => datum.type === dataType
+      )
 
-          console.log('latest', latest)
-          const host = data.server.ssh.host
+      const latest = m.latest
 
-          if (!_.every(_.map(servers, s => latest[s.ssh.host]))) {
-            done(new Error(`latest values were not configured for every host`))
-          }
+      console.log('latest', latest)
+      const host = data.server.ssh.host
 
-          else if (latest[host][dataType][path] === undefined) {
-            done(new Error(`Latest data wasn't stored for data type ${host}.${dataType}`))
-          }
+      assert(
+        _.every(_.map(servers, s => latest[s.ssh.host])),
+        `latest values were not configured for every host`
+      )
 
-          else if (data.extra.path !== path) {
-            done(new Error(`path variable on the datum doesnt match path`))
-          }
+      assert(
+        latest[host][dataType][path] !== undefined,
+        `Latest data wasn't stored for data type ${host}.${dataType}`
+      )
 
-          else if (latest[host][dataType][path] !== data.value) {
-            done(new Error(`value for disk space used emitted doesnt match the latest!`))
-          }
+      assert(
+        data.extra.path === path,
+        `path variable on the datum doesnt match path`,
+      )
 
-          else {
-            m.terminate().then(() => done()).catch(done)
-          }
+      assert(
+        latest[host][dataType][path] === data.value,
+        `value for disk space used emitted doesnt match the latest!`,
+      )
 
-        }
-      })
+      await m.terminate()
     })
   })
 
   describe("processes", function () {
 
-    it("process", done => {
+    it("process", async () => {
       const server: ServerDefinition = servers[0]
 
       const m = new Monitor([server], {rate: 250})
 
-      m.on('data', (data: MonitorDatum) => {
-        const type: DataType = data.type
+      await waitForMonitorDatum(
+        m,
+        datum => datum.type === Stats.processInfo
+      )
 
-        if (type === Stats.processInfo) {
-          console.log('data', data)
-          m.terminate().then(() => done()).catch(done)
-        }
-      })
+      await m.terminate()
     })
-
-
   })
 
+  describe("logs", function () {
+    it("receives logs", async () => {
+      const m = new Monitor([servers[0]], {rate: 250})
 
+      const datum: LoggerDatum = await waitForLoggerDatum(
+        m,
+      )
+
+      assert(datum.text)
+
+      console.log('datum', datum)
+
+      await m.terminate()
+    })
+  })
 })

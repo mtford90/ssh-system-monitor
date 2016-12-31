@@ -12,7 +12,8 @@ export const Stats = {
 // Logs to be consumed
 export type LogDefinition = {
   name: string,
-  cmd: string,
+  grep: string,
+  type: 'command' | 'docker' | 'file',
 }
 
 export type SSH2Options = {
@@ -81,6 +82,14 @@ export type SystemAverageLoad = {
   '1': number,
   '5': number,
   '15': number,
+}
+
+export type LoggerDatum = {
+  source: string,
+  text: string,
+  timestamp: number,
+  server: ServerDefinition,
+  logger: LogDefinition,
 }
 
 export type LatestHostStats = {[host:string]: HostStatsCollection}

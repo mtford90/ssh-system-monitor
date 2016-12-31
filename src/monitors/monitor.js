@@ -14,8 +14,12 @@ import type {
   HostStatsCollection,
   ProcessInfo,
   SimpleDataType,
-} from '../types'
+  LogDefinition,
+  LoggerDatum
+} from '../types/index'
 import {initLatestStats, receiveMonitorDatum} from '../util/data'
+import DockerLogger from '../logging/dockerLogger'
+import Logger from '../logging/logger'
 
 export const ERROR_POOL_FACTORY_CREATE  = 'factoryCreateError'
 export const ERROR_POOL_FACTORY_DESTROY = 'factoryDestroyError'
@@ -43,12 +47,58 @@ export type MonitorOptions = {
   rate?: number,
 }
 
+
+
+/**
+ * This is for testing purposes - allows use of async/await for cleaner tests.
+ *
+ * Might be useful in other scenarios too though... who knows
+ */
+function waitForDatum (
+  monitor: Monitor,
+  event: string,
+  check: (datum: *) => boolean = () => true
+): Promise<*> {
+  return new Promise(resolve => {
+    const listener = (datum: *) => {
+      if (check(datum)) {
+        monitor.removeListener(event, listener)
+        resolve(datum)
+      }
+    }
+    monitor.on(event, listener)
+  })
+}
+
+export function waitForMonitorDatum (
+  monitor: Monitor,
+  check: (datum: MonitorDatum) => boolean = () => true
+): Promise<MonitorDatum> {
+  return waitForDatum(
+    monitor,
+    'data',
+    check,
+  )
+}
+
+export function waitForLoggerDatum (
+  monitor: Monitor,
+  check: (datum: LoggerDatum) => boolean = () => true
+): Promise<LoggerDatum> {
+  return waitForDatum(
+    monitor,
+    'log',
+    check,
+  )
+}
+
 export default class Monitor extends EventEmitter {
   opts: MonitorOptions
   servers: ServerDefinition[]
   pools: {[id:number]: Pool}                   = {}
   latest: {[host:string]: HostStatsCollection} = {}
   intervals: {[id:number]: Function[]}         = {}
+  loggers: {[id:number]: Logger[]}             = {}
 
   constructor (servers: ServerDefinition[], opts?: MonitorOptions = {}) {
     super()
@@ -73,6 +123,10 @@ export default class Monitor extends EventEmitter {
 
   emitData (datum: MonitorDatum) {
     this.emit('data', datum)
+  }
+
+  emitLogData (logDatum: LoggerDatum) {
+    this.emit('log', logDatum)
   }
 
   // TODO: Can't be doing this
@@ -158,7 +212,6 @@ export default class Monitor extends EventEmitter {
           return asyncInterval(async () => {
             const value: ProcessInfo = await this._acquireAndReleaseClient(idx, client => process.info(client, p.grep))
 
-
             const datum: MonitorDatum = {
               type:      'processInfo',
               server,
@@ -175,9 +228,58 @@ export default class Monitor extends EventEmitter {
         })
       ]
 
+      const logs: LogDefinition[] = server.logs || []
+
+      const _loggers = logs.map((l: LogDefinition) => {
+        const loggerIdentifier = `${server.name}.${l.name}`
+        console.log(`Starting logger ${loggerIdentifier}`)
+        const type = l.type
+        switch (type) {
+          case 'command': {
+            const logger = new Logger({
+              serverDefinition: server,
+              logDefinition:    l,
+              cmd:              l.grep
+            })
+            logger.on('data', (datum: LoggerDatum) => this.emitLogData(datum))
+            logger.start().then(() => {
+              console.log(
+                `Started logger ${loggerIdentifier}`
+              )
+            }).catch(err => {
+              console.log(
+                `Unable to start logger ${loggerIdentifier}`,
+                err.stack
+              )
+            })
+            return logger
+          }
+          case 'docker': {
+            const logger = new DockerLogger({
+              serverDefinition: server,
+              logDefinition:    l,
+            })
+            logger.on('data', (datum: LoggerDatum) => this.emitLogData(datum))
+            logger.start().then(() => {
+              console.log(
+                `Started logger ${loggerIdentifier}`
+              )
+            }).catch(err => {
+              console.log(
+                `Unable to start logger ${loggerIdentifier}`,
+                err.stack
+              )
+            })
+            return logger
+          }
+          default:
+            throw new Error(`Unknown log type ${type}`)
+        }
+      })
+
+      this.loggers[idx]   = _loggers
       this.intervals[idx] = _intervals
     })
-
   }
 
   async terminate (): Promise<void> {
@@ -187,12 +289,15 @@ export default class Monitor extends EventEmitter {
     const pools = this.pools
 
     // Wait for all pools to drain
-    await Promise.all(
-      _.values(pools).map((pool: Pool) => {
+    await Promise.all([
+      ..._.values(pools).map((pool: Pool) => {
         return pool.drain().then(() => {
           pool.clear()
         })
-      })
-    )
+      }),
+      ..._.chain(this.loggers).values().flatten().map((l: Logger) => {
+        return l.terminate()
+      }).value()
+    ])
   }
 }

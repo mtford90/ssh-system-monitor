@@ -108,7 +108,7 @@ export async function memoryUsedPercentage (client: Client): Promise<number> {
 
 
 export async function averageLoad (client: Client): Promise<SystemAverageLoad> {
-  let data = await faultTolerantExecute(
+  const data: string = await faultTolerantExecute(
     client,
     'uptime',
   )
@@ -125,13 +125,18 @@ export async function averageLoad (client: Client): Promise<SystemAverageLoad> {
 }
 
 export async function percentageDiskSpaceUsed (client: Client, path: string): Promise<number> {
-  let data = await faultTolerantExecute(
+  const data: string = await faultTolerantExecute(
     client,
     'df ' + path + ' -h | tail -n 1',
   )
 
-  const percentageString = data.match(/\S+/g)[4];
-  const percentageUsed   = parseFloat(percentageString.substring(0, percentageString.length - 1)) / 100;
-
-  return percentageUsed
+  const matched            = data.match(/\S+/g)
+  if (matched) {
+    const percentageString = matched[4];
+    const percentageUsed   = parseFloat(percentageString.substring(0, percentageString.length - 1)) / 100;
+    return percentageUsed
+  }
+  else {
+    throw new Error(`Unexpected value returned when querying for percentage disk space used @ ${path}`, data)
+  }
 }

@@ -1,14 +1,9 @@
 /* @flow */
-import type {ServerDefinition} from '../types/index'
+import type {ServerDefinition, LoggerDatum, LogDefinition} from '../types/index'
 import {getClient} from '../util/ssh'
 import Client from 'ssh2'
 import EventEmitter from 'events'
 
-export type LoggerDatum = {
-  source: string,
-  text: string,
-  timestamp: number,
-}
 
 export function waitForLog (logger: Logger): Promise<LoggerDatum> {
   return new Promise(resolve => {
@@ -18,7 +13,8 @@ export function waitForLog (logger: Logger): Promise<LoggerDatum> {
 
 export type LoggerOpts = {
   cmd: string,
-  server: ServerDefinition,
+  serverDefinition: ServerDefinition,
+  logDefinition: LogDefinition,
 }
 
 export default class Logger extends EventEmitter {
@@ -34,14 +30,16 @@ export default class Logger extends EventEmitter {
     const datum: LoggerDatum = {
       source,
       text,
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      server:    this.opts.serverDefinition,
+      logger:    this.opts.logDefinition,
     }
     this.emit('data', datum)
     return datum
   }
 
   async start () {
-    this.client = await getClient(this.opts.server.ssh)
+    this.client = await getClient(this.opts.serverDefinition.ssh)
 
     this.client.exec(this.opts.cmd, (err, stream) => {
       stream.on('data', data => {

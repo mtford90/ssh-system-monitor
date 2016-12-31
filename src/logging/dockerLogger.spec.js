@@ -4,8 +4,8 @@ import chai from 'chai'
 import DockerLogger from './dockerLogger'
 import {servers} from '../../examples/config'
 import {describe, it} from 'mocha'
-import type {LoggerDatum} from './logger';
 import {waitForLog} from './logger';
+import type {LoggerDatum} from '../types/index'
 
 const assert = chai.assert
 
@@ -14,9 +14,13 @@ describe('DockerLogger', function () {
 
   it("docker", async () => {
     const logger = new DockerLogger({
-      name: 'services.push.1',
-      server: servers[0],
-      _tail: 1, // so we don't have to wait forever...
+      serverDefinition: servers[0],
+      logDefinition:    {
+        grep: 'services.push.1',
+        name: 'services.push',
+        type: 'docker',
+      },
+      _tail:            1, // so we don't have to wait forever...
     })
 
     await logger.start()
