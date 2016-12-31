@@ -11,7 +11,7 @@ import ws from 'socket.io'
 
 import getApiRouter from './routers/api'
 import getAppRouter from './routers/app'
-import type {MonitorDatum} from '../types/index'
+import type {MonitorDatum, LoggerDatum} from '../types/index'
 
 export type ApiOptions = {
   cors?: boolean
@@ -51,6 +51,9 @@ export default function start (monitor: Monitor, opts?: ApiOptions = {}) {
   io.on('connection', socket => {
     monitor.on('data', (datum: MonitorDatum) => {
       socket.emit('data', datum);
+    })
+    monitor.on('log', (datum: LoggerDatum) => {
+      socket.emit('log', datum);
     })
   })
 
