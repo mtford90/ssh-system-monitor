@@ -80,26 +80,20 @@ export default class NEDBDataStore {
         },
       }
 
-      if (params.timestamp) {
-        if (params.timestamp.gt) {
-          q.timestamp = {
-            $gt: params.timestamp.gt,
-          }
+      const timestamp = params.timestamp
+      if (timestamp) {
+        q.timestamp = {}
+        if (timestamp.gt) {
+          q.timestamp.$gt = timestamp.gt
         }
-        if (params.timestamp.gte) {
-          q.timestamp = {
-            $gte: params.timestamp.gte,
-          }
+        if (timestamp.gte) {
+          q.timestamp.$gte = timestamp.gte
         }
-        if (params.timestamp.lt) {
-          q.timestamp = {
-            $lt: params.timestamp.lt,
-          }
+        if (timestamp.lt) {
+          q.timestamp.$lt = timestamp.lt
         }
-        if (params.timestamp.lte) {
-          q.timestamp = {
-            $lte: params.timestamp.lte,
-          }
+        if (timestamp.lte) {
+          q.timestamp.$lte = timestamp.lte
         }
       }
 

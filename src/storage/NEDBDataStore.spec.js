@@ -131,8 +131,26 @@ describe('NEDBDataStore', function () {
           )
         })
 
-        it("gt, lt", () => {
+        it("gt, lt", async () => {
+          const lt = 120
+          const gt = 90
 
+          const stats: MonitorDatum[] = await store.querySystemStats({
+            timestamp: {
+              lt,
+              gt
+            }
+          })
+
+          const expectedStats = fakeSystemData.filter(d => {
+            return d.timestamp < lt && d.timestamp > gt
+          })
+
+          assert.equal(
+            stats.length,
+            expectedStats.length,
+            'Should filter out timestamps > 100'
+          )
         })
       })
     })
