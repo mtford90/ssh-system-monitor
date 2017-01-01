@@ -63,7 +63,6 @@ export default class Logger extends EventEmitter {
       else {
         throw err
       }
-
     })
   }
 

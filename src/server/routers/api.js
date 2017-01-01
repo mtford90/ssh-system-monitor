@@ -41,7 +41,9 @@ export default function (monitor: Monitor) {
 
   router.get('/system/stats', (req, res) => {
     const params: SSHDataStoreQuerySystemStatsParams = req.body
-    monitor.opts.store.querySystemStats(params).then((data: MonitorDatum[]) => {
+
+    const store = monitor.opts.store
+    store.querySystemStats(params).then((data: MonitorDatum[]) => {
       res.status(200).send(stringify({ok: true, data}))
     }).catch(err => {
       console.log('error getting system stats', err.stack)
@@ -51,7 +53,9 @@ export default function (monitor: Monitor) {
 
   router.get('/logs', (req, res) => {
     const params: SSHDataStoreQueryLogsParams = req.body
-    monitor.opts.store.queryLogs(params).then((data: LoggerDatum[]) => {
+
+    const store = monitor.opts.store
+    store.queryLogs(params).then((data: LoggerDatum[]) => {
       res.status(200).send(stringify({ok: true, data}))
     }).catch(err => {
       console.log('error getting system stats', err.stack)
