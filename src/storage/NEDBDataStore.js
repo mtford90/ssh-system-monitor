@@ -69,6 +69,7 @@ export default class NEDBDataStore {
     })
   }
 
+
   querySystemStats (params?: SSHDataStoreQuerySystemStatsParams = {}): Promise<MonitorDatum[]> {
     return new Promise((resolve, reject) => {
       const q: Object = {
@@ -80,7 +81,8 @@ export default class NEDBDataStore {
         },
       }
 
-      const timestamp = params.timestamp
+      const {timestamp, name, host, type, extra} = params
+
       if (timestamp) {
         q.timestamp = {}
         if (timestamp.gt) {
@@ -96,6 +98,32 @@ export default class NEDBDataStore {
           q.timestamp.$lte = timestamp.lte
         }
       }
+
+      if (name) {
+        q['server.name'] = name
+      }
+
+      if (host) {
+        q['server.ssh.host'] = host
+      }
+
+      if (type) {
+        q['type'] = type
+      }
+
+      if (extra) {
+        if (extra.path) {
+          q['extra.path'] = extra.path
+        }
+
+        if (extra.process) {
+          if (extra.process.id) {
+            q['extra.process.id'] = extra.process.id
+          }
+        }
+      }
+
+      console.log('q', q)
 
       this.db.find(q, function (err, docs: MonitorDatum[]) {
         if (err) reject(err)

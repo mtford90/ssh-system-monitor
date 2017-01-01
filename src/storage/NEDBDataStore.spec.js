@@ -7,58 +7,72 @@ import {describe, it, before} from 'mocha'
 import {Stats} from '../types'
 import type {MonitorDatum, DataType, ServerDefinition, LoggerDatum} from '../types/index'
 import NEDBDataStore from '../storage/NEDBDataStore'
-import Monitor from '../monitors/monitor'
 
 const assert = chai.assert
 
 describe('NEDBDataStore', function () {
   this.timeout(20000)
 
+  let store: NEDBDataStore
+
+  function insertMonitorData (data: MonitorDatum[]): Promise<void[]> {
+    store = new NEDBDataStore()
+
+    return Promise.all(data.map(d => {
+      return store.storeMonitorDatum(d)
+    }))
+  }
+
   describe("queries", function () {
-
-    let store: NEDBDataStore = new NEDBDataStore()
-    let fakeSystemData: MonitorDatum[]
-
-    before(async () => {
-      const operatorDev = servers[0]
-
-      fakeSystemData = [
-        {
+    describe("system", function () {
+      it("empty query", async () => {
+        const operatorDev = servers[0]
+        const mockData    = [{
           server:    operatorDev,
           type:      'cpuUsage',
           value:     0.17,
           extra:     {},
           timestamp: 90,
-        },
-        {
-          server:    operatorDev,
-          type:      'cpuUsage',
-          value:     0.17,
-          extra:     {},
-          timestamp: 100,
-        },
-        {
-          server:    operatorDev,
-          type:      'cpuUsage',
-          value:     0.17,
-          extra:     {},
-          timestamp: 120,
-        },
-      ]
-
-      await Promise.all(fakeSystemData.map(d => {
-        return store.storeMonitorDatum(d)
-      }))
-    })
-
-    describe("system", function () {
-      it("empty query", async () => {
+        }]
+        await insertMonitorData(mockData)
         const stats: MonitorDatum[] = await store.querySystemStats()
-        assert.equal(stats.length, fakeSystemData.length)
+        assert.equal(stats.length, mockData.length)
         console.log('stats', JSON.stringify(stats))
       })
 
       describe("timestamp", function () {
+        let mockData: MonitorDatum[]
+
+        before(async () => {
+          const operatorDev = servers[0]
+
+          mockData = [
+            {
+              server:    operatorDev,
+              type:      'cpuUsage',
+              value:     0.17,
+              extra:     {},
+              timestamp: 90,
+            },
+            {
+              server:    operatorDev,
+              type:      'cpuUsage',
+              value:     0.17,
+              extra:     {},
+              timestamp: 100,
+            },
+            {
+              server:    operatorDev,
+              type:      'cpuUsage',
+              value:     0.17,
+              extra:     {},
+              timestamp: 120,
+            }
+          ]
+
+          await insertMonitorData(mockData)
+        })
+
         it("gt", async () => {
           const n = 100
 
@@ -68,7 +82,7 @@ describe('NEDBDataStore', function () {
             }
           })
 
-          const expectedStats = fakeSystemData.filter(d => d.timestamp > n)
+          const expectedStats = mockData.filter(d => d.timestamp > n)
 
           assert.equal(
             stats.length,
@@ -86,7 +100,7 @@ describe('NEDBDataStore', function () {
             }
           })
 
-          const expectedStats = fakeSystemData.filter(d => d.timestamp >= n)
+          const expectedStats = mockData.filter(d => d.timestamp >= n)
 
           assert.equal(
             stats.length,
@@ -104,7 +118,7 @@ describe('NEDBDataStore', function () {
             }
           })
 
-          const expectedStats = fakeSystemData.filter(d => d.timestamp < n)
+          const expectedStats = mockData.filter(d => d.timestamp < n)
 
           assert.equal(
             stats.length,
@@ -122,7 +136,7 @@ describe('NEDBDataStore', function () {
             }
           })
 
-          const expectedStats = fakeSystemData.filter(d => d.timestamp <= n)
+          const expectedStats = mockData.filter(d => d.timestamp <= n)
 
           assert.equal(
             stats.length,
@@ -142,7 +156,7 @@ describe('NEDBDataStore', function () {
             }
           })
 
-          const expectedStats = fakeSystemData.filter(d => {
+          const expectedStats = mockData.filter(d => {
             return d.timestamp < lt && d.timestamp > gt
           })
 
@@ -152,6 +166,181 @@ describe('NEDBDataStore', function () {
             'Should filter out timestamps > 100'
           )
         })
+      })
+
+      it("name", async () => {
+        let mockData: MonitorDatum[]
+        let operatorDev: ServerDefinition = servers[0]
+        let portalDev: ServerDefinition   = servers[2]
+
+        mockData = [
+          {
+            server:    operatorDev,
+            type:      'cpuUsage',
+            value:     0.17,
+            extra:     {},
+            timestamp: 90,
+          },
+          {
+            server:    portalDev,
+            type:      'cpuUsage',
+            value:     0.17,
+            extra:     {},
+            timestamp: 100,
+          },
+          {
+            server:    operatorDev,
+            type:      'cpuUsage',
+            value:     0.17,
+            extra:     {},
+            timestamp: 120,
+          }
+        ]
+
+        await insertMonitorData(mockData)
+
+        const portalDevName: string = portalDev.name
+
+        console.log('mockData', mockData)
+
+        const systemStats: MonitorDatum[] = await store.querySystemStats({name: portalDevName})
+        assert.equal(systemStats.length, 1)
+        assert(_.every(systemStats, s => s.server.name === portalDevName))
+      })
+
+      it("host", async () => {
+        let mockData: MonitorDatum[]
+        let operatorDev: ServerDefinition = servers[0]
+        let portalDev: ServerDefinition   = servers[2]
+
+        mockData = [
+          {
+            server:    operatorDev,
+            type:      'cpuUsage',
+            value:     0.17,
+            extra:     {},
+            timestamp: 90,
+          },
+          {
+            server:    portalDev,
+            type:      'cpuUsage',
+            value:     0.17,
+            extra:     {},
+            timestamp: 100,
+          },
+          {
+            server:    operatorDev,
+            type:      'cpuUsage',
+            value:     0.17,
+            extra:     {},
+            timestamp: 120,
+          }
+        ]
+
+        await insertMonitorData(mockData)
+
+        const portalDevHost: string = portalDev.ssh.host
+
+        const systemStats: MonitorDatum[] = await store.querySystemStats({host: portalDevHost})
+        assert.equal(systemStats.length, 1)
+        assert(_.every(systemStats, s => s.server.ssh.host === portalDevHost))
+      })
+
+      it("type", async () => {
+        let mockData: MonitorDatum[]
+        let operatorDev: ServerDefinition = servers[0]
+        let portalDev: ServerDefinition   = servers[2]
+
+        mockData = [
+          {
+            server:    operatorDev,
+            type:      'cpuUsage',
+            value:     0.17,
+            extra:     {},
+            timestamp: 90,
+          },
+          {
+            server:    portalDev,
+            type:      'memoryUsedPercentage',
+            value:     0.17,
+            extra:     {},
+            timestamp: 100,
+          },
+        ]
+
+        await insertMonitorData(mockData)
+
+        const systemStats: MonitorDatum[] = await store.querySystemStats({type: 'cpuUsage'})
+        assert.equal(systemStats.length, 1)
+        assert(_.every(systemStats, s => s.type === 'cpuUsage'))
+      })
+
+      it("extra.path", async () => {
+        let mockData: MonitorDatum[]
+        let operatorDev: ServerDefinition = servers[0]
+
+        mockData = [
+          {
+            server:    operatorDev,
+            type:      'percentageDiskSpaceUsed',
+            value:     0.17,
+            extra:     {
+              path: '/'
+            },
+            timestamp: 90,
+          },
+          {
+            server:    operatorDev,
+            type:      'percentageDiskSpaceUsed',
+            value:     0.17,
+            extra:     {
+              path: '/xyz'
+            },
+            timestamp: 100,
+          },
+        ]
+
+        await insertMonitorData(mockData)
+
+        const systemStats: MonitorDatum[] = await store.querySystemStats({extra: {path: '/'}})
+        assert.equal(systemStats.length, 1)
+      })
+
+      it("extra.process.id", async () => {
+        let mockData: MonitorDatum[]
+        let operatorDev: ServerDefinition = servers[0]
+
+        mockData = [
+          {
+            server:    operatorDev,
+            type:      'processInfo',
+            value:     0.17,
+            extra:     {
+              process: {
+                id:   '2',
+                grep: 'xyz',
+              }
+            },
+            timestamp: 90,
+          },
+          {
+            server:    operatorDev,
+            type:      'processInfo',
+            value:     0.17,
+            extra:     {
+              process: {
+                id:   '1',
+                grep: 'xyz',
+              }
+            },
+            timestamp: 100,
+          },
+        ]
+
+        await insertMonitorData(mockData)
+
+        const systemStats: MonitorDatum[] = await store.querySystemStats({extra: {process: {id: '1'}}})
+        assert.equal(systemStats.length, 1)
       })
     })
 
