@@ -21,7 +21,6 @@ export default class Config extends Component {
   props: Props
 
   render () {
-    console.log('rendering Home')
     return (
       <div>
         Config!

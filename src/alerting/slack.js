@@ -1,7 +1,9 @@
 import Slack from 'slack-node'
 import {isString} from 'lodash'
 import Stats from '../types'
+import {getLogger} from '../util/log'
 
+const log = getLogger('alerting/slack')
 
 function getCPUUsageAlert (data) {
   const host  = data.server.ssh.host
@@ -107,17 +109,19 @@ export default function (monitor, opts = {}) {
           text = getAlertText(data)
         }
 
-        slackClient.webhook({
+        const options = {
           channel,
           username,
           text
-        }, (err, resp) => {
+        }
+
+        log.debug(`sending slack message via ${webhook}`)
+        slackClient.webhook(options, (err, resp) => {
           if (err) {
-            console.log('error using slack webhook', err)
+            log.error(`error using slack webhook`, err.stack)
           }
           else {
-            // TODO
-            // console.log(`successfully sent message via ${webhook}`)
+            log.debug(`successfully sent slack message via ${webhook}`, resp)
           }
         })
 
@@ -126,7 +130,7 @@ export default function (monitor, opts = {}) {
       }
     }
     else {
-      console.log(
+      log.debug(
         `alert for ${host}.${dataType} was last sent ${timeSinceLastSent / 1000}s ago which is less than ${limit / 1000}s so ignoring`
       )
     }

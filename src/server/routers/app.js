@@ -35,7 +35,23 @@ export default function (monitor: Monitor) {
     const compiler = webpack(config);
 
     const devMiddleware = require('webpack-dev-middleware')(compiler, {
-      publicPath: config.output.publicPath
+      publicPath: config.output.publicPath,
+      // Silence at last
+      stats:      {
+        hash:         false,
+        version:      false,
+        timings:      false,
+        assets:       false,
+        chunks:       false,
+        modules:      false,
+        reasons:      false,
+        children:     false,
+        source:       false,
+        errors:       false,
+        errorDetails: false,
+        warnings:     false,
+        publicPath:   false,
+      }
     })
 
     const webpackHotMiddleware = require('webpack-hot-middleware')(compiler)

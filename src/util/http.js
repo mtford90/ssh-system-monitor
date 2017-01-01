@@ -1,12 +1,64 @@
 /* @flow */
 
 import _ from 'lodash'
+import {getLogger} from './log'
 
-function _encodeQueryParams (query: Object): string {
-  const encoded = Object.keys(query)
-    .map(k => encodeURIComponent(k) + '=' + encodeURIComponent(query[k]))
-    .join('&')
-  return encoded
+// function _encodeQueryParams (query: Object): string {
+//   const encoded = Object.keys(query)
+//     .map(k => encodeURIComponent(k) + '=' + encodeURIComponent(query[k]))
+//     .join('&')
+//   return encoded
+// }
+
+const log = getLogger('util/http')
+
+function _encodeQueryParams (obj: Object, urlEncode?: boolean = false): string {
+  function flattenObj (x: Object, path: Array<string> = []): Array<Object> {
+    const result = [];
+
+    Object.keys(x).forEach(function (key) {
+      if (!x.hasOwnProperty(key)) return;
+
+      const newPath = path.slice();
+      newPath.push(key);
+
+      let vals = [];
+      if (typeof x[key] == 'object') {
+        vals = flattenObj(x[key], newPath);
+      } else {
+        vals.push({path: newPath, val: x[key]});
+      }
+      vals.forEach(function (obj) {
+        return result.push(obj);
+      });
+    });
+
+    return result;
+  } // flattenObj
+
+  // start with  flattening `obj`
+  let parts = flattenObj(obj); // [ { path: [ ...parts ], val: ... }, ... ]
+
+  // convert to array notation:
+  parts = parts.map(function (varInfo) {
+    if (varInfo.path.length == 1) varInfo.path = varInfo.path[0]; else {
+      const first               = varInfo.path[0];
+      const rest: Array<string> = varInfo.path.slice(1);
+      varInfo.path              = first + '[' + rest.join('][') + ']';
+    }
+    return varInfo;
+  }); // parts.map
+
+  // join the parts to a query-string url-component
+  const queryString = parts.map(function (varInfo) {
+    return varInfo.path + '=' + varInfo.val;
+  }).join('&');
+  if (urlEncode) {
+    return encodeURIComponent(queryString)
+  }
+  else {
+    return queryString
+  }
 }
 
 // https://developer.mozilla.org/en-US/docs/Web/API/GlobalFetch/fetch
@@ -49,7 +101,9 @@ export async function post (path: string, params: Object, body: Object) {
     opts.body = JSON.stringify(body)
   }
 
+
   const res = await fetch(path, opts)
+
 
   const responseBody = await res.json()
 
@@ -77,14 +131,10 @@ export async function get (path: string, params?: Object): Promise<string> {
     path += `?${encoded}`
   }
 
-  // TODO
-  // console.log(`GET ${path}`)
+  log.debug(`GET ${path}`)
 
   const res                  = await fetch(path, opts)
   const responseText: string = await res.text()
-
-  // TODO
-  // console.log(`GET ${path}`, responseText)
 
   return responseText
 

@@ -7,11 +7,24 @@ import type {SSH2Options} from '../types/index'
 export function getClient (opts: SSH2Options): Promise<Client> {
   return new Promise((resolve, reject) => {
     const client = new Client()
-    let listener = () => {
+
+    let removeListeners = function () {
       client.removeListener('ready', listener)
+      client.removeListener('error', errorListener)
+    }
+
+    let listener        = () => {
+      removeListeners()
       resolve(client)
     }
+
+    let errorListener = err => {
+      removeListeners()
+      reject(err)
+    }
+
     client.on('ready', listener)
+    client.on('error', errorListener)
     client.connect(opts)
   })
 }
@@ -37,9 +50,9 @@ export function execute (client: Client, cmd: string): Promise<string> {
   })
 }
 
-export function faultTolerantExecute (client: Client, cmd: string, timeout: number = 5000): Promise<string> {
+export function faultTolerantExecute (client: Client, cmd: string): Promise<string> {
   return new Promise((resolve, reject) => {
-    const operation = retry.operation({retries: 5, minTimeout: timeout, maxTimeout: timeout});
+    const operation = retry.operation();
     // TODO: Log retry attempts
     operation.attempt(() => {
       execute(client, cmd).then((str: string) => {

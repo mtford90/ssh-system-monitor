@@ -2,6 +2,7 @@
 import type {MonitorDatum, LoggerDatum, NEDBOptions} from '../types/index'
 import DataStore from 'nedb'
 import type {SSHDataStoreQueryLogsParams, SSHDataStoreQuerySystemStatsParams, TimestampQueryParams} from './DataStore'
+import {getLogger} from '../util/log'
 
 const INDICES = [
   'type',
@@ -14,6 +15,8 @@ const INDICES = [
   'extra.process.id',
 ]
 
+const log = getLogger('storage/NEDBDataStore')
+
 export default class NEDBDataStore {
   db: DataStore
 
@@ -23,7 +26,7 @@ export default class NEDBDataStore {
 
   init (): Promise<void> {
     return this._ensureIndices(INDICES).catch(err => {
-      console.log("error configuring indices", err)
+      log.error("Error configuring indices", err.stack)
     })
   }
 
@@ -31,12 +34,11 @@ export default class NEDBDataStore {
     return new Promise((resolve, reject) => {
       this.db.ensureIndex({fieldName}, err => {
         if (err) {
-          console.log(`error creating index for ${fieldName}`)
+          log.error(`error creating index for ${fieldName}`)
           reject(err)
         }
         else {
-          // TODO
-          console.log(`Created index for ${fieldName}`)
+          log.debug(`Created index for ${fieldName}`)
           resolve()
         }
       })
@@ -138,8 +140,6 @@ export default class NEDBDataStore {
           }
         }
       }
-
-      console.log('q', q)
 
       this.db.find(q, function (err, docs: MonitorDatum[]) {
         if (err) reject(err)

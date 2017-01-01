@@ -22,6 +22,11 @@ import DockerLogger from '../logging/dockerLogger'
 import Logger from '../logging/logger'
 import {SSHDataStore} from '../storage/DataStore'
 import NEDBDataStore from '../storage/NEDBDataStore'
+import {getLogger} from '../util/log'
+import retry from 'retry'
+
+
+const log = getLogger('Monitor')
 
 export const ERROR_POOL_FACTORY_CREATE  = 'factoryCreateError'
 export const ERROR_POOL_FACTORY_DESTROY = 'factoryDestroyError'
@@ -36,13 +41,17 @@ function asyncInterval (fn: Function, n: number = 10000): Function {
         working = false
       }).catch(err => {
         working = false
-        // TODO: These errors happen occasionally but should be optional to silence them
-        console.log(`Error in asyncInterval:\n`, err.stack)
+        log.error(`Error in asyncInterval:`, err.stack)
       })
     }
   }, n)
 
   return () => clearInterval(interval)
+}
+
+type SSH2Error = {
+  level: 'client-socket' | 'client-ssh', // client-socket means a socket level error, client-ssh means an SSH disconnection message
+  description?: string // May be present for client-ssh
 }
 
 
@@ -111,24 +120,84 @@ export default class Monitor extends EventEmitter {
     super()
     this.servers = servers
 
+    let _store = opts.store
+
+    if (!_store) {
+      _store = new NEDBDataStore()
+    }
+
     this.opts = {
       rate:  opts.rate || 10000,
-      store: opts.store || new NEDBDataStore() // in memory data store by default
+      store: _store
     }
 
     this.latest = initLatestStats(servers)
-
-    this._start()
-
-    this._listenToStorage()
   }
 
-  async _acquireAndReleaseClient (id: number, fn: (client: Client) => Promise<any>): any {
-    const pool   = this.pools[id]
-    const client = await pool.acquire()
-    const res    = await fn(client)
-    pool.release(client)
-    return res
+// export function faultTolerantExecute (client: Client, cmd: string, timeout: number = 5000): Promise<string> {
+//   return new Promise((resolve, reject) => {
+//     const operation = retry.operation({retries: 5, minTimeout: timeout, maxTimeout: timeout});
+//
+//     operation.attempt(() => {
+//       execute(client, cmd).then((str: string) => {
+//         resolve(str)
+//       }).catch(err => {
+//         if (operation.retry(err)) {
+//           return
+//         }
+//
+//         reject(operation.mainError())
+//       })
+//     })
+//   })
+// }
+
+  acquireExecuteRelease (id: number, fn: (client: Client) => Promise<any>): Promise<any> {
+    const pool = this.pools[id]
+
+    return new Promise((resolve, reject) => {
+      const operation = retry.operation();
+
+      let client: Client
+      let err: SSH2Error | null = null
+
+      // TODO: Maybe can wrap Pool instead
+      const errorHandler = err => {
+        // If there was an ssh error, destroy that client instead of returning the broken client to the pool
+        if (err) {
+          pool.destroy(client)
+          err = null
+          log.warn(`There was an ssh error`, err) // TODO: improve logging here - more specific e.g. which host, which command etc
+        }
+        else {
+          pool.release(client)
+        }
+
+        if (operation.retry(err)) {
+          return
+        }
+
+        reject(operation.mainError())
+      }
+
+      operation.attempt(() => {
+        pool.acquire().then(_client => {
+          client = _client
+
+          const sshClientErrorListener = (_err: SSH2Error) => {
+            client.off('error', sshClientErrorListener)
+            err = _err
+          }
+
+          client.on('error', sshClientErrorListener)
+
+          fn(client).then(res => {
+            resolve(res)
+            pool.release(client)
+          }).catch(errorHandler)
+        }).catch(errorHandler)
+      })
+    })
   }
 
   emitData (datum: MonitorDatum) {
@@ -143,7 +212,7 @@ export default class Monitor extends EventEmitter {
   simpleCommandInterval (id: number, dataType: SimpleDataType): Function {
     return asyncInterval(async () => {
       const cmd: Function            = system[dataType]
-      const value                    = await this._acquireAndReleaseClient(id, client => cmd(client))
+      const value                    = await this.acquireExecuteRelease(id, client => cmd(client))
       const server: ServerDefinition = this.servers[id]
 
       const datum: MonitorDatum = {
@@ -163,37 +232,55 @@ export default class Monitor extends EventEmitter {
    * If a store was provided, store all data!
    * @private
    */
-  _listenToStorage () {
+  async _listenToStorage (): Promise<void> {
     const store = this.opts.store
     if (store) {
-      store.init().then(() => {
-        // TODO: debug logs
+      log.debug(`Initialising store`)
+      await store.init().then(() => {
+        log.debug(`Initalised store`)
+
         this.on('data', (datum: MonitorDatum) => {
           store.storeMonitorDatum(datum).then(() => {
-            // TODO: debug logs
-            console.log('successfully stored monitor datum', datum)
+            log.debug('successfully stored monitor datum', datum)
           }).catch(err => {
-            console.log('error storing monitor datum', err.stack)
+            log.error('error storing monitor datum', err.stack)
           })
         })
 
         this.on('log', (datum: LoggerDatum) => {
           store.storeLoggerDatum(datum).then(() => {
-            // TODO: debug logs
-            console.log('successfully stored logger datum', datum)
+            log.debug('successfully stored logger datum', datum)
           }).catch(err => {
-            console.log('error storing log datum', err.stack)
+            log.error('error storing log datum', err.stack)
           })
         })
       }).catch(err => {
-        console.log('error initialising data store', err.stack)
+        log.info('error initialising data store', err.stack)
       })
     }
   }
 
-  _start () {
-    const servers = this.servers
-    servers.map((s: ServerDefinition) => {
+  _configureSSHPools () {
+    _.forEach(this.servers, (server: ServerDefinition, idx: number) => {
+      const pool      = constructPool(server)
+      this.pools[idx] = pool
+
+      pool.on(ERROR_POOL_FACTORY_CREATE, err => {
+        const type = `pool:${ERROR_POOL_FACTORY_CREATE}`
+        log.error(`${type}`, err.stack)
+        this.emit('error', {type, err})
+      })
+
+      pool.on(ERROR_POOL_FACTORY_DESTROY, err => {
+        const type = `pool:${ERROR_POOL_FACTORY_DESTROY}`
+        log.error(`${type}`, err.stack)
+        this.emit('error', {type, err})
+      })
+    })
+  }
+
+  _configureLatest () {
+    this.servers.map((s: ServerDefinition) => {
       const paths         = s.paths || []
       const host          = s.ssh.host
       const latest        = this.latest[host]
@@ -206,23 +293,10 @@ export default class Monitor extends EventEmitter {
       latest.percentageDiskSpaceUsed = diskSpaceUsed
       this.latest[host]              = latest
     })
+  }
 
-    _.forEach(servers, (server: ServerDefinition, idx: number) => {
-      const pool      = constructPool(server)
-      this.pools[idx] = pool
-
-      pool.on(ERROR_POOL_FACTORY_CREATE, err => {
-        const type = `pool:${ERROR_POOL_FACTORY_CREATE}`
-        console.log(`Error ${type}`, err.stack)
-        this.emit('error', {type, err})
-      })
-
-      pool.on(ERROR_POOL_FACTORY_DESTROY, err => {
-        const type = `pool:${ERROR_POOL_FACTORY_DESTROY}`
-        console.log(`Error ${type}`, err.stack)
-        this.emit('error', {type, err})
-      })
-
+  _configureCommands () {
+    _.forEach(this.servers, (server: ServerDefinition, idx: number) => {
       const paths: string[]                = (server.paths || [])
       const processes: ProcessDefinition[] = (server.processes || [])
 
@@ -233,7 +307,7 @@ export default class Monitor extends EventEmitter {
         this.simpleCommandInterval(idx, 'averageLoad'),
         ...paths.map(path => {
           return asyncInterval(async () => {
-            const value: number = (await this._acquireAndReleaseClient(idx, client => system.percentageDiskSpaceUsed(client, path)))
+            const value: number = (await this.acquireExecuteRelease(idx, client => system.percentageDiskSpaceUsed(client, path)))
 
             const datum: MonitorDatum = {
               type:      'percentageDiskSpaceUsed',
@@ -252,7 +326,7 @@ export default class Monitor extends EventEmitter {
         }),
         ...processes.map((p: ProcessDefinition) => {
           return asyncInterval(async () => {
-            const value: ProcessInfo = await this._acquireAndReleaseClient(idx, client => process.info(client, p.grep))
+            const value: ProcessInfo = await this.acquireExecuteRelease(idx, client => process.info(client, p.grep))
 
             const datum: MonitorDatum = {
               type:      'processInfo',
@@ -270,11 +344,18 @@ export default class Monitor extends EventEmitter {
         })
       ]
 
+      this.intervals[idx] = _intervals
+    })
+  }
+
+  _configureLoggers (): Promise<*> {
+    const loggerPromises: Promise<*>[] = []
+    _.forEach(this.servers, (server: ServerDefinition, idx: number) => {
       const logs: LogDefinition[] = server.logs || []
 
       const _loggers = logs.map((l: LogDefinition) => {
         const loggerIdentifier = `${server.name}.${l.name}`
-        console.log(`Starting logger ${loggerIdentifier}`)
+        log.debug(`Starting logger ${loggerIdentifier}`)
         const type = l.type
         switch (type) {
           case 'command': {
@@ -284,16 +365,18 @@ export default class Monitor extends EventEmitter {
               cmd:              l.grep
             })
             logger.on('data', (datum: LoggerDatum) => this.emitLogData(datum))
-            logger.start().then(() => {
-              console.log(
-                `Started logger ${loggerIdentifier}`
-              )
-            }).catch(err => {
-              console.log(
-                `Unable to start logger ${loggerIdentifier}`,
-                err.stack
-              )
-            })
+            loggerPromises.push(
+              logger.start().then(() => {
+                log.debug(
+                  `Started logger ${loggerIdentifier}`
+                )
+              }).catch(err => {
+                log.error(
+                  `Unable to start logger ${loggerIdentifier}`,
+                  err.stack
+                )
+              })
+            )
             return logger
           }
           case 'docker': {
@@ -302,16 +385,20 @@ export default class Monitor extends EventEmitter {
               logDefinition:    l,
             })
             logger.on('data', (datum: LoggerDatum) => this.emitLogData(datum))
-            logger.start().then(() => {
-              console.log(
-                `Started logger ${loggerIdentifier}`
-              )
-            }).catch(err => {
-              console.log(
-                `Unable to start logger ${loggerIdentifier}`,
-                err.stack
-              )
-            })
+
+            loggerPromises.push(
+              logger.start().then(() => {
+                log.debug(
+                  `Started logger ${loggerIdentifier}`
+                )
+              }).catch(err => {
+                log.error(
+                  `Unable to start logger ${loggerIdentifier}`,
+                  err.stack
+                )
+              })
+            )
+
             return logger
           }
           default:
@@ -319,27 +406,72 @@ export default class Monitor extends EventEmitter {
         }
       })
 
-      this.loggers[idx]   = _loggers
-      this.intervals[idx] = _intervals
+      this.loggers[idx] = _loggers
     })
+    // Wait for the loggers to startup
+    log.debug(`Waiting for ${loggerPromises.length} loggers to startup`)
+
+
+    log.debug(`All ${loggerPromises.length} loggers have started up`)
+
+    log.debug(`Wait for data store to startup`)
+
+    return Promise.all(loggerPromises)
+
+  }
+
+  async start (): Promise<*> {
+    log.debug(`Monitor starting up - monitoring ${_.keys(this.servers).length} servers`)
+
+    this._configureLatest()
+    this._configureSSHPools()
+    this._configureCommands()
+
+    await Promise.all([
+      this._configureLoggers(),
+      this._listenToStorage()
+    ])
+
+    log.debug(`Monitor has finished starting up - monitoring ${_.keys(this.servers).length} servers`)
   }
 
   async terminate (): Promise<void> {
+    log.info('Terminating Monitor')
+
+    log.debug('Ensuring that startup finished before terminating')
+
     this.removeAllListeners('data')
+
+    log.debug('Removed all listeners')
     _.flatten(_.values(this.intervals)).forEach((fn: Function) => fn())
+    log.debug('Cleared intervals')
 
-    const pools = this.pools
+    const pools    = this.pools
+    const numPools = _.keys(pools).length
 
-    // Wait for all pools to drain
+    const loggers    = _.chain(this.loggers).values().flatten().compact().value()
+    const numLoggers = loggers.length
+
     await Promise.all([
-      ..._.values(pools).map((pool: Pool) => {
+      ..._.values(pools).map((pool: Pool, idx: number) => {
+        log.debug(`Draining pool ${idx + 1}/${numPools}`)
         return pool.drain().then(() => {
+          log.debug(`Drained pool ${idx + 1}/${numPools}`)
           pool.clear()
+        }).catch(err => {
+          log.error(`Unable to drain pool ${idx + 1}`, err.stack)
         })
       }),
-      ..._.chain(this.loggers).values().flatten().map((l: Logger) => {
-        return l.terminate()
-      }).value()
+      ...loggers.map((l: Logger, idx: number) => {
+        const logDefinition: LogDefinition = l.opts.logDefinition
+        log.debug(`Terminating logger ${idx + 1}/${numLoggers}`)
+        return l.terminate().then(() => {
+          log.debug(`Terminated logger ${idx + 1}/${numLoggers}`)
+        }).catch(err => {
+          log.debug(`Unable to terminate logger ${idx + 1} ${logDefinition.name}`, err.stack)
+        })
+      })
     ])
+    log.info('Terminated monitor')
   }
 }

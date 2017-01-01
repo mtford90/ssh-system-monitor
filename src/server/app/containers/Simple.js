@@ -13,7 +13,6 @@ export default class Simple extends Component {
           title="Click Me!"
           visited={true}
           onClick={() => {
-            console.log('yo!')
           }}
         />
       </div>

@@ -6,7 +6,7 @@ import {servers} from '../../examples/config'
 import {describe, it, before} from 'mocha'
 import type {MonitorDatum, ServerDefinition, LoggerDatum} from '../types/index'
 import NEDBDataStore from '../storage/NEDBDataStore'
-
+import {insertMonitorData, insertLogData} from '../util/storage'
 const assert = chai.assert
 
 describe('NEDBDataStore', function () {
@@ -14,34 +14,19 @@ describe('NEDBDataStore', function () {
 
   let store: NEDBDataStore
 
-  function insertMonitorData (data: MonitorDatum[]): Promise<void[]> {
-    store = new NEDBDataStore()
-
-    return Promise.all(data.map(d => {
-      return store.storeMonitorDatum(d)
-    }))
-  }
-
-  function insertLogData (data: LoggerDatum[]): Promise<void[]> {
-    store = new NEDBDataStore()
-
-    return Promise.all(data.map(d => {
-      return store.storeLoggerDatum(d)
-    }))
-  }
 
   describe("queries", function () {
     describe("system", function () {
       it("empty query", async () => {
-        const operatorDev = servers[0]
-        const mockData    = [{
+        const operatorDev           = servers[0]
+        const mockData              = [{
           server:    operatorDev,
           type:      'cpuUsage',
           value:     0.17,
           extra:     {},
           timestamp: 90,
         }]
-        await insertMonitorData(mockData)
+        store                       = await insertMonitorData(mockData)
         const stats: MonitorDatum[] = await store.querySystemStats()
         assert.equal(stats.length, mockData.length)
         console.log('stats', JSON.stringify(stats))
@@ -77,7 +62,7 @@ describe('NEDBDataStore', function () {
             }
           ]
 
-          await insertMonitorData(mockData)
+          store = await insertMonitorData(mockData)
         })
 
         it("gt", async () => {
@@ -204,7 +189,7 @@ describe('NEDBDataStore', function () {
           }
         ]
 
-        await insertMonitorData(mockData)
+        store = await insertMonitorData(mockData)
 
         const portalDevName: string = portalDev.name
 
@@ -244,7 +229,7 @@ describe('NEDBDataStore', function () {
           }
         ]
 
-        await insertMonitorData(mockData)
+        store = await insertMonitorData(mockData)
 
         const portalDevHost: string = portalDev.ssh.host
 
@@ -275,7 +260,7 @@ describe('NEDBDataStore', function () {
           },
         ]
 
-        await insertMonitorData(mockData)
+        store = await insertMonitorData(mockData)
 
         const systemStats: MonitorDatum[] = await store.querySystemStats({type: 'cpuUsage'})
         assert.equal(systemStats.length, 1)
@@ -307,7 +292,7 @@ describe('NEDBDataStore', function () {
           },
         ]
 
-        await insertMonitorData(mockData)
+        store = await insertMonitorData(mockData)
 
         const systemStats: MonitorDatum[] = await store.querySystemStats({extra: {path: '/'}})
         assert.equal(systemStats.length, 1)
@@ -344,7 +329,7 @@ describe('NEDBDataStore', function () {
           },
         ]
 
-        await insertMonitorData(mockData)
+        store = await insertMonitorData(mockData)
 
         const systemStats: MonitorDatum[] = await store.querySystemStats({extra: {process: {id: '1'}}})
         assert.equal(systemStats.length, 1)
@@ -368,7 +353,7 @@ describe('NEDBDataStore', function () {
           }
         }]
 
-        await insertLogData(mockData)
+        store = await insertLogData(mockData)
 
         const logs: LoggerDatum[] = await store.queryLogs()
         assert.equal(logs.length, 1)
@@ -401,7 +386,7 @@ describe('NEDBDataStore', function () {
           }
         ]
 
-        await insertLogData(mockData)
+        store                     = await insertLogData(mockData)
         const logs: LoggerDatum[] = await store.queryLogs({name: 'xyz'})
         console.log('logs', JSON.stringify(logs))
         assert.equal(logs.length, 1)
@@ -433,7 +418,7 @@ describe('NEDBDataStore', function () {
           }
         ]
 
-        await insertLogData(mockData)
+        store                     = await insertLogData(mockData)
         const logs: LoggerDatum[] = await store.queryLogs({source: 'stderr'})
         console.log('logs', JSON.stringify(logs))
         assert.equal(logs.length, 1)
@@ -482,7 +467,7 @@ describe('NEDBDataStore', function () {
             },
           ]
 
-          await insertLogData(mockData)
+          store = await insertLogData(mockData)
         })
 
         it("gt", async () => {
@@ -606,7 +591,8 @@ describe('NEDBDataStore', function () {
           }
         ]
 
-        await insertLogData(mockData)
+        store = await insertLogData(mockData)
+
         const logs: LoggerDatum[] = await store.queryLogs({host: portalDev.ssh.host})
         console.log('logs', JSON.stringify(logs))
         assert.equal(logs.length, 1)

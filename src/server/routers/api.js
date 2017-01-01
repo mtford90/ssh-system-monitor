@@ -7,6 +7,9 @@ import _ from 'lodash'
 import {stringify} from '../../util/json'
 import type {LatestHostStats, MonitorDatum, LoggerDatum} from '../../types/index'
 import type {SSHDataStoreQuerySystemStatsParams, SSHDataStoreQueryLogsParams} from '../../storage/DataStore'
+import {getLogger} from '../../util/log'
+
+const log = getLogger('routers/api')
 
 export default function (monitor: Monitor) {
   const router = Router()
@@ -18,8 +21,11 @@ export default function (monitor: Monitor) {
   })
 
   router.get('/latest/:stat', (req, res) => {
-    const host = req.query.host
-    const stat = req.params.stat
+    const query = req.query
+    const host  = query.host
+    const stat  = req.params.stat
+
+    log.info(`/latest/${stat}`, query)
 
     if (host) {
       const value = monitor.latest[host][stat]
@@ -40,13 +46,15 @@ export default function (monitor: Monitor) {
   })
 
   router.get('/system/stats', (req, res) => {
-    const params: SSHDataStoreQuerySystemStatsParams = req.body
+    const params: SSHDataStoreQuerySystemStatsParams = req.query
+
+    log.info(`/system/stats`, params)
 
     const store = monitor.opts.store
     store.querySystemStats(params).then((data: MonitorDatum[]) => {
       res.status(200).send(stringify({ok: true, data}))
     }).catch(err => {
-      console.log('error getting system stats', err.stack)
+      log.error('error getting system stats', err.stack)
       res.status(500).send(stringify({ok: false, detail: err.message}))
     })
   })
@@ -58,7 +66,7 @@ export default function (monitor: Monitor) {
     store.queryLogs(params).then((data: LoggerDatum[]) => {
       res.status(200).send(stringify({ok: true, data}))
     }).catch(err => {
-      console.log('error getting system stats', err.stack)
+      log.error('error getting log stats', err.stack)
       res.status(500).send(stringify({ok: false, detail: err.message}))
     })
   })

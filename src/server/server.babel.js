@@ -12,14 +12,20 @@ import ws from 'socket.io'
 import getApiRouter from './routers/api'
 import getAppRouter from './routers/app'
 import type {MonitorDatum, LoggerDatum} from '../types/index'
+import {getLogger} from '../util/log'
 
 export type ApiOptions = {
-  cors?: boolean
+  cors?: boolean,
+  serveClient?: boolean,
 }
 
+const log = getLogger('server')
+
 export default function start (monitor: Monitor, opts?: ApiOptions = {}) {
+
   const _opts: ApiOptions = {
-    cors: true,
+    cors:        true,
+    serveClient: true,
     ...opts,
   }
 
@@ -35,15 +41,18 @@ export default function start (monitor: Monitor, opts?: ApiOptions = {}) {
   }
 
   const apiRouter = getApiRouter(monitor)
-  const appRouter = getAppRouter(monitor)
+
+  if (_opts.serveClient) {
+    const appRouter = getAppRouter(monitor)
+    app.use('/', appRouter)
+  }
 
   app.use('/api', apiRouter)
-  app.use('/', appRouter)
 
   const port = env.PORT
 
   const server = app.listen(port, () => {
-    console.log(`App is running at http://localhost:${port}/`)
+    log.info(`App is running at http://localhost:${port}/`)
   })
 
   const io = ws(server)
