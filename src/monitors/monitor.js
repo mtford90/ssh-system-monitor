@@ -21,6 +21,7 @@ import {initLatestStats, receiveMonitorDatum} from '../util/data'
 import DockerLogger from '../logging/dockerLogger'
 import Logger from '../logging/logger'
 import {SSHDataStore} from '../storage/DataStore'
+import NEDBDataStore from '../storage/NEDBDataStore'
 
 export const ERROR_POOL_FACTORY_CREATE  = 'factoryCreateError'
 export const ERROR_POOL_FACTORY_DESTROY = 'factoryDestroyError'
@@ -44,10 +45,6 @@ function asyncInterval (fn: Function, n: number = 10000): Function {
   return () => clearInterval(interval)
 }
 
-export type MonitorOptions = {
-  rate?: number,
-  store?: SSHDataStore,
-}
 
 /**
  * This is for testing purposes - allows use of async/await for cleaner tests.
@@ -93,23 +90,31 @@ export function waitForLoggerDatum (
 }
 
 export default class Monitor extends EventEmitter {
-  opts: MonitorOptions
+  opts: {
+    rate: number,
+    store: SSHDataStore,
+  }
   servers: ServerDefinition[]
   pools: {[id:number]: Pool}                   = {}
   latest: {[host:string]: HostStatsCollection} = {}
   intervals: {[id:number]: Function[]}         = {}
   loggers: {[id:number]: Logger[]}             = {}
 
-  constructor (servers: ServerDefinition[], opts?: MonitorOptions = {}) {
+  constructor (
+    servers: ServerDefinition[],
+    opts?: {
+      rate?: number,
+      store?: SSHDataStore,
+    } = {}
+  )
+  {
     super()
     this.servers = servers
 
-    opts = {
-      rate: 10000,
-      ...opts,
+    this.opts = {
+      rate:  opts.rate || 10000,
+      store: opts.store || new NEDBDataStore() // in memory data store by default
     }
-
-    this.opts = opts
 
     this.latest = initLatestStats(servers)
 

@@ -19,7 +19,7 @@ export type LoggerOpts = {
 
 export default class Logger extends EventEmitter {
   opts: LoggerOpts
-  client: ? Client | null
+  client: Client
 
   constructor (opts: LoggerOpts) {
     super()
