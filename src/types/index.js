@@ -84,7 +84,7 @@ export type SystemAverageLoad = {
   '15': number,
 }
 
-export type LogSource = 'stdin' | 'stdout'
+export type LogSource = 'stderr' | 'stdout'
 
 export type LoggerDatum = {
   source: LogSource,

@@ -1,5 +1,5 @@
 /* @flow */
-import type {ServerDefinition, LoggerDatum, LogDefinition} from '../types/index'
+import type {ServerDefinition, LoggerDatum, LogDefinition, LogSource} from '../types/index'
 import {getClient} from '../util/ssh'
 import Client from 'ssh2'
 import EventEmitter from 'events'
@@ -26,7 +26,7 @@ export default class Logger extends EventEmitter {
     this.opts = opts
   }
 
-  emitDatum (source: string, text: string): LoggerDatum {
+  emitDatum (source: LogSource, text: string): LoggerDatum {
     const datum: LoggerDatum = {
       source,
       text,
@@ -43,9 +43,8 @@ export default class Logger extends EventEmitter {
 
     this.client.exec(this.opts.cmd, (err, stream) => {
       stream.on('data', data => {
-        const text   = data.toString().replace(/\n/g, '')
-        const source = 'stdin'
-        this.emitDatum(source, text)
+        const text = data.toString().replace(/\n/g, '')
+        this.emitDatum('stdout', text)
       })
 
       stream.on('close', (code, signal) => {
@@ -54,9 +53,8 @@ export default class Logger extends EventEmitter {
       })
 
       stream.stderr.on('data', data => {
-        const text   = data.toString().replace(/\n/g, '')
-        const source = 'stderr'
-        this.emitDatum(source, text)
+        const text = data.toString().replace(/\n/g, '')
+        this.emitDatum('stderr', text)
       })
     })
   }
