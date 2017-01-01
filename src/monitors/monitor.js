@@ -161,9 +161,7 @@ export default class Monitor extends EventEmitter {
   _listenToStorage () {
     const store = this.opts.store
     if (store) {
-      const indices = ['value', 'type', 'host']
-
-      store.init(indices).then(() => {
+      store.init().then(() => {
         // TODO: debug logs
         this.on('data', (datum: MonitorDatum) => {
           store.storeMonitorDatum(datum).then(() => {

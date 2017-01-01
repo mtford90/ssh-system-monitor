@@ -3,6 +3,17 @@ import type {MonitorDatum, LoggerDatum, NEDBOptions} from '../types/index'
 import DataStore from 'nedb'
 import type {SSHDataStoreQueryLogsParams, SSHDataStoreQuerySystemStatsParams} from './DataStore'
 
+const INDICES = [
+  'type',
+  'value',
+  'timestamp',
+  'server.name',
+  'server.ssh.host',
+  'type',
+  'extra.path',
+  'extra.process.id',
+]
+
 export default class NEDBDataStore {
   db: DataStore
 
@@ -10,8 +21,8 @@ export default class NEDBDataStore {
     this.db = new DataStore(opts)
   }
 
-  init (indices: string[]): Promise<void> {
-    return this._ensureIndices(['value', 'type', 'host']).catch(err => {
+  init (): Promise<void> {
+    return this._ensureIndices(INDICES).catch(err => {
       console.log("error configuring indices", err)
     })
   }

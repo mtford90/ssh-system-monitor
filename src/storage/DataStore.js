@@ -30,7 +30,7 @@ export type SSHDataStoreQuerySystemStatsParams = {
 }
 
 export interface SSHDataStore {
-  init(indices: string[]) : Promise<void>;
+  init() : Promise<void>;
   storeMonitorDatum(datum: MonitorDatum) : Promise<void>;
   storeLoggerDatum(datum: LoggerDatum) : Promise<void>;
   queryLogs(params?: SSHDataStoreQueryLogsParams) : Promise<LoggerDatum[]>;
