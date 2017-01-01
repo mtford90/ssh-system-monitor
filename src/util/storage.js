@@ -13,7 +13,7 @@ export async function insertMonitorData (data: MonitorDatum[], store?: NEDBDataS
   return _store
 }
 
-export async function insertLogData (data: LoggerDatum[], store: NEDBDataStore): Promise<NEDBDataStore> {
+export async function insertLogData (data: LoggerDatum[], store?: NEDBDataStore): Promise<NEDBDataStore> {
   const _store = store || new NEDBDataStore()
 
   await Promise.all(data.map(d => {

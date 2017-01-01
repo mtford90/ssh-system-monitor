@@ -3,6 +3,9 @@
 import Client from 'ssh2'
 import retry from 'retry'
 import type {SSH2Options} from '../types/index'
+import {getLogger} from './log'
+
+const log = getLogger('platforms/linux/system')
 
 export function getClient (opts: SSH2Options): Promise<Client> {
   return new Promise((resolve, reject) => {
@@ -13,7 +16,7 @@ export function getClient (opts: SSH2Options): Promise<Client> {
       client.removeListener('error', errorListener)
     }
 
-    let listener        = () => {
+    let listener = () => {
       removeListeners()
       resolve(client)
     }
@@ -36,12 +39,31 @@ export function getClient (opts: SSH2Options): Promise<Client> {
  */
 export function execute (client: Client, cmd: string): Promise<string> {
   return new Promise((resolve, reject) => {
+    const host = client.config.host
+
+    log.trace(`Executing \`${cmd}\` on ${host}`)
+
     client.exec(cmd, (err, stream) => {
       if (err) reject(err)
       else {
-        stream.on('data', function (data) {
-          resolve(data.toString())
-        }).stderr.on('data', function (data) {
+        let _data = ''
+
+        stream = stream.on('close', function (code) {
+          if (code === 0) {
+            log.trace(`Executed \`${cmd}\` on host ${host}: ${_data}`)
+            resolve(_data)
+          }
+          else {
+            log.warn(`Failed to execute \`${cmd}\` on host ${host} - exited with code ${code}`)
+          }
+        })
+
+        stream = stream.on('data', function (data) {
+          const str = data.toString()
+          _data += str
+        })
+
+        stream = stream.stderr.on('data', function (data) {
           const errString = JSON.stringify(data.toString())
           reject(new Error(`error executing ${cmd}: ${errString}`))
         })

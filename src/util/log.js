@@ -4,7 +4,7 @@
 import moment from 'moment'
 
 
-type LogLevel = 'debug' | 'info' | 'warn' | 'error'
+type LogLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal'
 
 class Logger {
   name: string
@@ -19,6 +19,10 @@ class Logger {
     const timestamp = moment().format('DD/MM/YYYY HH:mm:ss.SSS')
     const _level    = level.toUpperCase()
     console.log(`${timestamp} ${_level} {${this.name}} ${message}`)
+  }
+
+  trace (message: string, ...rest: any[]) {
+    this.log('trace', message, ...rest)
   }
 
   debug (message: string, ...rest: any[]) {
@@ -36,6 +40,11 @@ class Logger {
   error (message: string, ...rest: any[]) {
     this.log('error', message, ...rest)
   }
+
+  fatal (message: string, ...rest: any[]) {
+    this.log('fatal', message, ...rest)
+  }
+
 }
 
 

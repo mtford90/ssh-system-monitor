@@ -16,7 +16,8 @@ describe('monitor', function () {
 
   describe("basic stats", function () {
     it("emits data", async () => {
-      const m = new Monitor(servers, {rate: 250})
+      const _servers = servers
+      const m        = new Monitor(_servers, {rate: 250})
       await m.start()
 
       const data: MonitorDatum = await waitForMonitorDatum(m)
@@ -25,7 +26,7 @@ describe('monitor', function () {
       console.log('m.latest', m.latest)
 
       assert(
-        _.every(_.map(servers, s => m.latest[s.ssh.host])),
+        _.every(_.map(_servers, s => m.latest[s.ssh.host])),
         `latest values were not configured for every host`
       )
 
@@ -39,6 +40,7 @@ describe('monitor', function () {
 
       await m.terminate()
     })
+
     it("emits percentage disk space used", async () => {
       const m = new Monitor(servers, {rate: 250})
       await m.start()

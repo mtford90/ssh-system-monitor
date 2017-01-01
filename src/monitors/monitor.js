@@ -15,7 +15,8 @@ import type {
   ProcessInfo,
   SimpleDataType,
   LogDefinition,
-  LoggerDatum
+  LoggerDatum,
+  SSH2Error,
 } from '../types/index'
 import {initLatestStats, receiveMonitorDatum} from '../util/data'
 import DockerLogger from '../logging/dockerLogger'
@@ -47,11 +48,6 @@ function asyncInterval (fn: Function, n: number = 10000): Function {
   }, n)
 
   return () => clearInterval(interval)
-}
-
-type SSH2Error = {
-  level: 'client-socket' | 'client-ssh', // client-socket means a socket level error, client-ssh means an SSH disconnection message
-  description?: string // May be present for client-ssh
 }
 
 

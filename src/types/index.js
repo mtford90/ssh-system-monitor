@@ -23,6 +23,11 @@ export type SSH2Options = {
   privateKey?: string,
 }
 
+export type SSH2Error = {
+  level: 'client-socket' | 'client-ssh', // client-socket means a socket level error, client-ssh means an SSH disconnection message
+  description?: string // May be present for client-ssh
+}
+
 // A server that will be monitored
 export type ServerDefinition = {
   name: string,
