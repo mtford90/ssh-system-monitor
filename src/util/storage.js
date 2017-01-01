@@ -3,18 +3,22 @@
 import NEDBDataStore from '../storage/NEDBDataStore'
 import type {MonitorDatum, LoggerDatum} from '../types/index'
 
-export async function insertMonitorData (data: MonitorDatum[], store: NEDBDataStore): Promise<NEDBDataStore> {
+export async function insertMonitorData (data: MonitorDatum[], store?: NEDBDataStore): Promise<NEDBDataStore> {
+  const _store = store || new NEDBDataStore()
+
   await Promise.all(data.map(d => {
-    return store.storeMonitorDatum(d)
+    return _store.storeMonitorDatum(d)
   }))
 
-  return store
+  return _store
 }
 
 export async function insertLogData (data: LoggerDatum[], store: NEDBDataStore): Promise<NEDBDataStore> {
+  const _store = store || new NEDBDataStore()
+
   await Promise.all(data.map(d => {
-    return store.storeLoggerDatum(d)
+    return _store.storeLoggerDatum(d)
   }))
 
-  return store
+  return _store
 }

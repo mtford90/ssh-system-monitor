@@ -36,8 +36,8 @@ describe('/api', function () {
   })
 
   after(async () => {
-    app.close()
     await m.terminate()
+    app.close()
   })
 
   it("latest stat for all hosts", async () => {
@@ -65,7 +65,9 @@ describe('/api', function () {
 
     assert(monitorValue !== undefined && monitorValue !== null)
     assert(returnedValue !== undefined && returnedValue !== null)
-    assert.equal(monitorValue, returnedValue)
+    assert.equal(monitorValue['1'], returnedValue['1'])
+    assert.equal(monitorValue['5'], returnedValue['5'])
+    assert.equal(monitorValue['15'], returnedValue['15'])
   })
 
   it("config", async () => {

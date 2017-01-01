@@ -17,6 +17,7 @@ describe('monitor', function () {
   describe("basic stats", function () {
     it("emits data", async () => {
       const m = new Monitor(servers, {rate: 250})
+      await m.start()
 
       const data: MonitorDatum = await waitForMonitorDatum(m)
 
@@ -40,6 +41,7 @@ describe('monitor', function () {
     })
     it("emits percentage disk space used", async () => {
       const m = new Monitor(servers, {rate: 250})
+      await m.start()
 
       const dataType = Stats.percentageDiskSpaceUsed
       const path     = '/'
@@ -84,6 +86,7 @@ describe('monitor', function () {
       const server: ServerDefinition = servers[0]
 
       const m = new Monitor([server], {rate: 250})
+      await m.start()
 
       await waitForMonitorDatum(
         m,
@@ -97,6 +100,8 @@ describe('monitor', function () {
   describe("logs", function () {
     it("receives logs", async () => {
       const m = new Monitor([servers[0]], {rate: 250})
+
+      await m.start()
 
       const datum: LoggerDatum = await waitForLoggerDatum(
         m,
@@ -119,6 +124,8 @@ describe('monitor', function () {
           store: new NEDBDataStore()
         }
       )
+
+      await m.start()
 
       const loggerDatum: LoggerDatum = await waitForLoggerDatum(
         m,
