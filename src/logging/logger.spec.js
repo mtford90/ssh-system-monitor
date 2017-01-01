@@ -26,7 +26,7 @@ describe('logger', function () {
     await logger.start()
     const datum: LoggerDatum = await waitForLog(logger)
     console.log('datum', datum)
-    assert.equal(datum.source, 'stdin')
+    assert.equal(datum.source, 'stdout')
     await logger.terminate()
   })
 })

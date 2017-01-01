@@ -1,7 +1,7 @@
 /* @flow */
 import type {MonitorDatum, LoggerDatum, LogSource, DataType} from '../types/index'
 
-type TimestampQueryParams = {
+export type TimestampQueryParams = {
   gt?: number,
   lt?: number,
   lte?: number,
@@ -9,7 +9,6 @@ type TimestampQueryParams = {
 }
 
 export type SSHDataStoreQueryLogsParams = {
-  name?: string,
   source?: LogSource,
   timestamp?: TimestampQueryParams,
   host?: string,

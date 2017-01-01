@@ -1,7 +1,7 @@
 /* @flow */
 import type {MonitorDatum, LoggerDatum, NEDBOptions} from '../types/index'
 import DataStore from 'nedb'
-import type {SSHDataStoreQueryLogsParams, SSHDataStoreQuerySystemStatsParams} from './DataStore'
+import type {SSHDataStoreQueryLogsParams, SSHDataStoreQuerySystemStatsParams, TimestampQueryParams} from './DataStore'
 
 const INDICES = [
   'type',
@@ -67,10 +67,28 @@ export default class NEDBDataStore {
 
   queryLogs (params?: SSHDataStoreQueryLogsParams = {}): Promise<LoggerDatum[]> {
     return new Promise((resolve, reject) => {
-      const q = {
+      const q: Object = {
         logger: {
           $exists: true,
         }
+      }
+
+      const {name, source, timestamp, host} = params
+
+      if (timestamp) {
+        this._constructTimestampQuery(q, timestamp)
+      }
+
+      if (name) {
+        q['logger.name'] = name
+      }
+
+      if (source) {
+        q['source'] = source
+      }
+
+      if (host) {
+        q['server.ssh.host'] = host
       }
 
       this.db.find(q, function (err, docs: LoggerDatum[]) {
@@ -79,7 +97,6 @@ export default class NEDBDataStore {
       })
     })
   }
-
 
   querySystemStats (params?: SSHDataStoreQuerySystemStatsParams = {}): Promise<MonitorDatum[]> {
     return new Promise((resolve, reject) => {
@@ -95,19 +112,7 @@ export default class NEDBDataStore {
       const {timestamp, name, host, type, extra} = params
 
       if (timestamp) {
-        q.timestamp = {}
-        if (timestamp.gt) {
-          q.timestamp.$gt = timestamp.gt
-        }
-        if (timestamp.gte) {
-          q.timestamp.$gte = timestamp.gte
-        }
-        if (timestamp.lt) {
-          q.timestamp.$lt = timestamp.lt
-        }
-        if (timestamp.lte) {
-          q.timestamp.$lte = timestamp.lte
-        }
+        this._constructTimestampQuery(q, timestamp)
       }
 
       if (name) {
@@ -141,5 +146,21 @@ export default class NEDBDataStore {
         else resolve(docs)
       })
     })
+  }
+
+  _constructTimestampQuery (q: Object, timestamp: TimestampQueryParams) {
+    q.timestamp = {}
+    if (timestamp.gt) {
+      q.timestamp.$gt = timestamp.gt
+    }
+    if (timestamp.gte) {
+      q.timestamp.$gte = timestamp.gte
+    }
+    if (timestamp.lt) {
+      q.timestamp.$lt = timestamp.lt
+    }
+    if (timestamp.lte) {
+      q.timestamp.$lte = timestamp.lte
+    }
   }
 }

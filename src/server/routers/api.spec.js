@@ -1,9 +1,10 @@
 import chai from 'chai'
-import NEDBMonitor from '../../monitors/nedbMonitor'
 import api from '../server.babel'
 import * as http from '../../util/http'
 import {servers} from '../../../examples/config'
 import env from '../env'
+import Monitor from '../../monitors/monitor'
+import {after} from 'mocha'
 
 const assert = chai.assert
 
@@ -22,7 +23,7 @@ describe('/api', function () {
   let app = null
 
   before(() => {
-    m   = new NEDBMonitor(servers, {rate: 250})
+    m   = new Monitor(servers, {rate: 250})
     app = api(m)
   })
 

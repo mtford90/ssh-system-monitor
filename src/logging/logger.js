@@ -41,21 +41,29 @@ export default class Logger extends EventEmitter {
   async start () {
     this.client = await getClient(this.opts.serverDefinition.ssh)
 
-    this.client.exec(this.opts.cmd, (err, stream) => {
-      stream.on('data', data => {
-        const text = data.toString().replace(/\n/g, '')
-        this.emitDatum('stdout', text)
-      })
+    const cmd = this.opts.cmd
+    console.log('executing cmd', cmd) // TODO
+    this.client.exec(cmd, (err, stream) => {
+      if (!err) {
+        stream.on('data', data => {
+          const text = data.toString().replace(/\n/g, '')
+          this.emitDatum('stdout', text)
+        })
 
-      stream.on('close', (code, signal) => {
-        const terminationPromise = this.terminate()
-        this.emit('close', code, signal, terminationPromise)
-      })
+        stream.on('close', (code, signal) => {
+          const terminationPromise = this.terminate()
+          this.emit('close', code, signal, terminationPromise)
+        })
 
-      stream.stderr.on('data', data => {
-        const text = data.toString().replace(/\n/g, '')
-        this.emitDatum('stderr', text)
-      })
+        stream.stderr.on('data', data => {
+          const text = data.toString().replace(/\n/g, '')
+          this.emitDatum('stderr', text)
+        })
+      }
+      else {
+        throw err
+      }
+
     })
   }
 
