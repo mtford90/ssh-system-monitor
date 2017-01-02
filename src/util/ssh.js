@@ -3,9 +3,9 @@
 import Client from 'ssh2'
 import retry from 'retry'
 import type {SSH2Options} from '../types/index'
-import {getLogger} from './log'
+import InternalLogging from '../internalLogging'
 
-const log = getLogger('platforms/linux/system')
+const log = InternalLogging.platforms.linux.system
 
 export function getClient (opts: SSH2Options): Promise<Client> {
   return new Promise((resolve, reject) => {

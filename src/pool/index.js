@@ -3,13 +3,13 @@
 import genericPool, {Pool} from 'generic-pool'
 import Client from 'ssh2'
 import type {ServerDefinition} from '../types'
-import {getLogger} from '../util/log'
 import EventEmitter from 'events'
 import type {SSH2Error} from '../types/index'
 import retry from 'retry'
 import _ from 'lodash'
 
-const log = getLogger('pool')
+import InternalLogging from '../internalLogging'
+const log = InternalLogging.pool
 
 export class SSHPool extends EventEmitter {
   genericPool: Pool
@@ -58,7 +58,7 @@ export class SSHPool extends EventEmitter {
 
           // Connection ended
           client.on('end', () => {
-            log.info(`An ssh connection for ${this.server.ssh.host} has now disconnected.`)
+            log.trace(`An ssh connection for ${this.server.ssh.host} has now disconnected.`)
           })
 
           // Connection closed
@@ -67,7 +67,7 @@ export class SSHPool extends EventEmitter {
               log.error(`An ssh connection for ${this.server.ssh.host} has now closed due to an error`)
             }
             else {
-              log.info(`An ssh connection for ${this.server.ssh.host} has now closed`)
+              log.trace(`An ssh connection for ${this.server.ssh.host} has now closed`)
             }
           })
 

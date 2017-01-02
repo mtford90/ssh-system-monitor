@@ -1,9 +1,9 @@
 import Slack from 'slack-node'
 import {isString} from 'lodash'
 import Stats from '../types'
-import {getLogger} from '../util/log'
 
-const log = getLogger('alerting/slack')
+import InternalLogging from '../internalLogging'
+const log = InternalLogging.alerting.slack
 
 function getCPUUsageAlert (data) {
   const host  = data.server.ssh.host

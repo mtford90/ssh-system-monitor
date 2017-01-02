@@ -1,7 +1,7 @@
 /* @flow */
 
 import _ from 'lodash'
-import {getLogger} from './log'
+import InternalLogging from '../internalLogging'
 
 // function _encodeQueryParams (query: Object): string {
 //   const encoded = Object.keys(query)
@@ -10,7 +10,7 @@ import {getLogger} from './log'
 //   return encoded
 // }
 
-const log = getLogger('util/http')
+const log = InternalLogging.util.http
 
 function _encodeQueryParams (obj: Object, urlEncode?: boolean = false): string {
   function flattenObj (x: Object, path: Array<string> = []): Array<Object> {

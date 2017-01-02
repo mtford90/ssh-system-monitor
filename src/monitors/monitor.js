@@ -22,9 +22,9 @@ import DockerLogger from '../logging/dockerLogger'
 import Logger from '../logging/logger'
 import {SSHDataStore} from '../storage/DataStore'
 import NEDBDataStore from '../storage/NEDBDataStore'
-import {getLogger} from '../util/log'
 
-const log = getLogger('Monitor')
+import InternalLogging from '../internalLogging'
+const log = InternalLogging.Monitor
 
 export const ERROR_POOL_FACTORY_CREATE  = 'factoryCreateError'
 export const ERROR_POOL_FACTORY_DESTROY = 'factoryDestroyError'
@@ -49,7 +49,6 @@ function asyncInterval (fn: Function, n: number = 10000): Function {
 
   return () => clearInterval(interval)
 }
-
 
 /**
  * This is for testing purposes - allows use of async/await for cleaner tests.
@@ -129,24 +128,6 @@ export default class Monitor extends EventEmitter {
 
     this.latest = initLatestStats(servers)
   }
-
-// export function faultTolerantExecute (client: Client, cmd: string, timeout: number = 5000): Promise<string> {
-//   return new Promise((resolve, reject) => {
-//     const operation = retry.operation({retries: 5, minTimeout: timeout, maxTimeout: timeout});
-//
-//     operation.attempt(() => {
-//       execute(client, cmd).then((str: string) => {
-//         resolve(str)
-//       }).catch(err => {
-//         if (operation.retry(err)) {
-//           return
-//         }
-//
-//         reject(operation.mainError())
-//       })
-//     })
-//   })
-// }
 
   acquireExecuteRelease (id: number, desc: string, fn: (client: Client) => Promise<*>): Promise<*> {
     const pool: SSHPool = this.pools[id]

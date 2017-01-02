@@ -6,9 +6,19 @@ import moment from 'moment'
 
 type LogLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal'
 
+
 class Logger {
   name: string
   level: LogLevel
+
+  static logLevels = {
+    trace: 0,
+    debug: 1,
+    info:  2,
+    warn:  3,
+    error: 4,
+    fatal: 5
+  }
 
   constructor (name: string, level: LogLevel) {
     this.name  = name
@@ -16,10 +26,16 @@ class Logger {
   }
 
   log (level: LogLevel, message: string, ...rest: any[]) {
-    const timestamp = moment().format('DD/MM/YYYY HH:mm:ss.SSS')
-    const _level    = level.toUpperCase()
-    const msg = `${timestamp} ${_level} {${this.name}} ${message}`
-    console.log.apply(console, [msg, ...rest])
+    const currentLogLevel: number = Logger.logLevels[this.level]
+    const logLevel: number = Logger.logLevels[level]
+
+
+    if (currentLogLevel <= logLevel) {
+      const timestamp = moment().format('DD/MM/YYYY HH:mm:ss.SSS')
+      const _level    = level.toUpperCase()
+      const msg       = `${timestamp} ${_level} {${this.name}} ${message}`
+      console.log.apply(console, [msg, ...rest])
+    }
   }
 
   trace (message: string, ...rest: any[]) {
@@ -49,6 +65,6 @@ class Logger {
 }
 
 
-export function getLogger (name: string, level?: LogLevel = 'debug'): Logger {
+export function getLogger (name: string, level?: LogLevel = 'trace'): Logger {
   return new Logger(name, level)
 }

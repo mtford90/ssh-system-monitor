@@ -3,11 +3,10 @@ import type {ServerDefinition, LoggerDatum, LogDefinition, LogSource, SSH2Error}
 import {getClient} from '../util/ssh'
 import Client from 'ssh2'
 import EventEmitter from 'events'
-import {getLogger} from '../util/log'
-
 import {SSH2Stream} from 'ssh2-streams'
+import InternalLogging from '../internalLogging'
 
-const log = getLogger('logging/Logger')
+const log = InternalLogging.logging.Logger
 
 export function waitForLog (logger: Logger): Promise<LoggerDatum> {
   return new Promise(resolve => {
@@ -46,9 +45,9 @@ export default class Logger extends EventEmitter {
   async _initClient (): Promise<Client> {
     const loggerName = this.opts.logDefinition.name
 
-    log.debug(`Acquiring SSH connection for use in logger ${loggerName}`)
+    log.trace(`Acquiring SSH connection for use in logger ${loggerName}`)
     this.client = await getClient(this.opts.serverDefinition.ssh)
-    log.debug(`Acquired SSH connection for use in logger ${loggerName}`)
+    log.trace(`Acquired SSH connection for use in logger ${loggerName}`)
 
     this.client.on('error', (err: SSH2Error) => {
       log.error(`Logger ${loggerName} suffered an SSH error`, err)
@@ -59,12 +58,12 @@ export default class Logger extends EventEmitter {
         log.error(`The ssh connection for logger ${loggerName} has now closed due to an error`)
       }
       else {
-        log.info(`The ssh connection for logger ${loggerName} has now closed`)
+        log.debug(`The ssh connection for logger ${loggerName} has now closed`)
       }
     })
 
     this.client.on('end', () => {
-      log.info(`The ssh connection for logger ${loggerName} has now disconnected.`)
+      log.debug(`The ssh connection for logger ${loggerName} has now disconnected.`)
     })
 
     return this.client
@@ -81,7 +80,7 @@ export default class Logger extends EventEmitter {
 
     const cmd = this.opts.cmd
 
-    log.debug('executing cmd', cmd)
+    log.trace('executing cmd', cmd)
 
     this.client.exec(cmd, (err, stream: SSH2Stream) => {
       if (!err) {
@@ -96,10 +95,10 @@ export default class Logger extends EventEmitter {
             log.error(`The stream for logger ${loggerName} closed with code ${code}`)
           }
           else if (code != null) {
-            log.info(`The stream for logger ${loggerName} has closed with code ${code}`)
+            log.debug(`The stream for logger ${loggerName} has closed with code ${code}`)
           }
           else {
-            log.info(`The stream for logger ${loggerName} has closed`)
+            log.debug(`The stream for logger ${loggerName} has closed`)
           }
         })
 

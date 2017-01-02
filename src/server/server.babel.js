@@ -12,14 +12,16 @@ import ws from 'socket.io'
 import getApiRouter from './routers/api'
 import getAppRouter from './routers/app'
 import type {MonitorDatum, LoggerDatum} from '../types/index'
-import {getLogger} from '../util/log'
+
+import InternalLogging from '../internalLogging'
 
 export type ApiOptions = {
   cors?: boolean,
   serveClient?: boolean,
 }
 
-const log = getLogger('server')
+const log = InternalLogging.server
+
 
 export default function start (monitor: Monitor, opts?: ApiOptions = {}) {
 

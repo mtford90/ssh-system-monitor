@@ -2,7 +2,7 @@
 import type {MonitorDatum, LoggerDatum, NEDBOptions} from '../types/index'
 import DataStore from 'nedb'
 import type {SSHDataStoreQueryLogsParams, SSHDataStoreQuerySystemStatsParams, TimestampQueryParams} from './DataStore'
-import {getLogger} from '../util/log'
+import InternalLogging from '../internalLogging'
 
 const INDICES = [
   'type',
@@ -15,7 +15,7 @@ const INDICES = [
   'extra.process.id',
 ]
 
-const log = getLogger('storage/NEDBDataStore')
+const log = InternalLogging.storage.NEDBDataStore
 
 export default class NEDBDataStore {
   db: DataStore
@@ -38,7 +38,7 @@ export default class NEDBDataStore {
           reject(err)
         }
         else {
-          log.debug(`Created index for ${fieldName}`)
+          log.trace(`Created index for ${fieldName}`)
           resolve()
         }
       })

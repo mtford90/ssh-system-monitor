@@ -7,9 +7,9 @@ import _ from 'lodash'
 import {stringify} from '../../util/json'
 import type {LatestHostStats, MonitorDatum, LoggerDatum} from '../../types/index'
 import type {SSHDataStoreQuerySystemStatsParams, SSHDataStoreQueryLogsParams} from '../../storage/DataStore'
-import {getLogger} from '../../util/log'
+import InternalLogging from '../../internalLogging'
 
-const log = getLogger('routers/api')
+const log = InternalLogging.routers.api
 
 export default function (monitor: Monitor) {
   const router = Router()
