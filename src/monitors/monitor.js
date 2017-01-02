@@ -1,7 +1,7 @@
 /* @flow */
 
 import _ from 'lodash'
-import {constructPool} from '../pool'
+import {constructPool, SSHPool} from '../pool'
 import * as system from '../platforms/linux/system'
 import * as process from '../platforms/linux/process'
 import EventEmitter from 'events'
@@ -32,7 +32,7 @@ export const ERROR_POOL_FACTORY_DESTROY = 'factoryDestroyError'
 function asyncInterval (fn: Function, n: number = 10000): Function {
   let working = false
 
-  const iFn     = () => {
+  const iFn = () => {
     if (!working) {
       working = true
       fn().then(x => {

@@ -106,7 +106,9 @@ describe('/api', function () {
 
     const store = m.opts.store
 
-    await insertMonitorData(mockData, store)
+    await Promise.all(mockData.map(d => {
+      return store.storeMonitorDatum(d)
+    }))
 
     const res = await http.getJSON(`http://localhost:${env.PORT}/api/system/stats`, params)
 

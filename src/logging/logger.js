@@ -93,10 +93,13 @@ export default class Logger extends EventEmitter {
 
         stream.on('close', (code, signal) => {
           if (code && code > 0) {
-            log.error(`The stream for ${loggerName} closed with code ${code}`)
+            log.error(`The stream for logger ${loggerName} closed with code ${code}`)
+          }
+          else if (code != null) {
+            log.info(`The stream for logger ${loggerName} has closed with code ${code}`)
           }
           else {
-            log.info(`The stream for ${loggerName} has closed`)
+            log.info(`The stream for logger ${loggerName} has closed`)
           }
         })
 
