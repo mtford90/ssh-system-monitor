@@ -17,7 +17,7 @@ describe('monitor', function () {
   describe("basic stats", function () {
     it("emits data", async () => {
       const _servers = servers
-      const m        = new Monitor(_servers, {rate: 250})
+      const m        = new Monitor(_servers, {rate: 1000})
       await m.start()
 
       const data: MonitorDatum = await waitForMonitorDatum(m)
@@ -42,7 +42,7 @@ describe('monitor', function () {
     })
 
     it("emits percentage disk space used", async () => {
-      const m = new Monitor(servers, {rate: 250})
+      const m = new Monitor(servers, {rate: 1000})
       await m.start()
 
       const dataType = Stats.percentageDiskSpaceUsed
@@ -87,7 +87,7 @@ describe('monitor', function () {
     it("process", async () => {
       const server: ServerDefinition = servers[0]
 
-      const m = new Monitor([server], {rate: 250})
+      const m = new Monitor([server], {rate: 1000})
       await m.start()
 
       await waitForMonitorDatum(
@@ -101,7 +101,7 @@ describe('monitor', function () {
 
   describe("logs", function () {
     it("receives logs", async () => {
-      const m = new Monitor([servers[0]], {rate: 250})
+      const m = new Monitor([servers[0]], {rate: 1000})
 
       await m.start()
 

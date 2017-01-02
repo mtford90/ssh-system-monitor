@@ -16,8 +16,7 @@ describe('pool', function () {
   })
 
   after(async () => {
-    await pool.drain()
-    pool.clear()
+    await pool.terminate()
   })
 
   it("acquire a client", async () => {

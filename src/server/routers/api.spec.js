@@ -30,7 +30,7 @@ describe('/api', function () {
 
   before(async () => {
     const operatorDev = servers[0]
-    m                 = new Monitor([operatorDev], {rate: 250})
+    m                 = new Monitor([operatorDev], {rate: 1000})
     await m.start()
     app = server(m, {serveClient: false})
   })

@@ -3,7 +3,7 @@
 import Client from 'ssh2'
 import keymirror from 'keymirror'
 import _ from 'lodash'
-import {faultTolerantExecute} from '../../util/ssh'
+import {execute} from '../../util/ssh'
 import type {SystemAverageLoad} from '../../types/index'
 
 const MEM_INFO_KEY = keymirror({
@@ -49,7 +49,7 @@ const MEM_INFO_KEY = keymirror({
 
 
 export async function cpuUsage (client: Client): Promise<number> {
-  const data = await faultTolerantExecute(
+  const data = await execute(
     client,
     'top -b -d1 -n1|grep -i "Cpu(s)"|head -c21|cut -d \' \' -f3|cut -d \'%\' -f1'
   )
@@ -58,7 +58,7 @@ export async function cpuUsage (client: Client): Promise<number> {
 }
 
 export async function memoryInfo (client: Client): Promise<Object> {
-  const data = await faultTolerantExecute(
+  const data = await execute(
     client,
     'cat /proc/meminfo',
   )
@@ -108,7 +108,7 @@ export async function memoryUsedPercentage (client: Client): Promise<number> {
 
 
 export async function averageLoad (client: Client): Promise<SystemAverageLoad> {
-  const data: string = await faultTolerantExecute(
+  const data: string = await execute(
     client,
     'uptime',
   )
@@ -125,7 +125,7 @@ export async function averageLoad (client: Client): Promise<SystemAverageLoad> {
 }
 
 export async function percentageDiskSpaceUsed (client: Client, path: string): Promise<number> {
-  const data: string = await faultTolerantExecute(
+  const data: string = await execute(
     client,
     'df ' + path + ' -h | tail -n 1',
   )

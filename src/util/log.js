@@ -18,7 +18,8 @@ class Logger {
   log (level: LogLevel, message: string, ...rest: any[]) {
     const timestamp = moment().format('DD/MM/YYYY HH:mm:ss.SSS')
     const _level    = level.toUpperCase()
-    console.log(`${timestamp} ${_level} {${this.name}} ${message}`)
+    const msg = `${timestamp} ${_level} {${this.name}} ${message}`
+    console.log.apply(console, [msg, ...rest])
   }
 
   trace (message: string, ...rest: any[]) {

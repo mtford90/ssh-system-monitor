@@ -16,7 +16,6 @@ import type {
   SimpleDataType,
   LogDefinition,
   LoggerDatum,
-  SSH2Error,
 } from '../types/index'
 import {initLatestStats, receiveMonitorDatum} from '../util/data'
 import DockerLogger from '../logging/dockerLogger'
@@ -24,8 +23,6 @@ import Logger from '../logging/logger'
 import {SSHDataStore} from '../storage/DataStore'
 import NEDBDataStore from '../storage/NEDBDataStore'
 import {getLogger} from '../util/log'
-import retry from 'retry'
-
 
 const log = getLogger('Monitor')
 
@@ -38,8 +35,9 @@ function asyncInterval (fn: Function, n: number = 10000): Function {
   const interval = setInterval(() => {
     if (!working) {
       working = true
-      fn().then(() => {
+      fn().then(x => {
         working = false
+        return x
       }).catch(err => {
         working = false
         log.error(`Error in asyncInterval:`, err.stack)
@@ -148,52 +146,9 @@ export default class Monitor extends EventEmitter {
 //   })
 // }
 
-  acquireExecuteRelease (id: number, fn: (client: Client) => Promise<any>): Promise<any> {
-    const pool = this.pools[id]
-
-    return new Promise((resolve, reject) => {
-      const operation = retry.operation();
-
-      let client: Client
-      let err: SSH2Error | null = null
-
-      // TODO: Maybe can wrap Pool instead
-      const errorHandler = err => {
-        // If there was an ssh error, destroy that client instead of returning the broken client to the pool
-        if (err) {
-          pool.destroy(client)
-          err = null
-          log.warn(`There was an ssh error`, err) // TODO: improve logging here - more specific e.g. which host, which command etc
-        }
-        else {
-          pool.release(client)
-        }
-
-        if (operation.retry(err)) {
-          return
-        }
-
-        reject(operation.mainError())
-      }
-
-      operation.attempt(() => {
-        pool.acquire().then(_client => {
-          client = _client
-
-          const sshClientErrorListener = (_err: SSH2Error) => {
-            client.off('error', sshClientErrorListener)
-            err = _err
-          }
-
-          client.on('error', sshClientErrorListener)
-
-          fn(client).then(res => {
-            resolve(res)
-            pool.release(client)
-          }).catch(errorHandler)
-        }).catch(errorHandler)
-      })
-    })
+  acquireExecuteRelease (id: number, desc: string, fn: (client: Client) => Promise<*>): Promise<*> {
+    const pool: SSHPool = this.pools[id]
+    return pool.acquireExecuteRelease(desc, fn)
   }
 
   emitData (datum: MonitorDatum) {
@@ -208,7 +163,7 @@ export default class Monitor extends EventEmitter {
   simpleCommandInterval (id: number, dataType: SimpleDataType): Function {
     return asyncInterval(async () => {
       const cmd: Function            = system[dataType]
-      const value                    = await this.acquireExecuteRelease(id, client => cmd(client))
+      const value                    = await this.acquireExecuteRelease(id, dataType, client => cmd(client))
       const server: ServerDefinition = this.servers[id]
 
       const datum: MonitorDatum = {
@@ -303,7 +258,7 @@ export default class Monitor extends EventEmitter {
         this.simpleCommandInterval(idx, 'averageLoad'),
         ...paths.map(path => {
           return asyncInterval(async () => {
-            const value: number = (await this.acquireExecuteRelease(idx, client => system.percentageDiskSpaceUsed(client, path)))
+            const value: number = (await this.acquireExecuteRelease(idx, `percentageDiskSpaceUsed(${path})`, client => system.percentageDiskSpaceUsed(client, path)))
 
             const datum: MonitorDatum = {
               type:      'percentageDiskSpaceUsed',
@@ -322,7 +277,7 @@ export default class Monitor extends EventEmitter {
         }),
         ...processes.map((p: ProcessDefinition) => {
           return asyncInterval(async () => {
-            const value: ProcessInfo = await this.acquireExecuteRelease(idx, client => process.info(client, p.grep))
+            const value: ProcessInfo = await this.acquireExecuteRelease(idx, `processInfo(${p.id})`, client => process.info(client, p.grep))
 
             const datum: MonitorDatum = {
               type:      'processInfo',
@@ -450,12 +405,11 @@ export default class Monitor extends EventEmitter {
 
     await Promise.all([
       ..._.values(pools).map((pool: Pool, idx: number) => {
-        log.debug(`Draining pool ${idx + 1}/${numPools}`)
-        return pool.drain().then(() => {
-          log.debug(`Drained pool ${idx + 1}/${numPools}`)
-          pool.clear()
+        log.debug(`Terminating pool ${idx + 1}/${numPools}`)
+        return pool.terminate().then(() => {
+          log.debug(`Terminated pool ${idx + 1}/${numPools}`)
         }).catch(err => {
-          log.error(`Unable to drain pool ${idx + 1}`, err.stack)
+          log.error(`Unable to terminate pool ${idx + 1}`, err.stack)
         })
       }),
       ...loggers.map((l: Logger, idx: number) => {
