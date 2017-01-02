@@ -32,7 +32,7 @@ export const ERROR_POOL_FACTORY_DESTROY = 'factoryDestroyError'
 function asyncInterval (fn: Function, n: number = 10000): Function {
   let working = false
 
-  const interval = setInterval(() => {
+  const iFn     = () => {
     if (!working) {
       working = true
       fn().then(x => {
@@ -43,7 +43,9 @@ function asyncInterval (fn: Function, n: number = 10000): Function {
         log.error(`Error in asyncInterval:`, err.stack)
       })
     }
-  }, n)
+  }
+
+  const interval = setInterval(iFn, n)
 
   return () => clearInterval(interval)
 }

@@ -56,14 +56,19 @@ class SSHPool extends EventEmitter {
             log.warn(`There was an error within an ssh connection for ${this.server.ssh.host}`, JSON.stringify(err))
           })
 
-          // Connection closed
-          client.on('end', (err: SSH2Error) => {
-            log.info(`An ssh connection for ${this.server.ssh.host} has now ended.`, JSON.stringify(err))
+          // Connection ended
+          client.on('end', () => {
+            log.info(`An ssh connection for ${this.server.ssh.host} has now disconnected.`)
           })
 
-          // An error occurred
-          client.on('close', (err: SSH2Error) => {
-            log.info(`An ssh connection for ${this.server.ssh.host} has now ended.`, JSON.stringify(err))
+          // Connection closed
+          client.on('close', (hadError: boolean) => {
+            if (hadError) {
+              log.error(`An ssh connection for ${this.server.ssh.host} has now closed due to an error`)
+            }
+            else {
+              log.info(`An ssh connection for ${this.server.ssh.host} has now closed`)
+            }
           })
 
           const ssh = server.ssh
@@ -94,7 +99,18 @@ class SSHPool extends EventEmitter {
       return this.genericPool.acquire()
     }
     else {
-      throw new Error(`Cannot acquire a resource when the pool is terminating or terminated`)
+      throw new Error(`
+              Cannot
+              acquire
+              a
+              resource
+              when
+              the
+              pool
+              is
+              terminating
+              or
+              terminated`)
     }
   }
 
@@ -117,30 +133,57 @@ class SSHPool extends EventEmitter {
   }
 
   async terminate () {
-    log.debug(`Terminating pool ${this.server.ssh.host}`)
+    log.debug(`
+              Terminating
+              pool ${this.server.ssh.host}`)
     this._terminated = true
     const operations = _.values(this._currentOperations)
 
-    log.debug(`Waiting for ${operations.length} operations to finish before terminating pool ${this.server.ssh.host}`)
+    log.debug(`
+              Waiting
+              for ${operations.length} operations to
+              finish
+              before
+              terminating
+              pool ${this.server.ssh.host}`)
 
     for (let i = 0; i < operations.length; i++) {
       const {promise, desc} = operations[i]
 
-      log.debug(`Waiting for operation ${this.server.ssh.host}.${desc}`)
+      log.debug(`
+              Waiting
+              for operation${this.server.ssh.host}.${desc}
+              `)
       await promise
-      log.debug(`Finished operation ${this.server.ssh.host}.${desc}`)
+      log.debug(`
+              Finished
+              operation${this.server.ssh.host}.$
+              {desc}
+              `)
     }
 
-    log.debug(`${operations.length} operations have finished`)
-    log.debug(`Draining pool ${this.server.ssh.host}`)
+    log.debug(`
+              ${operations.length}
+              operations
+              have
+              finished`)
+    log.debug(`
+              Draining
+              pool ${this.server.ssh.host}`)
     await this.genericPool.drain()
-    log.debug(`Drained pool ${this.server.ssh.host}`)
+    log.debug(`
+              Drained
+              pool ${this.server.ssh.host}`)
     this.genericPool.clear()
-    log.info(`Terminated pool ${this.server.ssh.host}`)
+    log.info(`
+              Terminated
+              pool ${this.server.ssh.host}`)
   }
 
   acquireExecuteRelease (desc: string, fn: (client: Client) => Promise<*>): Promise<*> {
     return new Promise((resolve, reject) => {
+      const host = this.server.ssh.host
+
       if (!this._terminated) {
         this._numOperations++
 
@@ -155,21 +198,43 @@ class SSHPool extends EventEmitter {
           if (sshError) {
             // Something went wrong with the SSH connection - we need to destroy the resource
             this.destroy(client).catch(destroyErr => {
-              log.error(`Resource was rejected by the ${this.server.ssh.host} pool:\n`, destroyErr.stack)
+              log.error(`
+              Resource
+              was
+              rejected
+              by
+              the
+              ${host}
+              pool:\
+              n`, destroyErr.stack)
             })
-            log.warn(`There was an ssh error`, err)
           }
           else if (err) {
-            log.error(`fuck`, err.stack)
             // Something went wrong with the command executed over SSH so we release the client
             // and then try again
             this.release(client).catch(err => {
-              log.error(`Resource was rejected by the ${this.server.ssh.host} pool:\n`, err.stack)
+              log.error(`
+              Resource
+              was
+              rejected
+              by
+              the
+              ${host}
+              pool:\
+              n`, err.stack)
             })
           }
 
           if (operation.retry(sshError || err)) {
-            sshError = null
+            sshError   = null
+            const _err = (sshError || err)
+
+            log.warn(`
+              Retrying${host}.$
+              {desc}
+              due
+              to
+              error`, _err.stack ? _err.stack : err)
             return
           }
 
@@ -178,36 +243,64 @@ class SSHPool extends EventEmitter {
         }
 
         operation.attempt(() => {
-          this.acquire().then(_client => {
-            client = _client
+          if (!this._terminated) {
+            this.acquire().then(_client => {
+              client = _client
 
-            const sshClientErrorListener = (err: SSH2Error) => {
-              client.off('error', sshClientErrorListener)
-              sshError = err
-            }
+              const sshClientErrorListener = (err: SSH2Error) => {
+                client.off('error', sshClientErrorListener)
+                sshError = err
+              }
 
-            client.on('error', sshClientErrorListener)
-            const promise              = fn(client).then(res => {
-              this.release(client).catch(err => {
-                log.error(`Resource was rejected by the ${this.server.ssh.host} pool:\n`, err.stack)
+              client.on('error', sshClientErrorListener)
+              const promise              = fn(client).then(res => {
+                this.release(client).catch(err => {
+                  log.error(`
+              Resource
+              was
+              rejected
+              by
+              the
+              ${this.server.ssh.host}
+              pool:\
+              n`, err.stack)
+                })
+                delete this._currentOperations[n]
+                resolve(res)
+                return res
+              }).catch(err => {
+                errorHandler(err)
+                delete this._currentOperations[n]
+                return null
               })
-              delete this._currentOperations[n]
-              resolve(res)
-              return res
-            }).catch(err => {
-              errorHandler(err)
-              delete this._currentOperations[n]
-              return null
-            })
-            this._currentOperations[n] = {
-              promise,
-              desc,
-            }
-          }).catch(errorHandler)
+              this._currentOperations[n] = {
+                promise,
+                desc,
+              }
+            }).catch(errorHandler)
+          }
+          else {
+            reject(new Error(`
+              Operation
+              cancelled
+              due
+              to
+              termination
+              of
+              pool`))
+          }
         })
       }
       else {
-        reject(new Error(`Pool for ${this.server.ssh.host} is terminated so cannot perform any more operations`))
+        reject(new Error(`
+              Pool
+              for ${this.server.ssh.host} is terminated
+              so
+              cannot
+              perform
+              any
+              more
+              operations`))
       }
     })
   }

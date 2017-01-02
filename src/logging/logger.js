@@ -1,9 +1,11 @@
 /* @flow */
-import type {ServerDefinition, LoggerDatum, LogDefinition, LogSource} from '../types/index'
+import type {ServerDefinition, LoggerDatum, LogDefinition, LogSource, SSH2Error} from '../types/index'
 import {getClient} from '../util/ssh'
 import Client from 'ssh2'
 import EventEmitter from 'events'
 import {getLogger} from '../util/log'
+
+import {SSH2Stream} from 'ssh2-streams'
 
 const log = getLogger('logging/Logger')
 
@@ -22,6 +24,7 @@ export type LoggerOpts = {
 export default class Logger extends EventEmitter {
   opts: LoggerOpts
   client: Client
+  _stream: SSH2Stream
 
   constructor (opts: LoggerOpts) {
     super()
@@ -40,30 +43,62 @@ export default class Logger extends EventEmitter {
     return datum
   }
 
-  async start (): Promise<void> {
+  async _initClient (): Promise<Client> {
     const loggerName = this.opts.logDefinition.name
 
     log.debug(`Acquiring SSH connection for use in logger ${loggerName}`)
     this.client = await getClient(this.opts.serverDefinition.ssh)
     log.debug(`Acquired SSH connection for use in logger ${loggerName}`)
 
+    this.client.on('error', (err: SSH2Error) => {
+      log.error(`Logger ${loggerName} suffered an SSH error`, err)
+    })
+
+    this.client.on('close', (hadError: boolean) => {
+      if (hadError) {
+        log.error(`The ssh connection for logger ${loggerName} has now closed due to an error`)
+      }
+      else {
+        log.info(`The ssh connection for logger ${loggerName} has now closed`)
+      }
+    })
+
+    this.client.on('end', () => {
+      log.info(`The ssh connection for logger ${loggerName} has now disconnected.`)
+    })
+
+    return this.client
+  }
+
+  startStream () {
+
+  }
+
+  async start (): Promise<void> {
+    const loggerName = this.opts.logDefinition.name
+
+    await this._initClient()
+
     const cmd = this.opts.cmd
 
     log.debug('executing cmd', cmd)
 
-    this.client.exec(cmd, (err, stream) => {
+    this.client.exec(cmd, (err, stream: SSH2Stream) => {
       if (!err) {
+        this._stream = stream
         stream.on('data', data => {
           const text = data.toString().replace(/\n/g, '')
           this.emitDatum('stdout', text)
         })
 
-        // TODO: If the SSH client errors out, ends or whatever we need to get a new client - probably with exponential backoff
-
-        // stream.on('close', (code, signal) => {
-        //   const terminationPromise = this.terminate()
-        //   this.emit('close', code, signal, terminationPromise)
-        // })
+        stream.on('close', (code, signal) => {
+          if (code && code > 0) {
+            log.error(`The stream for ${loggerName} closed with code ${code}`)
+          }
+          else {
+            log.info(`The stream for ${loggerName} has closed`)
+          }
+        })
 
         stream.stderr.on('data', data => {
           const text = data.toString().replace(/\n/g, '')
@@ -82,7 +117,7 @@ export default class Logger extends EventEmitter {
     const loggerName = this.opts.logDefinition.name
     log.info(`Terminating logger "${loggerName}"`)
 
-    const client     = this.client
+    const client = this.client
     if (client) {
       await new Promise(resolve => {
         client.once('end', () => {
