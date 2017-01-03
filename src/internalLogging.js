@@ -16,7 +16,7 @@ export default {
     api: getLogger('routers/api', 'info'),
   },
   storage:   {
-    NEDBDataStore: getLogger('storage/NEDBDataStore', 'info'),
+    NEDBDataStore: getLogger('storage/NEDBDataStore', 'trace'),
   },
   util:      {
     http: getLogger('util/http', 'info'),

@@ -93,9 +93,17 @@ export default class NEDBDataStore {
         q['server.ssh.host'] = host
       }
 
+      log.trace(`querying logs`, JSON.stringify(q))
+
       this.db.find(q, function (err, docs: LoggerDatum[]) {
-        if (err) reject(err)
-        else resolve(docs)
+        if (err) {
+          log.debug(`Error querying logs`, JSON.stringify(q), err.stack)
+          reject(err)
+        }
+        else {
+          log.debug(`queried logs successfully`, JSON.stringify(docs))
+          resolve(docs)
+        }
       })
     })
   }

@@ -5,7 +5,7 @@ import Monitor from '../../monitors/monitor'
 import {cleanServer} from '../../util/data'
 import _ from 'lodash'
 import {stringify} from '../../util/json'
-import type {LatestHostStats, MonitorDatum, LoggerDatum} from '../../types/index'
+import type {LatestHostStats, MonitorDatum, LoggerDatum, DataType} from '../../types/index'
 import type {SSHDataStoreQuerySystemStatsParams, SSHDataStoreQueryLogsParams} from '../../storage/DataStore'
 import InternalLogging from '../../internalLogging'
 
@@ -45,8 +45,88 @@ export default function (monitor: Monitor) {
     res.status(200).send(stringify({ok: true, config: servers.map(s => cleanServer(s))}))
   })
 
+  /**
+   * Ensure data types (in the query string, everything is a string)
+   */
+  function getQuerySystemStatsParams (query: Object): SSHDataStoreQuerySystemStatsParams {
+    let params: SSHDataStoreQuerySystemStatsParams = {}
+
+    const timestamp = query.timestamp
+
+    if (query.name) params.name = query.name.toString()
+    if (query.host) params.host = query.host.toString()
+    if (query.name) params.name = query.name.toString()
+    if (query.type) {
+      const type: DataType = query.type.toString()
+      params.type          = type
+    }
+    if (query.extra) {
+      const extra  = {}
+      params.extra = extra
+      if (query.extra.path) {
+        extra.path = query.extra.path.toString()
+      }
+      if (query.extra.process) {
+        const process        = {}
+        params.extra.process = process
+        if (query.extra.process.id) {
+          process.id = query.extra.process.id.toString()
+        }
+      }
+    }
+
+    if (timestamp) {
+      if (timestamp.gt) {
+        timestamp.gt = parseInt(timestamp.gt, 10)
+      }
+      if (timestamp.lt) {
+        timestamp.lt = parseInt(timestamp.lt, 10)
+
+        if (timestamp.gte) {
+          timestamp.gte = parseInt(timestamp.gte, 10)
+        }
+        if (timestamp.lte) {
+          timestamp.lte = parseInt(timestamp.lte, 10)
+        }
+      }
+    }
+    return params
+  }
+
+  /**
+   * Ensure data types (in the query string, everything is a string)
+   */
+  function getQueryLogsParams (query: Object): SSHDataStoreQueryLogsParams {
+    let params: SSHDataStoreQueryLogsParams = {}
+
+    if (query.source) params.source = query.source.toString()
+    if (query.name) params.name = query.name.toString()
+    if (query.host) params.host = query.host.toString()
+
+    const timestamp = query.timestamp
+    if (timestamp) {
+      if (timestamp.gt) {
+        timestamp.gt = parseInt(timestamp.gt, 10)
+      }
+      if (timestamp.lt) {
+        timestamp.lt = parseInt(timestamp.lt, 10)
+
+        if (timestamp.gte) {
+          timestamp.gte = parseInt(timestamp.gte, 10)
+        }
+        if (timestamp.lte) {
+          timestamp.lte = parseInt(timestamp.lte, 10)
+        }
+      }
+      params.timestamp = query.timestamp
+    }
+
+    return params
+  }
+
+
   router.get('/system/stats', (req, res) => {
-    const params: SSHDataStoreQuerySystemStatsParams = req.query
+    const params: SSHDataStoreQuerySystemStatsParams = getQuerySystemStatsParams(req.query)
 
     log.info(`/system/stats`, params)
 
@@ -60,7 +140,7 @@ export default function (monitor: Monitor) {
   })
 
   router.get('/logs', (req, res) => {
-    const params: SSHDataStoreQueryLogsParams = req.body
+    const params: SSHDataStoreQueryLogsParams = getQueryLogsParams(req.query)
 
     const store = monitor.opts.store
     store.queryLogs(params).then((data: LoggerDatum[]) => {
