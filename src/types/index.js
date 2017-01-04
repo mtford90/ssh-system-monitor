@@ -46,7 +46,7 @@ export type ProcessDefinition = {
 }
 
 // Defines the data type emitted by monitors
-export type MonitorDatum = {
+export type SystemDatum = {
   server: ServerDefinition,
   type: DataType,
   value: any,

@@ -9,7 +9,7 @@ import {Pool} from 'generic-pool'
 import Client from 'ssh2'
 import type {
   ServerDefinition,
-  MonitorDatum,
+  SystemDatum,
   ProcessDefinition,
   HostStatsCollection,
   ProcessInfo,
@@ -17,7 +17,7 @@ import type {
   LogDefinition,
   LoggerDatum,
 } from '../types/index'
-import {initLatestStats, receiveMonitorDatum} from '../util/data'
+import {initLatestStats, receiveSystemDatum} from '../util/data'
 import DockerLogger from '../logging/dockerLogger'
 import Logger from '../logging/logger'
 import {SSHDataStore} from '../storage/DataStore'
@@ -71,10 +71,10 @@ function waitForDatum (
   })
 }
 
-export function waitForMonitorDatum (
+export function waitForSystemDatum (
   monitor: Monitor,
-  check: (datum: MonitorDatum) => boolean = () => true
-): Promise<MonitorDatum> {
+  check: (datum: SystemDatum) => boolean = () => true
+): Promise<SystemDatum> {
   return waitForDatum(
     monitor,
     'data',
@@ -134,7 +134,7 @@ export default class Monitor extends EventEmitter {
     return pool.acquireExecuteRelease(desc, fn)
   }
 
-  emitData (datum: MonitorDatum) {
+  emitData (datum: SystemDatum) {
     this.emit('data', datum)
   }
 
@@ -149,7 +149,7 @@ export default class Monitor extends EventEmitter {
       const value                    = await this.acquireExecuteRelease(id, dataType, client => cmd(client))
       const server: ServerDefinition = this.servers[id]
 
-      const datum: MonitorDatum = {
+      const datum: SystemDatum = {
         type:      dataType,
         server,
         value,
@@ -157,7 +157,7 @@ export default class Monitor extends EventEmitter {
         timestamp: Date.now()
       }
 
-      this.latest = receiveMonitorDatum(this.latest, datum)
+      this.latest = receiveSystemDatum(this.latest, datum)
       this.emitData(datum)
     }, this.opts.rate)
   }
@@ -173,8 +173,8 @@ export default class Monitor extends EventEmitter {
       await store.init().then(() => {
         log.debug(`Initalised store`)
 
-        this.on('data', (datum: MonitorDatum) => {
-          store.storeMonitorDatum(datum).then(() => {
+        this.on('data', (datum: SystemDatum) => {
+          store.storeSystemDatum(datum).then(() => {
             log.trace('successfully stored monitor datum', datum)
           }).catch(err => {
             log.error('error storing monitor datum', err.stack)
@@ -243,7 +243,7 @@ export default class Monitor extends EventEmitter {
           return asyncInterval(async () => {
             const value: number = (await this.acquireExecuteRelease(idx, `percentageDiskSpaceUsed(${path})`, client => system.percentageDiskSpaceUsed(client, path)))
 
-            const datum: MonitorDatum = {
+            const datum: SystemDatum = {
               type:      'percentageDiskSpaceUsed',
               server,
               value,
@@ -253,7 +253,7 @@ export default class Monitor extends EventEmitter {
               timestamp: Date.now()
             }
 
-            this.latest = receiveMonitorDatum(this.latest, datum)
+            this.latest = receiveSystemDatum(this.latest, datum)
             this.emitData(datum)
 
           }, this.opts.rate)
@@ -262,7 +262,7 @@ export default class Monitor extends EventEmitter {
           return asyncInterval(async () => {
             const value: ProcessInfo = await this.acquireExecuteRelease(idx, `processInfo(${p.id})`, client => process.info(client, p.grep))
 
-            const datum: MonitorDatum = {
+            const datum: SystemDatum = {
               type:      'processInfo',
               server,
               value,
@@ -272,7 +272,7 @@ export default class Monitor extends EventEmitter {
               timestamp: Date.now()
             }
 
-            this.latest = receiveMonitorDatum(this.latest, datum)
+            this.latest = receiveSystemDatum(this.latest, datum)
             this.emitData(datum)
           }, this.opts.rate)
         })

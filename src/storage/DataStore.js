@@ -1,5 +1,5 @@
 /* @flow */
-import type {MonitorDatum, LoggerDatum, LogSource, DataType} from '../types/index'
+import type {SystemDatum, LoggerDatum, LogSource, DataType} from '../types/index'
 
 export type TimestampQueryParams = {
   gt?: number,
@@ -30,8 +30,8 @@ export type SSHDataStoreQuerySystemStatsParams = {
 
 export interface SSHDataStore {
   init() : Promise<void>;
-  storeMonitorDatum(datum: MonitorDatum) : Promise<void>;
+  storeSystemDatum(datum: SystemDatum) : Promise<void>;
   storeLoggerDatum(datum: LoggerDatum) : Promise<void>;
   queryLogs(params?: SSHDataStoreQueryLogsParams) : Promise<LoggerDatum[]>;
-  querySystemStats(params?: SSHDataStoreQuerySystemStatsParams) : Promise<MonitorDatum[]>;
+  querySystemStats(params?: SSHDataStoreQuerySystemStatsParams) : Promise<SystemDatum[]>;
 }

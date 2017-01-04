@@ -5,7 +5,7 @@ import type {
   ProcessDefinition,
   HostStatsCollection,
   LatestHostStats,
-  MonitorDatum,
+  SystemDatum,
   DataType,
 } from '../types'
 
@@ -61,7 +61,7 @@ export function initLatestStats (servers: ServerDefinition[]): {[host:string]: H
  * @param datum
  * @returns {LatestHostStats}
  */
-export function receiveMonitorDatum (latest: LatestHostStats, datum: MonitorDatum): LatestHostStats {
+export function receiveSystemDatum (latest: LatestHostStats, datum: SystemDatum): LatestHostStats {
   latest = {...latest}
 
   const dataType: DataType = datum.type

@@ -1,5 +1,5 @@
 /* @flow */
-import type {MonitorDatum, LoggerDatum, NEDBOptions} from '../types/index'
+import type {SystemDatum, LoggerDatum, NEDBOptions} from '../types/index'
 import DataStore from 'nedb'
 import type {SSHDataStoreQueryLogsParams, SSHDataStoreQuerySystemStatsParams, TimestampQueryParams} from './DataStore'
 import InternalLogging from '../internalLogging'
@@ -49,7 +49,7 @@ export default class NEDBDataStore {
     return Promise.all(fieldNames.map((fieldName: string) => this._ensureIndex(fieldName)))
   }
 
-  storeMonitorDatum (datum: MonitorDatum): Promise<void> {
+  storeSystemDatum (datum: SystemDatum): Promise<void> {
     return new Promise((resolve, reject) => {
       this.db.insert(datum, (err) => {
         if (err) reject(err)
@@ -108,7 +108,7 @@ export default class NEDBDataStore {
     })
   }
 
-  querySystemStats (params?: SSHDataStoreQuerySystemStatsParams = {}): Promise<MonitorDatum[]> {
+  querySystemStats (params?: SSHDataStoreQuerySystemStatsParams = {}): Promise<SystemDatum[]> {
     return new Promise((resolve, reject) => {
       const q: Object = {
         type:  {
@@ -149,7 +149,7 @@ export default class NEDBDataStore {
         }
       }
 
-      this.db.find(q, function (err, docs: MonitorDatum[]) {
+      this.db.find(q, function (err, docs: SystemDatum[]) {
         if (err) reject(err)
         else resolve(docs)
       })

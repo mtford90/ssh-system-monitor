@@ -11,7 +11,7 @@ import ws from 'socket.io'
 
 import getApiRouter from './routers/api'
 import getAppRouter from './routers/app'
-import type {MonitorDatum, LoggerDatum} from '../types/index'
+import type {SystemDatum, LoggerDatum} from '../types/index'
 
 import InternalLogging from '../internalLogging'
 
@@ -60,7 +60,7 @@ export default function start (monitor: Monitor, opts?: ApiOptions = {}) {
   const io = ws(server)
 
   io.on('connection', socket => {
-    monitor.on('data', (datum: MonitorDatum) => {
+    monitor.on('data', (datum: SystemDatum) => {
       socket.emit('data', datum);
     })
     monitor.on('log', (datum: LoggerDatum) => {

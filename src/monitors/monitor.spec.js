@@ -1,12 +1,12 @@
 /* @flow */
 
 import chai from 'chai'
-import Monitor, {waitForMonitorDatum, waitForLoggerDatum} from './monitor'
+import Monitor, {waitForSystemDatum, waitForLoggerDatum} from './monitor'
 import _ from 'lodash'
 import {servers} from '../../examples/config'
 import {describe, it} from 'mocha'
 import {Stats} from '../types'
-import type {MonitorDatum, DataType, ServerDefinition, LoggerDatum} from '../types/index'
+import type {SystemDatum, DataType, ServerDefinition, LoggerDatum} from '../types/index'
 import NEDBDataStore from '../storage/NEDBDataStore'
 
 const assert = chai.assert
@@ -20,7 +20,7 @@ describe('monitor', function () {
       const m        = new Monitor(_servers, {rate: 1000})
       await m.start()
 
-      const data: MonitorDatum = await waitForMonitorDatum(m)
+      const data: SystemDatum = await waitForSystemDatum(m)
 
       console.log('data', data)
       console.log('m.latest', m.latest)
@@ -48,7 +48,7 @@ describe('monitor', function () {
       const dataType = Stats.percentageDiskSpaceUsed
       const path     = '/'
 
-      const data: MonitorDatum = await waitForMonitorDatum(
+      const data: SystemDatum = await waitForSystemDatum(
         m,
         datum => datum.type === dataType
       )
@@ -90,7 +90,7 @@ describe('monitor', function () {
       const m = new Monitor([server], {rate: 1000})
       await m.start()
 
-      await waitForMonitorDatum(
+      await waitForSystemDatum(
         m,
         datum => datum.type === Stats.processInfo
       )
@@ -133,12 +133,12 @@ describe('monitor', function () {
         m,
       )
 
-      const monitorDatum: MonitorDatum = await waitForMonitorDatum(
+      const systemDatum: SystemDatum = await waitForSystemDatum(
         m,
       )
 
       console.log('loggerDatum', loggerDatum)
-      console.log('monitorDatum', monitorDatum)
+      console.log('systemDatum', systemDatum)
 
       await m.terminate()
     })

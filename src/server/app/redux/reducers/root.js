@@ -1,6 +1,6 @@
 /* @flow */
-import type {ServerDefinition, LatestHostStats, MonitorDatum, LoggerDatum} from '../../../../types/index'
-import {receiveMonitorDatum} from '../../../../util/data'
+import type {ServerDefinition, LatestHostStats, SystemDatum, LoggerDatum} from '../../../../types/index'
+import {receiveSystemDatum} from '../../../../util/data'
 
 //
 // Action types
@@ -28,7 +28,7 @@ export function receiveConfig (config: ServerDefinition[]) {
   }
 }
 
-export function receiveDatum (datum: MonitorDatum) {
+export function receiveDatum (datum: SystemDatum) {
   return {
     type: ACTION_TYPE_RECEIVE_MONITOR_DATUM,
     datum
@@ -39,7 +39,7 @@ export function receiveDatum (datum: MonitorDatum) {
 export function $listen () {
   return (dispatch: (Object) => any) => {
     const socket = window.io.connect();
-    socket.on('data', (datum: MonitorDatum) => {
+    socket.on('data', (datum: SystemDatum) => {
       dispatch(receiveDatum(datum))
     });
   }
@@ -72,7 +72,7 @@ export default function (state: RootReduxState = DEFAULT_STATE, action: Object) 
   else if (action.type === ACTION_TYPE_RECEIVE_MONITOR_DATUM) {
     return {
       ...state,
-      latest: receiveMonitorDatum(state.latest, action.datum)
+      latest: receiveSystemDatum(state.latest, action.datum)
     }
   }
   return state

@@ -8,7 +8,7 @@ import env from '../env'
 import Monitor from '../../monitors/monitor'
 import {after, it, before, describe, afterEach} from 'mocha'
 import type {SSHDataStoreQuerySystemStatsParams, SSHDataStoreQueryLogsParams} from '../../storage/DataStore'
-import type {MonitorDatum, LoggerDatum} from '../../types/index'
+import type {SystemDatum, LoggerDatum} from '../../types/index'
 import EventEmitter from 'events'
 
 const assert = chai.assert
@@ -118,14 +118,14 @@ describe('/api', function () {
       const store = m.opts.store
 
       await Promise.all(mockData.map(d => {
-        return store.storeMonitorDatum(d)
+        return store.storeSystemDatum(d)
       }))
 
       const res = await http.getJSON(`http://localhost:${env.PORT}/api/system/stats`, params)
 
       console.log('res', res)
 
-      const systemStats: MonitorDatum[] = res.data
+      const systemStats: SystemDatum[] = res.data
       assert.equal(systemStats.length, 1)
 
 

@@ -5,7 +5,7 @@ import Monitor from '../../monitors/monitor'
 import {cleanServer} from '../../util/data'
 import _ from 'lodash'
 import {stringify} from '../../util/json'
-import type {LatestHostStats, MonitorDatum, LoggerDatum, DataType} from '../../types/index'
+import type {LatestHostStats, SystemDatum, LoggerDatum, DataType} from '../../types/index'
 import type {SSHDataStoreQuerySystemStatsParams, SSHDataStoreQueryLogsParams} from '../../storage/DataStore'
 import InternalLogging from '../../internalLogging'
 
@@ -131,7 +131,7 @@ export default function (monitor: Monitor) {
     log.info(`/system/stats`, params)
 
     const store = monitor.opts.store
-    store.querySystemStats(params).then((data: MonitorDatum[]) => {
+    store.querySystemStats(params).then((data: SystemDatum[]) => {
       res.status(200).send(stringify({ok: true, data}))
     }).catch(err => {
       log.error('error getting system stats', err.stack)
