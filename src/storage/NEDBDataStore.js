@@ -3,6 +3,7 @@ import type {SystemDatum, LoggerDatum, NEDBOptions} from '../types/index'
 import DataStore from 'nedb'
 import type {LogFilter, SystemStatFilter, TimestampQueryParams} from './DataStore'
 import InternalLogging from '../internalLogging'
+import _ from 'lodash'
 
 const INDICES = [
   'type',
@@ -75,7 +76,7 @@ export default class NEDBDataStore {
         }
       }
 
-      const {name, source, timestamp, host} = params
+      const {name, source, timestamp, host, text} = params
 
       if (timestamp) {
         this._constructTimestampQuery(q, timestamp)
@@ -91,6 +92,15 @@ export default class NEDBDataStore {
 
       if (host) {
         q['server.ssh.host'] = host
+      }
+
+      if (text) {
+        if (_.isString(text)) {
+          q.text = new RegExp(text)
+        }
+        else {
+          q.text = text
+        }
       }
 
       log.trace(`querying logs`, JSON.stringify(q))

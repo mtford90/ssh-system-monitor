@@ -13,6 +13,7 @@ export type LogFilter = {
   timestamp?: TimestampQueryParams,
   host?: string,
   name?: string,
+  text?: RegExp | string,
 }
 
 export type SystemStatFilter = {

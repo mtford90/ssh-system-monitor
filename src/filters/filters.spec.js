@@ -350,6 +350,40 @@ describe("filters", function () {
       assert.equal(logs.length, 1)
     })
 
+    it("text", () => {
+      const mockData: LoggerDatum[] = [
+        {
+          source:    'stdout',
+          text:      'yoyoyo',
+          timestamp: 100,
+          server:    operatorDev,
+          logger:    {
+            name: 'xyz',
+            grep: 'asdasd',
+            type: 'command',
+          }
+        },
+        {
+          source:    'stdout',
+          text:      '22yo22yo',
+          timestamp: 100,
+          server:    operatorDev,
+          logger:    {
+            name: 'abc',
+            grep: 'asdasd',
+            type: 'command',
+          }
+        }
+      ]
+
+      // Log text must start with "yo"
+      const regExp = /^yo/
+
+      const logs: LoggerDatum[] = filterLogs(mockData, {text: regExp})
+      console.log('logs', JSON.stringify(logs))
+      assert.equal(logs.length, 1)
+    })
+
     it("source", () => {
       const mockData: LoggerDatum[] = [
         {
@@ -545,6 +579,5 @@ describe("filters", function () {
       console.log('logs', JSON.stringify(logs))
       assert.equal(logs.length, 1)
     })
-
   })
 })

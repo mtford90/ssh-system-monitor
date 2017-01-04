@@ -131,66 +131,116 @@ describe('/api', function () {
 
     })
 
-    it("logs", async () => {
-      m   = new Monitor([operatorDev], {rate: 1000})
-      app = server(m, {serveClient: false})
+    describe("logs", function () {
+      it("timestamp", async () => {
+        m   = new Monitor([operatorDev], {rate: 1000})
+        app = server(m, {serveClient: false})
 
-      const params: LogFilter = {
-        timestamp: {
-          gt: 100
+        const params: LogFilter = {
+          timestamp: {
+            gt: 100
+          }
         }
-      }
 
 
-      const mockData: LoggerDatum[] = [
-        {
-          source:    'stdout',
-          text:      'yoyoyo',
-          timestamp: 90,
-          server:    operatorDev,
-          logger:    {
-            name: 'xyz',
-            grep: 'asdasd',
-            type: 'command',
-          }
-        },
+        const mockData: LoggerDatum[] = [
+          {
+            source:    'stdout',
+            text:      'yoyoyo',
+            timestamp: 90,
+            server:    operatorDev,
+            logger:    {
+              name: 'xyz',
+              grep: 'asdasd',
+              type: 'command',
+            }
+          },
 
-        {
-          source:    'stdout',
-          text:      'yoyoyo',
-          timestamp: 100,
-          server:    operatorDev,
-          logger:    {
-            name: 'xyz',
-            grep: 'asdasd',
-            type: 'command',
-          }
-        },
-        {
-          source:    'stdout',
-          text:      'yoyoyo',
-          timestamp: 120,
-          server:    operatorDev,
-          logger:    {
-            name: 'xyz',
-            grep: 'asdasd',
-            type: 'command',
-          }
-        },
-      ]
+          {
+            source:    'stdout',
+            text:      'yoyoyo',
+            timestamp: 100,
+            server:    operatorDev,
+            logger:    {
+              name: 'xyz',
+              grep: 'asdasd',
+              type: 'command',
+            }
+          },
+          {
+            source:    'stdout',
+            text:      'yoyoyo',
+            timestamp: 120,
+            server:    operatorDev,
+            logger:    {
+              name: 'xyz',
+              grep: 'asdasd',
+              type: 'command',
+            }
+          },
+        ]
 
-      const store = m.opts.store
+        const store = m.opts.store
 
-      await Promise.all(mockData.map(d => {
-        return store.storeLoggerDatum(d)
-      }))
+        await Promise.all(mockData.map(d => {
+          return store.storeLoggerDatum(d)
+        }))
 
-      const res = await http.getJSON(`http://localhost:${env.PORT}/api/logs`, params)
+        const res = await http.getJSON(`http://localhost:${env.PORT}/api/logs`, params)
 
-      console.log('res', res)
+        console.log('res', res)
 
-      const logs: LoggerDatum[] = res.data
-      assert.equal(logs.length, 1)
+        const logs: LoggerDatum[] = res.data
+        assert.equal(logs.length, 1)
+      })
+      it("regexp", async () => {
+        m   = new Monitor([operatorDev], {rate: 1000})
+        app = server(m, {serveClient: false})
+
+        const params: LogFilter = {
+          text: '^yo'
+        }
+
+        const mockData: LoggerDatum[] = [
+          {
+            source:    'stdout',
+            text:      'yoyoyo',
+            timestamp: 90,
+            server:    operatorDev,
+            logger:    {
+              name: 'xyz',
+              grep: 'asdasd',
+              type: 'command',
+            }
+          },
+          {
+            source:    'stdout',
+            text:      '23yoyo423',
+            timestamp: 120,
+            server:    operatorDev,
+            logger:    {
+              name: 'xyz',
+              grep: 'asdasd',
+              type: 'command',
+            }
+          },
+        ]
+
+        const store = m.opts.store
+
+        await Promise.all(mockData.map(d => {
+          return store.storeLoggerDatum(d)
+        }))
+
+        const res = await http.getJSON(`http://localhost:${env.PORT}/api/logs`, params)
+
+        console.log('res', res)
+
+        const logs: LoggerDatum[] = res.data
+        assert.equal(logs.length, 1)
+      })
     })
+
+
   })
 })

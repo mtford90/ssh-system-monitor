@@ -102,6 +102,7 @@ export default function (monitor: Monitor) {
     if (query.source) params.source = query.source.toString()
     if (query.name) params.name = query.name.toString()
     if (query.host) params.host = query.host.toString()
+    if (query.text) params.text = new RegExp(query.text.toString())
 
     const timestamp = query.timestamp
     if (timestamp) {

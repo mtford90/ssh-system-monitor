@@ -45,6 +45,15 @@ export function filterLogs (logs: LoggerDatum[], filter?: LogFilter = {}): Logge
       if (loggerDatum.server.ssh.host !== host) return false
     }
 
+    let text = filter.text
+
+    if (text) {
+      if (_.isString(text)) {
+        text = new RegExp(text)
+      }
+      if (!text.test(loggerDatum.text)) return false
+    }
+
     return true
   })
 }

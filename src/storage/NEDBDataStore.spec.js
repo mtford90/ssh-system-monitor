@@ -599,6 +599,41 @@ describe('NEDBDataStore', function () {
         assert.equal(logs.length, 1)
       })
 
+
+      it("text", async () => {
+        const mockData: LoggerDatum[] = [
+          {
+            source:    'stdout',
+            text:      'yoyoyo',
+            timestamp: 100,
+            server:    operatorDev,
+            logger:    {
+              name: 'xyz',
+              grep: 'asdasd',
+              type: 'command',
+            }
+          },
+          {
+            source:    'stdout',
+            text:      '12yo12yo',
+            timestamp: 100,
+            server:    portalDev,
+            logger:    {
+              name: 'abc',
+              grep: 'asdasd',
+              type: 'command',
+            }
+          }
+        ]
+
+        store = await insertLogData(mockData)
+
+        const textQueriedLogs: LoggerDatum[] = await store.queryLogs({text: '^yo'})
+        const regExpQueriedLogs: LoggerDatum[] = await store.queryLogs({text: /^yo/})
+        assert.equal(textQueriedLogs.length, 1)
+        assert.equal(regExpQueriedLogs.length, 1)
+      })
+
     })
   })
 
