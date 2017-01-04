@@ -48,10 +48,15 @@ export function filterLogs (logs: LoggerDatum[], filter?: LogFilter = {}): Logge
     let text = filter.text
 
     if (text) {
-      if (_.isString(text)) {
-        text = new RegExp(text)
+      let regex: RegExp
+      if (text instanceof RegExp) {
+        regex = text
       }
-      if (!text.test(loggerDatum.text)) return false
+      else {
+        regex = new RegExp(text)
+      }
+
+      if (!regex.test(loggerDatum.text)) return false
     }
 
     return true

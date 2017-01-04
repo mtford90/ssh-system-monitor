@@ -1,4 +1,5 @@
 /* @flow */
+
 import type {ServerDefinition, LoggerDatum, LogDefinition, LogSource, SSH2Error} from '../types/index'
 import {getClient} from '../util/ssh'
 import Client from 'ssh2'

@@ -8,36 +8,36 @@ import LoggerDropdown from '../../components/dropdowns/LoggerDropdown'
 import type {LogFilter} from '../../../../storage/DataStore'
 import _ from 'lodash'
 import moment from 'moment'
-import {setSelectedLog, setSelectedServer, $fetchLogs, $listen} from './redux'
+import {setSelectedLog, setSelectedServer, $fetchLogs, $listen, setSearchString} from './redux'
 import LogViewer from './LogViewer'
 
 type Props = {
   config: ServerDefinition[],
   logs: LoggerDatum[],
   $fetchLogs: (params: LogFilter) => void,
-  $listen: (name: string) => () => void,
+  $listen: (filter: LogFilter) => () => void,
   selectedServer: ServerDefinition | null,
   selectedLog: LogDefinition | null,
   setSelectedLog: (log: LogDefinition | null) => void,
   setSelectedServer: (log: ServerDefinition | null) => void,
+  setSearchString: (searchString: string) => void,
+  searchString: string,
 }
 
 const mapStateToProps = state => {
-  const LogsState = state['containers.Logs']
   return {
-    config:         state.root.config,
-    logs:           LogsState.logs,
-    selectedServer: LogsState.selectedServer,
-    selectedLog:    LogsState.selectedLog,
+    config: state.root.config,
+    ...state['containers.Logs'],
   }
 }
 
 const mapDispatchToProps = dispatch => {
   return {
-    $fetchLogs:        (params: LogFilter) => dispatch($fetchLogs(params)),
-    $listen:           (name: string) => dispatch($listen(name)),
+    $fetchLogs:        (filter: LogFilter) => dispatch($fetchLogs(filter)),
+    $listen:           (filter: LogFilter) => dispatch($listen(filter)),
     setSelectedLog:    (log: LogDefinition) => dispatch(setSelectedLog(log)),
     setSelectedServer: (server: ServerDefinition) => dispatch(setSelectedServer(server)),
+    setSearchString:   (searchString: string) => dispatch(setSearchString(searchString)),
   }
 }
 
@@ -64,15 +64,15 @@ export default class Logs extends Component {
 
       if (selectedLog) {
         this.props.setSelectedLog(selectedLog)
-        this.fetchLogs(selectedLog.name)
+        this.fetchLogs({name: selectedLog.name})
       }
     }
   }
 
-  fetchLogs (name: string) {
+  fetchLogs (filter: LogFilter) {
     this.stopListening()
-    this.props.$fetchLogs({name})
-    this.stopListening = this.props.$listen(name)
+    this.props.$fetchLogs(filter)
+    this.stopListening = this.props.$listen(filter)
   }
 
   componentWillReceiveProps (nextProps: Props) {
@@ -101,7 +101,7 @@ export default class Logs extends Component {
   selectAndFetchLog (log: LogDefinition | null) {
     this.props.setSelectedLog(log)
     if (log) {
-      this.fetchLogs(log.name)
+      this.fetchLogs({name: log.name})
     }
   }
 
@@ -111,6 +111,26 @@ export default class Logs extends Component {
 
   handleLogSelect = (selectedLog: LogDefinition) => {
     this.selectAndFetchLog(selectedLog)
+  }
+
+
+  handleInputKeyDown = (event: Object) => {
+    const enterPressed = event.keyCode === 13
+    if (enterPressed) {
+      const selectedLog = this.props.selectedLog
+      if (selectedLog) {
+        const filter: LogFilter = {
+          name: selectedLog.name,
+        }
+
+        const searchString = this.props.searchString
+
+        if (searchString) {
+          filter.text = searchString
+        }
+        this.fetchLogs(filter)
+      }
+    }
   }
 
   render () {
@@ -137,7 +157,14 @@ export default class Logs extends Component {
         <LogViewer
           logs={logs}
         />
-        <input className="SearchBar" placeholder="Search"/>
+        <input
+          className="SearchBar"
+          placeholder="Search"
+          value={this.props.searchString}
+          onChange={e => this.props.setSearchString(e.target.value)}
+          onKeyDown={this.handleInputKeyDown}
+          disabled={!this.props.selectedLog}
+        />
       </div>
     )
   }

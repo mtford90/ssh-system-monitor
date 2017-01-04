@@ -2,11 +2,21 @@
 import type {ServerDefinition, LogDefinition, LoggerDatum} from '../../../../types/index'
 import type {LogFilter} from '../../../../storage/DataStore'
 import * as http from '../../../../util/http'
+import {filterLogs} from '../../../../filters/index'
 
-export const ACTION_SET_SELECTED_SERVER = 'containers/Logs/SET_SELECTED_SERVER'
-export const ACTION_SET_SELECTED_LOG    = 'containers/Logs/SET_SELECTED_LOG'
-export const ACTION_TYPE_RECEIVE_LOGS   = 'containers/logs/RECEIVE_LOGS'
-export const ACTION_TYPE_RECEIVE_LOG    = 'containers/logs/RECEIVE_LOG'
+//
+// Action Types
+//
+
+export const ACTION_SET_SELECTED_SERVER    = 'containers/Logs/SET_SELECTED_SERVER'
+export const ACTION_SET_SELECTED_LOG       = 'containers/Logs/SET_SELECTED_LOG'
+export const ACTION_TYPE_RECEIVE_LOGS      = 'containers/logs/RECEIVE_LOGS'
+export const ACTION_TYPE_RECEIVE_LOG       = 'containers/logs/RECEIVE_LOG'
+export const ACTION_TYPE_SET_SEARCH_STRING = 'containers/logs/SET_SEARCH_STRING'
+
+//
+// Actions
+//
 
 type SetSelectedServerAction = {
   type: 'containers/Logs/SET_SELECTED_SERVER',
@@ -28,6 +38,11 @@ type ReceiveLogAction = {
   type: 'containers/logs/RECEIVE_LOG',
   params: LogFilter,
   log: LoggerDatum
+}
+
+type SetSearchStringAction = {
+  type: 'containers/logs/SET_SEARCH_STRING',
+  searchString: string,
 }
 
 export function setSelectedServer (server: ServerDefinition | null): SetSelectedServerAction {
@@ -60,6 +75,17 @@ export function receiveLog (params: LogFilter, log: LoggerDatum): ReceiveLogActi
   }
 }
 
+export function setSearchString (searchString: string): SetSearchStringAction {
+  return {
+    type: ACTION_TYPE_SET_SEARCH_STRING,
+    searchString,
+  }
+}
+
+//
+// Thunks
+//
+
 export function $fetchLogs (params: LogFilter) {
   return (dispatch: Function) => {
     http.getJSON('/api/logs', params).then(res => {
@@ -69,15 +95,14 @@ export function $fetchLogs (params: LogFilter) {
   }
 }
 
-export function $listen (name: string) {
-  console.log(`listening for ${name}`)
+export function $listen (filter: LogFilter) {
   return (dispatch: (Object) => any) => {
     const socket   = window.io.connect();
     const listener = (datum: LoggerDatum) => {
-      console.log(`received datum`, datum)
-      if (datum.logger.name === name) {
-        dispatch(receiveLog({name}, datum))
-      }
+      const logs = filterLogs([datum], filter)
+      logs.forEach((l: LoggerDatum) => {
+        dispatch(receiveLog(filter, l))
+      })
     }
     socket.on('log', listener);
     return () => {
@@ -86,11 +111,17 @@ export function $listen (name: string) {
   }
 }
 
+
+//
+// Reducer
+//
+
 type LogsReduxState = {
   selectedServer: ServerDefinition | null,
   selectedLog: LogDefinition | null,
   logs: LoggerDatum[],
   params: LogFilter,
+  searchString: string,
 }
 
 const DEFAULT_STATE: LogsReduxState = {
@@ -98,6 +129,7 @@ const DEFAULT_STATE: LogsReduxState = {
   selectedLog:    null,
   logs:           [],
   params:         {},
+  searchString:   '',
 }
 
 export default function reducer (state: LogsReduxState = DEFAULT_STATE, action: *) {
@@ -127,6 +159,12 @@ export default function reducer (state: LogsReduxState = DEFAULT_STATE, action: 
       ...state,
       params: action.params,
       logs:   [action.log, ...state.logs],
+    }
+  }
+  else if (action.type === ACTION_TYPE_SET_SEARCH_STRING) {
+    return {
+      ...state,
+      searchString: action.searchString,
     }
   }
   return state
