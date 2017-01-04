@@ -4,26 +4,26 @@ import {getLogger} from './util/log'
 
 export default {
   alerting:  {
-    slack: getLogger('alerting/slack', 'info')
+    slack: getLogger('alerting/slack', 'trace')
   },
   logging:   {
-    Logger: getLogger('logging/Logger', 'info')
+    Logger: getLogger('logging/Logger', 'trace')
   },
-  Monitor:   getLogger('Monitor', 'info'),
-  pool:      getLogger('pool', 'info'),
-  server:    getLogger('server', 'info'),
+  Monitor:   getLogger('Monitor', 'debug'),
+  pool:      getLogger('pool', 'trace'),
+  server:    getLogger('server', 'trace'),
   routers:   {
-    api: getLogger('routers/api', 'info'),
+    api: getLogger('routers/api', 'trace'),
   },
   storage:   {
-    NEDBDataStore: getLogger('storage/NEDBDataStore', 'trace'),
+    NEDBDataStore: getLogger('storage/NEDBDataStore', 'warn'),
   },
   util:      {
-    http: getLogger('util/http', 'info'),
+    http: getLogger('util/http', 'trace'),
   },
   platforms: {
     linux: {
-      system: getLogger('platforms/linux/system', 'info')
+      system: getLogger('platforms/linux/system', 'warn')
     }
   }
 }

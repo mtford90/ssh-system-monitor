@@ -54,16 +54,18 @@ class Layout extends Component {
   render () {
     return (
       <MuiThemeProvider>
-        <div>
-          <AppBar
-            title={this.props.title}
-            iconElementLeft={
+        <div className="AppContainer">
+          <header>
+            <AppBar
+              title={this.props.title}
+              iconElementLeft={
               <RaisedButton
                 label="Toggle Menu"
                 onTouchTap={this.handleToggle}
               />
             }
-          />
+            />
+          </header>
           <Drawer title={this.props.title} open={this.state.open}>
             <MenuItem
               onClick={
@@ -89,6 +91,16 @@ class Layout extends Component {
               onClick={
                 () => {
                   this.setState({open: !this.state.open});
+                  this.props.router.push('/logs');
+                }
+              }
+            >
+              Logs
+            </MenuItem>
+            <MenuItem
+              onClick={
+                () => {
+                  this.setState({open: !this.state.open});
                   this.props.router.push('/config');
                 }
               }
@@ -96,7 +108,9 @@ class Layout extends Component {
               Config
             </MenuItem>
           </Drawer>
-          <div>{this.props.children}</div>
+          <div className="ContentContainer">
+            {this.props.children}
+          </div>
         </div>
       </MuiThemeProvider>
     );

@@ -7,9 +7,19 @@ import EventEmitter from 'events'
 import type {SSH2Error} from '../types/index'
 import retry from 'retry'
 import _ from 'lodash'
-
 import InternalLogging from '../internalLogging'
+
 const log = InternalLogging.pool
+
+export type SSHPoolOptions = {
+  pool?: {
+    min?: number,
+    max?: number,
+  },
+  events?: {
+    maxListeners?: number,
+  },
+}
 
 export class SSHPool extends EventEmitter {
   genericPool: Pool
@@ -23,7 +33,7 @@ export class SSHPool extends EventEmitter {
   _terminated: boolean   = false
   _numOperations: number = 0
 
-  constructor (server: ServerDefinition) {
+  constructor (server: ServerDefinition, opts?: SSHPoolOptions = {}) {
     super()
     this.server = server
 
@@ -83,15 +93,24 @@ export class SSHPool extends EventEmitter {
       },
     }
 
-    const opts = {
+    const poolOpts = {
       max: 3,
       min: 1,
+      ...(opts.pool || {}),
     }
 
-    this.genericPool = genericPool.createPool(factory, opts)
+    this.genericPool = genericPool.createPool(factory, poolOpts)
 
     this.genericPool.on('factoryDestroyError', err => this.emit('factoryDestroyError', err))
     this.genericPool.on('factoryCreateError', err => this.emit('factoryCreateError', err))
+
+    // Avoid warnings on EventEmitter memory leaks
+    if (opts.events && opts.events.maxListeners) {
+      this.setMaxListeners(opts.events.maxListeners)
+    }
+    else {
+      this.setMaxListeners(20)
+    }
   }
 
   acquire (): Promise<Client> {
@@ -146,10 +165,13 @@ export class SSHPool extends EventEmitter {
 
         const n = this._numOperations
 
+        const retries = 10
         const operation = retry.operation();
 
         let client: Client
         let sshError: SSH2Error | null = null
+
+        let attempt = 1
 
         const errorHandler = err => {
           if (sshError) {
@@ -170,13 +192,15 @@ export class SSHPool extends EventEmitter {
             sshError   = null
             const _err = (sshError || err)
 
-            log.warn(`Retrying${host}.${desc} due to error`, _err.stack ? _err.stack : err)
+            log.warn(`Attempt ${attempt}/${retries} failed: retrying ${host}<${desc}>`, _err.stack ? _err.stack : err)
+            attempt++
             return
           }
 
           const mainError = operation.mainError()
           reject(mainError)
         }
+
 
         operation.attempt(() => {
           if (!this._terminated) {

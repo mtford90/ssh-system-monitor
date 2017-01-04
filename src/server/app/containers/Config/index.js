@@ -7,7 +7,6 @@ import {pretty} from '../../../../util/json'
 
 type Props = {
   config: ServerDefinition[],
-  $fetchConfig: Function
 }
 
 @connect(

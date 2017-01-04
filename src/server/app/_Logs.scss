@@ -1,0 +1,33 @@
+@import "variables";
+
+$menu-height: 60px;
+$search-bar-height: 60px;
+$border-color: #b9b9b9;
+
+.Logs {
+  .Menu {
+    height: $menu-height;
+    border-bottom: 1px solid $border-color;
+  }
+
+  .LogViewer {
+    height: calc(100vh - #{$header-height} - #{$menu-height} - #{$search-bar-height});
+    overflow: scroll;
+  }
+
+  .SearchBar {
+    height: $search-bar-height;
+    width: 100%;
+    font-size: 30px;
+    padding-top: 0px;
+    padding-left: 20px;
+    padding-right: 20px;
+    border-top: 1px solid $border-color;
+    border-right-width: 0;
+    border-bottom-width: 0;
+    border-left-width: 0;
+    &:focus {
+      outline: none;
+    }
+  }
+}

@@ -69,12 +69,11 @@ export default class Logger extends EventEmitter {
     return this.client
   }
 
-  startStream () {
-
-  }
 
   async start (): Promise<void> {
     const loggerName = this.opts.logDefinition.name
+
+    log.debug(`Starting logger "${loggerName}"`)
 
     await this._initClient()
 
@@ -87,6 +86,7 @@ export default class Logger extends EventEmitter {
         this._stream = stream
         stream.on('data', data => {
           const text = data.toString().replace(/\n/g, '')
+          log.trace(`logger "${loggerName} [stdout]:"`, text)
           this.emitDatum('stdout', text)
         })
 
@@ -104,6 +104,7 @@ export default class Logger extends EventEmitter {
 
         stream.stderr.on('data', data => {
           const text = data.toString().replace(/\n/g, '')
+          log.trace(`logger "${loggerName} [stderr]:"`, text)
           this.emitDatum('stderr', text)
         })
       }
@@ -111,6 +112,8 @@ export default class Logger extends EventEmitter {
         throw err
       }
     })
+
+    log.info(`Started logger "${loggerName}"`)
   }
 
 

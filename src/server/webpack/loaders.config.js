@@ -19,7 +19,6 @@ const loaders = [{
     loaders: [
       'style',
       'css',
-      'autoprefixer',
       'sass'
     ],
   },

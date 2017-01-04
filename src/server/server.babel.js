@@ -43,13 +43,13 @@ export default function start (monitor: Monitor, opts?: ApiOptions = {}) {
   }
 
   const apiRouter = getApiRouter(monitor)
+  app.use('/api', apiRouter)
+
 
   if (_opts.serveClient) {
     const appRouter = getAppRouter(monitor)
     app.use('/', appRouter)
   }
-
-  app.use('/api', apiRouter)
 
   const port = env.PORT
 

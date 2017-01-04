@@ -175,7 +175,7 @@ export default class Monitor extends EventEmitter {
 
         this.on('data', (datum: MonitorDatum) => {
           store.storeMonitorDatum(datum).then(() => {
-            log.debug('successfully stored monitor datum', datum)
+            log.trace('successfully stored monitor datum', datum)
           }).catch(err => {
             log.error('error storing monitor datum', err.stack)
           })
@@ -183,7 +183,7 @@ export default class Monitor extends EventEmitter {
 
         this.on('log', (datum: LoggerDatum) => {
           store.storeLoggerDatum(datum).then(() => {
-            log.debug('successfully stored logger datum', datum)
+            log.trace('successfully stored logger datum', datum)
           }).catch(err => {
             log.error('error storing log datum', err.stack)
           })

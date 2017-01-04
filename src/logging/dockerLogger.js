@@ -15,7 +15,7 @@ export default class DockerLogger extends Logger {
   constructor (
     dockerOpts: DockerLoggerOpts
   ) {
-    const {serverDefinition, logDefinition, _tail = 0} = dockerOpts
+    const {serverDefinition, logDefinition, _tail = 100} = dockerOpts
 
     super({
       cmd: `docker logs --tail ${_tail} -f (docker ps | grep "${logDefinition.grep}" | awk \'{print $1}\')`,

@@ -63,9 +63,9 @@ export function execute (client: Client, cmd: string): Promise<string> {
           _data += str
         })
 
-        stream = stream.stderr.on('data', function (data) {
+        stream.stderr.on('data', function (data) {
           const errString = JSON.stringify(data.toString())
-          reject(new Error(`error executing ${cmd}: ${errString}`))
+          reject(new Error(`Unexpected text in stderr when executing ${cmd} on ${host}: ${errString}`))
         })
       }
     })

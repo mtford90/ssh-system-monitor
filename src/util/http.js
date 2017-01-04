@@ -1,6 +1,5 @@
 /* @flow */
 
-import _ from 'lodash'
 import InternalLogging from '../internalLogging'
 
 // function _encodeQueryParams (query: Object): string {
