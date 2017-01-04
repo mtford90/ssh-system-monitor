@@ -5,13 +5,13 @@ import _ from 'lodash'
 import {servers} from '../../examples/config'
 import {describe, it, before} from 'mocha'
 import type {SystemDatum, ServerDefinition, LoggerDatum} from '../types/index'
-import {filterSystemStats} from './index'
+import {filterSystemStats, filterLogs} from './index'
 
 const assert = chai.assert
 
 describe("filters", function () {
   const operatorDev = servers[0]
-  const portalDev = servers[2]
+  const portalDev   = servers[2]
 
   describe("system", function () {
     it("empty", () => {
@@ -29,7 +29,7 @@ describe("filters", function () {
     })
 
     it("name", () => {
-      const mockData = [
+      const mockData              = [
         {
           server:    operatorDev,
           type:      'cpuUsage',
@@ -54,7 +54,7 @@ describe("filters", function () {
       ]
       const portalDevName: string = portalDev.name
 
-      const systemStats: SystemDatum[]  = filterSystemStats(mockData, {name: portalDevName})
+      const systemStats: SystemDatum[] = filterSystemStats(mockData, {name: portalDevName})
 
       assert.equal(systemStats.length, 1)
       assert(_.every(systemStats, s => s.server.name === portalDevName))
@@ -87,12 +87,12 @@ describe("filters", function () {
 
       const portalDevHost: string = portalDev.ssh.host
 
-      const systemStats: SystemDatum[]  = filterSystemStats(mockData, {host: portalDevHost})
+      const systemStats: SystemDatum[] = filterSystemStats(mockData, {host: portalDevHost})
       assert.equal(systemStats.length, 1)
       assert(_.every(systemStats, s => s.server.ssh.host === portalDevHost))
     })
 
-    it("type",  () => {
+    it("type", () => {
       let mockData: SystemDatum[]
 
       mockData = [
@@ -112,7 +112,7 @@ describe("filters", function () {
         },
       ]
 
-      const systemStats: SystemDatum[]  = filterSystemStats(mockData, {type: 'cpuUsage'})
+      const systemStats: SystemDatum[] = filterSystemStats(mockData, {type: 'cpuUsage'})
       assert.equal(systemStats.length, 1)
       assert(_.every(systemStats, s => s.type === 'cpuUsage'))
     })
@@ -141,7 +141,7 @@ describe("filters", function () {
         },
       ]
 
-      const systemStats: SystemDatum[]  = filterSystemStats(mockData, {extra: {path: '/'}})
+      const systemStats: SystemDatum[] = filterSystemStats(mockData, {extra: {path: '/'}})
       assert.equal(systemStats.length, 1)
     })
 
@@ -175,7 +175,7 @@ describe("filters", function () {
         },
       ]
 
-      const systemStats: SystemDatum[]  = filterSystemStats(mockData, {extra: {process: {id: '1'}}})
+      const systemStats: SystemDatum[] = filterSystemStats(mockData, {extra: {process: {id: '1'}}})
       assert.equal(systemStats.length, 1)
     })
 
@@ -204,7 +204,7 @@ describe("filters", function () {
         }
       ]
 
-      it("gt",  () => {
+      it("gt", () => {
         const n = 100
 
         const results: SystemDatum[] = filterSystemStats(mockData, {
@@ -222,7 +222,7 @@ describe("filters", function () {
         )
       })
 
-      it("gte",  () => {
+      it("gte", () => {
         const n = 100
 
         const results: SystemDatum[] = filterSystemStats(mockData, {
@@ -240,7 +240,7 @@ describe("filters", function () {
         )
       })
 
-      it("lt",  () => {
+      it("lt", () => {
         const n = 100
 
         const stats: SystemDatum[] = filterSystemStats(mockData, {
@@ -258,7 +258,7 @@ describe("filters", function () {
         )
       })
 
-      it("lte",  () => {
+      it("lte", () => {
         const n = 100
 
         const stats: SystemDatum[] = filterSystemStats(mockData, {
@@ -276,7 +276,7 @@ describe("filters", function () {
         )
       })
 
-      it("gt, lt",  () => {
+      it("gt, lt", () => {
         const lt = 120
         const gt = 90
 
@@ -298,5 +298,253 @@ describe("filters", function () {
         )
       })
     })
+  })
+
+  describe("logs", function () {
+    it("empty query", () => {
+      const mockData: LoggerDatum[] = [{
+        source:    'stdout',
+        text:      'yoyoyo',
+        timestamp: 100,
+        server:    operatorDev,
+        logger:    {
+          name: 'xyz',
+          grep: 'asdasd',
+          type: 'command',
+        }
+      }]
+
+      const logs: LoggerDatum[] = filterLogs(mockData, {})
+      assert.equal(logs.length, 1)
+      console.log('logs', JSON.stringify(logs))
+    })
+
+    it("name", () => {
+      const mockData: LoggerDatum[] = [
+        {
+          source:    'stdout',
+          text:      'yoyoyo',
+          timestamp: 100,
+          server:    operatorDev,
+          logger:    {
+            name: 'xyz',
+            grep: 'asdasd',
+            type: 'command',
+          }
+        },
+        {
+          source:    'stdout',
+          text:      'yoyoyo',
+          timestamp: 100,
+          server:    operatorDev,
+          logger:    {
+            name: 'abc',
+            grep: 'asdasd',
+            type: 'command',
+          }
+        }
+      ]
+
+      const logs: LoggerDatum[] = filterLogs(mockData, {name: 'xyz'})
+      console.log('logs', JSON.stringify(logs))
+      assert.equal(logs.length, 1)
+    })
+
+    it("source", () => {
+      const mockData: LoggerDatum[] = [
+        {
+          source:    'stdout',
+          text:      'yoyoyo',
+          timestamp: 100,
+          server:    operatorDev,
+          logger:    {
+            name: 'xyz',
+            grep: 'asdasd',
+            type: 'command',
+          }
+        },
+        {
+          source:    'stderr',
+          text:      'yoyoyo',
+          timestamp: 100,
+          server:    operatorDev,
+          logger:    {
+            name: 'abc',
+            grep: 'asdasd',
+            type: 'command',
+          }
+        }
+      ]
+
+      const logs: LoggerDatum[] = filterLogs(mockData, {source: 'stderr'})
+      console.log('logs', JSON.stringify(logs))
+      assert.equal(logs.length, 1)
+    })
+
+    describe("timestamp", () => {
+      let mockData: LoggerDatum[] = [
+        {
+          source:    'stdout',
+          text:      'yoyoyo',
+          timestamp: 90,
+          server:    operatorDev,
+          logger:    {
+            name: 'xyz',
+            grep: 'asdasd',
+            type: 'command',
+          }
+        },
+
+        {
+          source:    'stdout',
+          text:      'yoyoyo',
+          timestamp: 100,
+          server:    operatorDev,
+          logger:    {
+            name: 'xyz',
+            grep: 'asdasd',
+            type: 'command',
+          }
+        },
+        {
+          source:    'stdout',
+          text:      'yoyoyo',
+          timestamp: 120,
+          server:    operatorDev,
+          logger:    {
+            name: 'xyz',
+            grep: 'asdasd',
+            type: 'command',
+          }
+        },
+      ]
+
+      it("gt", () => {
+        const n = 100
+
+        const stats: LoggerDatum[] = filterLogs(mockData, {
+          timestamp: {
+            gt: n,
+          }
+        })
+
+        const expectedStats = mockData.filter(d => d.timestamp > n)
+
+        assert.equal(
+          stats.length,
+          expectedStats.length,
+          'Should filter out timestamps <= 100'
+        )
+      })
+
+      it("gte", () => {
+        const n = 100
+
+        const stats: LoggerDatum[] = filterLogs(mockData, {
+          timestamp: {
+            gte: n,
+          }
+        })
+
+        const expectedStats = mockData.filter(d => d.timestamp >= n)
+
+        assert.equal(
+          stats.length,
+          expectedStats.length,
+          'Should filter out timestamps < 100'
+        )
+      })
+
+      it("lt", () => {
+        const n = 100
+
+        const stats: LoggerDatum[] = filterLogs(mockData, {
+          timestamp: {
+            lt: n,
+          }
+        })
+
+        const expectedStats = mockData.filter(d => d.timestamp < n)
+
+        assert.equal(
+          stats.length,
+          expectedStats.length,
+          'Should filter out timestamps >= 100'
+        )
+      })
+
+      it("lte", () => {
+        const n = 100
+
+        const stats: LoggerDatum[] = filterLogs(mockData, {
+          timestamp: {
+            lte: n,
+          }
+        })
+
+        const expectedStats = mockData.filter(d => d.timestamp <= n)
+
+        assert.equal(
+          stats.length,
+          expectedStats.length,
+          'Should filter out timestamps > 100'
+        )
+      })
+
+      it("gt, lt", () => {
+        const lt = 120
+        const gt = 90
+
+        const stats: LoggerDatum[] = filterLogs(mockData, {
+          timestamp: {
+            lt,
+            gt
+          }
+        })
+
+        const expectedStats = mockData.filter(d => {
+          return d.timestamp < lt && d.timestamp > gt
+        })
+
+        assert.equal(
+          stats.length,
+          expectedStats.length,
+          'Should filter out timestamps > 100'
+        )
+      })
+    })
+
+    it("host", () => {
+      const mockData: LoggerDatum[] = [
+        {
+          source:    'stdout',
+          text:      'yoyoyo',
+          timestamp: 100,
+          server:    operatorDev,
+          logger:    {
+            name: 'xyz',
+            grep: 'asdasd',
+            type: 'command',
+          }
+        },
+        {
+          source:    'stdout',
+          text:      'yoyoyo',
+          timestamp: 100,
+          server:    portalDev,
+          logger:    {
+            name: 'abc',
+            grep: 'asdasd',
+            type: 'command',
+          }
+        }
+      ]
+
+
+      const logs: LoggerDatum[] = filterLogs(mockData, {host: portalDev.ssh.host})
+      console.log('logs', JSON.stringify(logs))
+      assert.equal(logs.length, 1)
+    })
+
   })
 })

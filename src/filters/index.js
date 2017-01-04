@@ -4,7 +4,49 @@ import type {SystemStatFilter, LogFilter} from '../storage/DataStore'
 import _ from 'lodash'
 
 export function filterLogs (logs: LoggerDatum[], filter?: LogFilter = {}): LoggerDatum[] {
-  return logs
+  return logs.filter((loggerDatum: LoggerDatum) => {
+    const timestamp = filter.timestamp
+
+    if (timestamp) {
+      const {gt, gte, lt, lte} = timestamp
+
+      if (gt) {
+        if (loggerDatum.timestamp <= gt) return false
+      }
+
+      if (gte) {
+        if (loggerDatum.timestamp < gte) return false
+      }
+
+      if (lt) {
+        if (loggerDatum.timestamp >= lt) return false
+      }
+
+      if (lte) {
+        if (loggerDatum.timestamp > lte) return false
+      }
+    }
+
+    const name = filter.name
+
+    if (name) {
+      if (loggerDatum.logger.name !== name) return false
+    }
+
+    const source = filter.source
+
+    if (source) {
+      if (loggerDatum.source !== source) return false
+    }
+
+    const host = filter.host
+
+    if (host) {
+      if (loggerDatum.server.ssh.host !== host) return false
+    }
+
+    return true
+  })
 }
 
 export function filterSystemStats (stats: SystemDatum[], filter?: SystemStatFilter = {}): SystemDatum[] {
@@ -57,9 +99,9 @@ export function filterSystemStats (stats: SystemDatum[], filter?: SystemStatFilt
       if (path) {
         if (s.extra.path !== path) return false
       }
-      
+
       const process = extra.process
-      
+
       if (process) {
         const processId = process.id
         if (processId) {
