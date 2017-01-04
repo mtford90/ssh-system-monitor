@@ -7,6 +7,7 @@ import {describe, it, before} from 'mocha'
 import type {SystemDatum, ServerDefinition, LoggerDatum} from '../types/index'
 import NEDBDataStore from '../storage/NEDBDataStore'
 import {insertMonitorData, insertLogData} from '../util/storage'
+
 const assert = chai.assert
 
 describe('NEDBDataStore', function () {

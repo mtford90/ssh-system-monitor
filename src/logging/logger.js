@@ -5,6 +5,7 @@ import Client from 'ssh2'
 import EventEmitter from 'events'
 import {SSH2Stream} from 'ssh2-streams'
 import InternalLogging from '../internalLogging'
+import _ from 'lodash'
 
 const log = InternalLogging.logging.Logger
 
@@ -85,9 +86,11 @@ export default class Logger extends EventEmitter {
       if (!err) {
         this._stream = stream
         stream.on('data', data => {
-          const text = data.toString().replace(/\n/g, '')
-          log.trace(`logger "${loggerName} [stdout]:"`, text)
-          this.emitDatum('stdout', text)
+          const lines: string[] = _.compact(data.toString().split('\n'))
+          lines.forEach(l => {
+            log.trace(`logger "${loggerName} [stdout]:"`, l)
+            this.emitDatum('stdout', l)
+          })
         })
 
         stream.on('close', (code, signal) => {

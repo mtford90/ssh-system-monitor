@@ -7,7 +7,7 @@ import {servers} from '../../../examples/config'
 import env from '../env'
 import Monitor from '../../monitors/monitor'
 import {after, it, before, describe, afterEach} from 'mocha'
-import type {SSHDataStoreQuerySystemStatsParams, SSHDataStoreQueryLogsParams} from '../../storage/DataStore'
+import type {SystemStatFilter, LogFilter} from '../../storage/DataStore'
 import type {SystemDatum, LoggerDatum} from '../../types/index'
 import EventEmitter from 'events'
 
@@ -88,7 +88,7 @@ describe('/api', function () {
       m   = new Monitor([operatorDev], {rate: 1000})
       app = server(m, {serveClient: false})
 
-      const params: SSHDataStoreQuerySystemStatsParams = {
+      const params: SystemStatFilter = {
         extra: {
           path: '/xyz'
         }
@@ -135,7 +135,7 @@ describe('/api', function () {
       m   = new Monitor([operatorDev], {rate: 1000})
       app = server(m, {serveClient: false})
 
-      const params: SSHDataStoreQueryLogsParams = {
+      const params: LogFilter = {
         timestamp: {
           gt: 100
         }

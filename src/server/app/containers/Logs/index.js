@@ -5,7 +5,7 @@ import {connect} from 'react-redux'
 import type {LogDefinition, ServerDefinition, LoggerDatum} from '../../../../types/index'
 import ServerDropdown from '../../components/dropdowns/ServerDropdown'
 import LoggerDropdown from '../../components/dropdowns/LoggerDropdown'
-import type {SSHDataStoreQueryLogsParams} from '../../../../storage/DataStore'
+import type {LogFilter} from '../../../../storage/DataStore'
 import _ from 'lodash'
 import moment from 'moment'
 import {setSelectedLog, setSelectedServer, $fetchLogs, $listen} from './redux'
@@ -14,7 +14,7 @@ import LogViewer from './LogViewer'
 type Props = {
   config: ServerDefinition[],
   logs: LoggerDatum[],
-  $fetchLogs: (params: SSHDataStoreQueryLogsParams) => void,
+  $fetchLogs: (params: LogFilter) => void,
   $listen: (name: string) => () => void,
   selectedServer: ServerDefinition | null,
   selectedLog: LogDefinition | null,
@@ -34,7 +34,7 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => {
   return {
-    $fetchLogs:        (params: SSHDataStoreQueryLogsParams) => dispatch($fetchLogs(params)),
+    $fetchLogs:        (params: LogFilter) => dispatch($fetchLogs(params)),
     $listen:           (name: string) => dispatch($listen(name)),
     setSelectedLog:    (log: LogDefinition) => dispatch(setSelectedLog(log)),
     setSelectedServer: (server: ServerDefinition) => dispatch(setSelectedServer(server)),

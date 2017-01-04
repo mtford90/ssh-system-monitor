@@ -1,7 +1,7 @@
 /* @flow */
 import type {SystemDatum, LoggerDatum, NEDBOptions} from '../types/index'
 import DataStore from 'nedb'
-import type {SSHDataStoreQueryLogsParams, SSHDataStoreQuerySystemStatsParams, TimestampQueryParams} from './DataStore'
+import type {LogFilter, SystemStatFilter, TimestampQueryParams} from './DataStore'
 import InternalLogging from '../internalLogging'
 
 const INDICES = [
@@ -67,7 +67,7 @@ export default class NEDBDataStore {
     })
   }
 
-  queryLogs (params?: SSHDataStoreQueryLogsParams = {}): Promise<LoggerDatum[]> {
+  queryLogs (params?: LogFilter = {}): Promise<LoggerDatum[]> {
     return new Promise((resolve, reject) => {
       const q: Object = {
         logger: {
@@ -108,7 +108,7 @@ export default class NEDBDataStore {
     })
   }
 
-  querySystemStats (params?: SSHDataStoreQuerySystemStatsParams = {}): Promise<SystemDatum[]> {
+  querySystemStats (params?: SystemStatFilter = {}): Promise<SystemDatum[]> {
     return new Promise((resolve, reject) => {
       const q: Object = {
         type:  {

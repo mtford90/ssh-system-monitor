@@ -6,7 +6,7 @@ import {cleanServer} from '../../util/data'
 import _ from 'lodash'
 import {stringify} from '../../util/json'
 import type {LatestHostStats, SystemDatum, LoggerDatum, DataType} from '../../types/index'
-import type {SSHDataStoreQuerySystemStatsParams, SSHDataStoreQueryLogsParams} from '../../storage/DataStore'
+import type {SystemStatFilter, LogFilter} from '../../storage/DataStore'
 import InternalLogging from '../../internalLogging'
 
 const log = InternalLogging.routers.api
@@ -48,8 +48,8 @@ export default function (monitor: Monitor) {
   /**
    * Ensure data types (in the query string, everything is a string)
    */
-  function getQuerySystemStatsParams (query: Object): SSHDataStoreQuerySystemStatsParams {
-    let params: SSHDataStoreQuerySystemStatsParams = {}
+  function getQuerySystemStatsParams (query: Object): SystemStatFilter {
+    let params: SystemStatFilter = {}
 
     const timestamp = query.timestamp
 
@@ -96,8 +96,8 @@ export default function (monitor: Monitor) {
   /**
    * Ensure data types (in the query string, everything is a string)
    */
-  function getQueryLogsParams (query: Object): SSHDataStoreQueryLogsParams {
-    let params: SSHDataStoreQueryLogsParams = {}
+  function getQueryLogsParams (query: Object): LogFilter {
+    let params: LogFilter = {}
 
     if (query.source) params.source = query.source.toString()
     if (query.name) params.name = query.name.toString()
@@ -126,7 +126,7 @@ export default function (monitor: Monitor) {
 
 
   router.get('/system/stats', (req, res) => {
-    const params: SSHDataStoreQuerySystemStatsParams = getQuerySystemStatsParams(req.query)
+    const params: SystemStatFilter = getQuerySystemStatsParams(req.query)
 
     log.info(`/system/stats`, params)
 
@@ -140,7 +140,7 @@ export default function (monitor: Monitor) {
   })
 
   router.get('/logs', (req, res) => {
-    const params: SSHDataStoreQueryLogsParams = getQueryLogsParams(req.query)
+    const params: LogFilter = getQueryLogsParams(req.query)
 
     const store = monitor.opts.store
     store.queryLogs(params).then((data: LoggerDatum[]) => {

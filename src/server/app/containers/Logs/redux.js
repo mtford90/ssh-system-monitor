@@ -1,6 +1,6 @@
 /* @flow */
 import type {ServerDefinition, LogDefinition, LoggerDatum} from '../../../../types/index'
-import type {SSHDataStoreQueryLogsParams} from '../../../../storage/DataStore'
+import type {LogFilter} from '../../../../storage/DataStore'
 import * as http from '../../../../util/http'
 
 export const ACTION_SET_SELECTED_SERVER = 'containers/Logs/SET_SELECTED_SERVER'
@@ -20,13 +20,13 @@ type SetSelectedLogAction = {
 
 type ReceiveLogsAction = {
   type: 'containers/logs/RECEIVE_LOGS',
-  params: SSHDataStoreQueryLogsParams,
+  params: LogFilter,
   logs: LoggerDatum[]
 }
 
 type ReceiveLogAction = {
   type: 'containers/logs/RECEIVE_LOG',
-  params: SSHDataStoreQueryLogsParams,
+  params: LogFilter,
   log: LoggerDatum
 }
 
@@ -44,7 +44,7 @@ export function setSelectedLog (log: LogDefinition | null): SetSelectedLogAction
   }
 }
 
-export function receiveLogs (params: SSHDataStoreQueryLogsParams, logs: LoggerDatum[]): ReceiveLogsAction {
+export function receiveLogs (params: LogFilter, logs: LoggerDatum[]): ReceiveLogsAction {
   return {
     type: ACTION_TYPE_RECEIVE_LOGS,
     params,
@@ -52,7 +52,7 @@ export function receiveLogs (params: SSHDataStoreQueryLogsParams, logs: LoggerDa
   }
 }
 
-export function receiveLog (params: SSHDataStoreQueryLogsParams, log: LoggerDatum): ReceiveLogAction {
+export function receiveLog (params: LogFilter, log: LoggerDatum): ReceiveLogAction {
   return {
     type: ACTION_TYPE_RECEIVE_LOG,
     params,
@@ -60,7 +60,7 @@ export function receiveLog (params: SSHDataStoreQueryLogsParams, log: LoggerDatu
   }
 }
 
-export function $fetchLogs (params: SSHDataStoreQueryLogsParams) {
+export function $fetchLogs (params: LogFilter) {
   return (dispatch: Function) => {
     http.getJSON('/api/logs', params).then(res => {
       const logs: LoggerDatum[] = res.data
@@ -90,7 +90,7 @@ type LogsReduxState = {
   selectedServer: ServerDefinition | null,
   selectedLog: LogDefinition | null,
   logs: LoggerDatum[],
-  params: SSHDataStoreQueryLogsParams,
+  params: LogFilter,
 }
 
 const DEFAULT_STATE: LogsReduxState = {

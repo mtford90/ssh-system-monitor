@@ -8,14 +8,14 @@ export type TimestampQueryParams = {
   gte?: number,
 }
 
-export type SSHDataStoreQueryLogsParams = {
+export type LogFilter = {
   source?: LogSource,
   timestamp?: TimestampQueryParams,
   host?: string,
   name?: string,
 }
 
-export type SSHDataStoreQuerySystemStatsParams = {
+export type SystemStatFilter = {
   name?: string,
   host?: string,
   type?: DataType,
@@ -32,6 +32,6 @@ export interface SSHDataStore {
   init() : Promise<void>;
   storeSystemDatum(datum: SystemDatum) : Promise<void>;
   storeLoggerDatum(datum: LoggerDatum) : Promise<void>;
-  queryLogs(params?: SSHDataStoreQueryLogsParams) : Promise<LoggerDatum[]>;
-  querySystemStats(params?: SSHDataStoreQuerySystemStatsParams) : Promise<SystemDatum[]>;
+  queryLogs(params?: LogFilter) : Promise<LoggerDatum[]>;
+  querySystemStats(params?: SystemStatFilter) : Promise<SystemDatum[]>;
 }
