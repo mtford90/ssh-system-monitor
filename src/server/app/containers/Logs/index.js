@@ -7,42 +7,47 @@ import ServerDropdown from '../../components/dropdowns/ServerDropdown'
 import LoggerDropdown from '../../components/dropdowns/LoggerDropdown'
 import type {LogFilter} from '../../../../storage/DataStore'
 import _ from 'lodash'
-import moment from 'moment'
-import {setSelectedLog, setSelectedServer, $fetchLogs, $listen, setSearchString} from './redux'
 import LogViewer from './LogViewer'
+import * as http from '../../../../util/http'
+
+import type {Connector} from 'react-redux'
+import type {State, Dispatch} from '../../redux/types'
+import {filterLogs} from '../../../../filters/index'
+import type {LogsSubstate} from '../../redux/reducers/logs'
 
 type Props = {
   config: ServerDefinition[],
-  logs: LoggerDatum[],
-  $fetchLogs: (params: LogFilter) => void,
-  $listen: (filter: LogFilter) => () => void,
-  selectedServer: ServerDefinition | null,
-  selectedLog: LogDefinition | null,
-  setSelectedLog: (log: LogDefinition | null) => void,
-  setSelectedServer: (log: ServerDefinition | null) => void,
-  setSearchString: (searchString: string) => void,
-  searchString: string,
+  dispatch: Dispatch,
+  // Ugly way of handling this until object spread types become available in flow 9https://github.com/facebook/flow/issues/1326)
+  rState: LogsSubstate,
 }
 
-const mapStateToProps = state => {
-  return {
-    config: state.root.config,
-    ...state['containers.Logs'],
+export function $fetchLogs (params: LogFilter) {
+  return (dispatch: Dispatch) => {
+    http.getJSON('/api/logs', params).then(res => {
+      const logs: LoggerDatum[] = res.data
+      dispatch({type: 'logs/RECEIVE_LOGS', params, logs})
+    })
   }
 }
 
-const mapDispatchToProps = dispatch => {
-  return {
-    $fetchLogs:        (filter: LogFilter) => dispatch($fetchLogs(filter)),
-    $listen:           (filter: LogFilter) => dispatch($listen(filter)),
-    setSelectedLog:    (log: LogDefinition) => dispatch(setSelectedLog(log)),
-    setSelectedServer: (server: ServerDefinition) => dispatch(setSelectedServer(server)),
-    setSearchString:   (searchString: string) => dispatch(setSearchString(searchString)),
+export function $listen (filter: LogFilter) {
+  return (dispatch: Dispatch) => {
+    const socket   = window.io.connect();
+    const listener = (datum: LoggerDatum) => {
+      const logs = filterLogs([datum], filter)
+      logs.forEach((log: LoggerDatum) => {
+        dispatch({type: 'logs/RECEIVE_LOG', log, params: filter})
+      })
+    }
+    socket.on('log', listener);
+    return () => {
+      socket.removeListener('log', listener)
+    }
   }
 }
 
-@connect(mapStateToProps, mapDispatchToProps)
-export default class Logs extends Component {
+class Logs extends Component {
   props: Props
 
   stopListening: () => void = () => {}
@@ -52,18 +57,18 @@ export default class Logs extends Component {
   }
 
   componentDidMount () {
-    const props = this.props
+    const props: Props = this.props
     if (!props.selectedServer) {
       const selectedServer = props.config.length ? props.config[0] : null
       const logs           = selectedServer ? selectedServer.logs || [] : []
       const selectedLog    = logs.length ? logs[0] : null
 
       if (selectedServer) {
-        this.props.setSelectedServer(selectedServer)
+        this.props.dispatch({type: 'logs/SET_SELECTED_SERVER', server: selectedServer})
       }
 
       if (selectedLog) {
-        this.props.setSelectedLog(selectedLog)
+        this.props.dispatch({type: 'logs/SET_SELECTED_LOG', log: selectedLog})
         this.fetchLogs({name: selectedLog.name})
       }
     }
@@ -71,13 +76,13 @@ export default class Logs extends Component {
 
   fetchLogs (filter: LogFilter) {
     this.stopListening()
-    this.props.$fetchLogs(filter)
-    this.stopListening = this.props.$listen(filter)
+    this.props.dispatch($fetchLogs(filter))
+    this.stopListening = this.props.dispatch($listen(filter))
   }
 
   componentWillReceiveProps (nextProps: Props) {
-    const selectedServer: ServerDefinition | null     = this.props.selectedServer
-    const nextSelectedServer: ServerDefinition | null = nextProps.selectedServer
+    const selectedServer: ServerDefinition | null     = this.props.rState.selectedServer
+    const nextSelectedServer: ServerDefinition | null = nextProps.rState.selectedServer
 
     const currentHost = selectedServer ? selectedServer.ssh.host : null
     const nextHost    = nextSelectedServer ? nextSelectedServer.ssh.host : null
@@ -87,8 +92,16 @@ export default class Logs extends Component {
     }
   }
 
+  setSelectedServer (server: ServerDefinition | null) {
+    this.props.dispatch({type: 'logs/SET_SELECTED_SERVER', server})
+  }
+
+  setSelectedLog (log: LogDefinition | null) {
+    this.props.dispatch({type: 'logs/SET_SELECTED_LOG', log})
+  }
+
   setSelectedServerAndFirstLog (nextSelectedServer: ServerDefinition | null) {
-    this.props.setSelectedServer(nextSelectedServer)
+    this.setSelectedServer(nextSelectedServer)
 
     // Select the first log
     if (nextSelectedServer) {
@@ -99,7 +112,7 @@ export default class Logs extends Component {
   }
 
   selectAndFetchLog (log: LogDefinition | null) {
-    this.props.setSelectedLog(log)
+    this.setSelectedLog(log)
     if (log) {
       this.fetchLogs({name: log.name})
     }
@@ -117,13 +130,13 @@ export default class Logs extends Component {
   handleInputKeyDown = (event: Object) => {
     const enterPressed = event.keyCode === 13
     if (enterPressed) {
-      const selectedLog = this.props.selectedLog
+      const selectedLog = this.props.rState.selectedLog
       if (selectedLog) {
         const filter: LogFilter = {
           name: selectedLog.name,
         }
 
-        const searchString = this.props.searchString
+        const searchString = this.props.rState.searchString
 
         if (searchString) {
           filter.text = searchString
@@ -134,9 +147,9 @@ export default class Logs extends Component {
   }
 
   render () {
-    const {selectedServer, selectedLog} = this.props
+    const {selectedServer, selectedLog, searchString, logs,} = this.props.rState
 
-    const logs = _.sortBy(this.props.logs, l => {
+    const sortedLogs: LoggerDatum[] = _.sortBy(logs, l => {
       return l.timestamp
     }).reverse()
 
@@ -155,17 +168,31 @@ export default class Logs extends Component {
           />
         </div>
         <LogViewer
-          logs={logs}
+          logs={sortedLogs}
         />
         <input
           className="SearchBar"
           placeholder="Search"
-          value={this.props.searchString}
-          onChange={e => this.props.setSearchString(e.target.value)}
+          value={searchString}
+          onChange={e => {
+            const searchString = e.target.value
+            this.props.dispatch({type: 'logs/SET_SEARCH_STRING', searchString})
+          }}
           onKeyDown={this.handleInputKeyDown}
-          disabled={!this.props.selectedLog}
+          disabled={!selectedLog}
         />
       </div>
     )
   }
 }
+
+const mapStateToProps = (state: State) => {
+  return {
+    config: state.root.config,
+    rState: state.logs,
+  }
+}
+
+const connector: Connector<{}, Props> = connect(mapStateToProps)
+
+export default connector(Logs)

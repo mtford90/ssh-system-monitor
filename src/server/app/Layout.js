@@ -9,23 +9,17 @@ import RaisedButton from 'material-ui/RaisedButton';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import {withRouter} from 'react-router'
 import {connect} from 'react-redux'
-import {$listen} from './redux/reducers/root'
+import type {Connector} from 'react-redux'
+import type {Dispatch} from './redux/types'
+import type {SystemDatum} from '../../types/index'
 
 type Props = {
   title: string,
   onClick: () => void,
   children?: any,
-  $listen: Function,
+  dispatch: Dispatch,
 };
 
-@connect(
-  null,
-  dispatch => {
-    return {
-      $listen: () => dispatch($listen())
-    }
-  },
-)
 @withRouter
 class Layout extends Component {
   state: {
@@ -48,7 +42,10 @@ class Layout extends Component {
   }
 
   componentDidMount () {
-    this.props.$listen()
+    const socket = window.io.connect();
+    socket.on('data', (datum: SystemDatum) => {
+      this.props.dispatch({type: 'root/RECEIVE_MONITOR_DATUM', datum})
+    });
   }
 
   render () {
@@ -117,4 +114,6 @@ class Layout extends Component {
   }
 }
 
-export default Layout;
+const connector: Connector<{}, Props> = connect()
+
+export default connector(Layout)

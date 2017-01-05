@@ -1,13 +1,13 @@
 import {combineReducers} from 'redux'
 import root from './root'
-import Logs from '../../containers/Logs/redux'
+import Logs from './logs'
 
 import {routerReducer} from 'react-router-redux'
 
 const reducer = combineReducers({
   root,
-  routing:           routerReducer,
-  'containers.Logs': Logs
+  routing: routerReducer,
+  logs:    Logs
 })
 
 export default reducer
