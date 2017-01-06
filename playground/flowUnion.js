@@ -13,14 +13,20 @@ type Action = {
 type Dispatch = ReduxDispatch<Action>
 
 const store              = createStore()
-const dispatch: Dispatch = store.dispatch.bind(store)
+
+type CustomDispatch = (a: Action) => mixed
+
+const dispatch: CustomDispatch = store.dispatch.bind(store)
+
 
 // Type error as expected
 const action: Action = {
   type:         'SET_SEARCH_STRING',
-  searchString: 4,
+  searchString: 's',
 }
 
 // No type error
-dispatch(action)
-
+const f = dispatch({
+  type: 'SET_SEARCH_STRING',
+  searchString: '23'
+})

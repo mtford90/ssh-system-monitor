@@ -10,7 +10,7 @@ import ReactDOMServer from 'react-dom/server'
 import env from '../env'
 import type {NodeEnv} from '../env'
 import webpack from 'webpack'
-import {Dispatch} from '../app/redux/types'
+import type {Dispatch} from '../app/redux/types'
 
 // Needed for onTouchTap
 import injectTapEventPlugin from 'react-tap-event-plugin';
@@ -41,19 +41,19 @@ export default function (monitor: Monitor) {
       publicPath: config.output.publicPath,
       // Silence at last
       stats:      {
-        // hash:         false,
-        // version:      false,
-        // timings:      false,
-        // assets:       false,
-        // chunks:       false,
-        // modules:      false,
-        // reasons:      false,
-        // children:     false,
-        // source:       false,
-        // errors:       false,
-        // errorDetails: false,
-        // warnings:     false,
-        // publicPath:   false,
+        hash:         false,
+        version:      false,
+        timings:      false,
+        assets:       false,
+        chunks:       false,
+        modules:      false,
+        reasons:      false,
+        children:     false,
+        source:       false,
+        errors:       false,
+        errorDetails: false,
+        warnings:     false,
+        publicPath:   false,
       }
     })
 
@@ -121,6 +121,7 @@ export default function (monitor: Monitor) {
       window.__PRELOADED_STATE__ = ${JSON.stringify(state)}
   </script>
   <script src="/dist/bundle.js"></script>
+  ${NODE_ENV === 'development' ? '<script src="http://localhost:8097"></script>' : ''}
 </body>
 </html>`
           res.send(html)

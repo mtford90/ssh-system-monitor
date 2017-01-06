@@ -22,16 +22,16 @@ type Props = {
   rState: LogsSubstate,
 }
 
-export function $fetchLogs (params: LogFilter) {
+export function $fetchLogs (params: LogFilter)  {
   return (dispatch: Dispatch) => {
     http.getJSON('/api/logs', params).then(res => {
       const logs: LoggerDatum[] = res.data
-      dispatch({type: 'logs/RECEIVE_LOGS', params, logs})
+      dispatch({type: 'logs/RECEIVE_LOGS!', params, logs})
     })
   }
 }
 
-export function $listen (filter: LogFilter) {
+export function $listen (filter: LogFilter)  {
   return (dispatch: Dispatch) => {
     const socket   = window.io.connect();
     const listener = (datum: LoggerDatum) => {
@@ -77,7 +77,14 @@ class Logs extends Component {
   fetchLogs (filter: LogFilter) {
     this.stopListening()
     this.props.dispatch($fetchLogs(filter))
-    this.stopListening = this.props.dispatch($listen(filter))
+
+    const stopListening: mixed = this.props.dispatch($listen(filter))
+    if (stopListening instanceof Function) {
+      this.stopListening = stopListening
+    }
+    else {
+      throw new Error('Was expecting a stop listening function when dispatching the $listen thunk...')
+    }
   }
 
   componentWillReceiveProps (nextProps: Props) {
