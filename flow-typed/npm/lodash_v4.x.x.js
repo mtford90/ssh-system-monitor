@@ -28,7 +28,7 @@ declare module 'lodash' {
   };
 
   declare type NestedArray<T> = Array<Array<T>>;
-  
+
   declare type matchesIterateeShorthand = Object;
   declare type matchesPropertyIterateeShorthand = [string, any];
   declare type propertyIterateeShorthand = string;
@@ -38,7 +38,7 @@ declare module 'lodash' {
     | matchesIterateeShorthand
     | matchesPropertyIterateeShorthand
     | propertyIterateeShorthand;
-  
+
   declare type OIterateeWithResult<V, O, R> = Object|string|((value: V, key: string, object: O) => R);
   declare type OIteratee<O> = OIterateeWithResult<any, O, any>;
 
@@ -47,7 +47,7 @@ declare module 'lodash' {
     | matchesIterateeShorthand
     | matchesPropertyIterateeShorthand
     | propertyIterateeShorthand;
-  
+
   declare type _Iteratee<T> = (item: T, index: number, array: ?Array<T>) => mixed;
   declare type Iteratee<T> = _Iteratee<T>|Object|string;
   declare type Iteratee2<T, U> = ((item: T, index: number, array: ?Array<T>) => U)|Object|string;

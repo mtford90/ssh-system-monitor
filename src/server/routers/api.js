@@ -12,15 +12,15 @@ import InternalLogging from '../../internalLogging'
 const log = InternalLogging.routers.api
 
 export default function (monitor: Monitor) {
-  const router = Router()
+  const router: express$Router = Router()
 
-  router.get('/latest', (req, res) => {
+  router.get('/latest', (req: express$Request, res: express$Response) => {
     const latest: LatestHostStats = monitor.latest
 
     res.status(200).send(stringify({ok: true, latest}))
   })
 
-  router.get('/latest/:stat', (req, res) => {
+  router.get('/latest/:stat', (req: express$Request, res: express$Response) => {
     const query = req.query
     const host  = query.host
     const stat  = req.params.stat
@@ -40,7 +40,7 @@ export default function (monitor: Monitor) {
     }
   })
 
-  router.get('/config', (req, res) => {
+  router.get('/config', (req: express$Request, res: express$Response) => {
     const servers = monitor.servers
     res.status(200).send(stringify({ok: true, config: servers.map(s => cleanServer(s))}))
   })
@@ -126,7 +126,7 @@ export default function (monitor: Monitor) {
   }
 
 
-  router.get('/system/stats', (req, res) => {
+  router.get('/system/stats', (req: express$Request, res: express$Response) => {
     const params: SystemStatFilter = getQuerySystemStatsParams(req.query)
 
     log.info(`/system/stats`, params)
@@ -140,7 +140,7 @@ export default function (monitor: Monitor) {
     })
   })
 
-  router.get('/logs', (req, res) => {
+  router.get('/logs', (req: express$Request, res: express$Response) => {
     const params: LogFilter = getQueryLogsParams(req.query)
 
     const store = monitor.opts.store

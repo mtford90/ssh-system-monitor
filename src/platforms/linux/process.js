@@ -20,7 +20,7 @@ const FIELDS = [
 FIELDS.push('args')
 
 
-function parse (process: Object): ProcessInfo | null {
+function parse (process: Object[]): ProcessInfo | null {
   const zipped = _.zipObject(FIELDS, process)
 
   if (zipped.pid) {
@@ -67,4 +67,3 @@ export async function info (client: Client, grep: string): Promise<ProcessInfo[]
 
   return _.chain(results).map(parse).compact().value()
 }
-

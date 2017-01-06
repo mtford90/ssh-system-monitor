@@ -26,7 +26,7 @@ export function $fetchLogs (params: LogFilter)  {
   return (dispatch: Dispatch) => {
     http.getJSON('/api/logs', params).then(res => {
       const logs: LoggerDatum[] = res.data
-      dispatch({type: 'logs/RECEIVE_LOGS!', params, logs})
+      dispatch({type: 'logs/RECEIVE_LOGS', params, logs})
     })
   }
 }

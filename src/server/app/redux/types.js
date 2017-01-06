@@ -1,6 +1,7 @@
 /* @flow */
 
-import type {Store as ReduxStore, Dispatch as ReduxDispatch} from 'redux'
+import type {Store as ReduxStore} from 'redux'
+import type {Dispatch as ReduxDispatch} from 'redux-thunk'
 import type {RootSubstate, RootAction} from './reducers/root'
 import type {LogsSubstate, LogsAction} from './reducers/logs'
 
@@ -9,10 +10,7 @@ export type State = {
   logs: LogsSubstate,
 }
 
-export type Action =
-  RootAction |
-  LogsAction |
-  (d: Dispatch) => mixed // Thunks return a function that takes a dispatch
+export type Action =  RootAction | LogsAction
 
 export type Dispatch = ReduxDispatch<Action>;
 

@@ -64,7 +64,7 @@ export default function (monitor: Monitor) {
   }
 
 
-  router.get('*', (req, res, next) => {
+  router.get('*', (req: express$Request, res: express$Response, next: express$NextFunction) => {
     const location = req.url
     const routes   = _routes()
 

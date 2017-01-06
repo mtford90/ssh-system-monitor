@@ -355,7 +355,9 @@ export default class Monitor extends EventEmitter {
   }
 
   async start (): Promise<*> {
-    log.debug(`Monitor starting up - monitoring ${_.keys(this.servers).length} servers`)
+    const numServers = this.servers.length
+
+    log.debug(`Monitor starting up - monitoring ${numServers} servers`)
 
     this._configureLatest()
     this._configureSSHPools()
@@ -366,7 +368,7 @@ export default class Monitor extends EventEmitter {
       this._listenToStorage()
     ])
 
-    log.debug(`Monitor has finished starting up - monitoring ${_.keys(this.servers).length} servers`)
+    log.debug(`Monitor has finished starting up - monitoring ${numServers} servers`)
   }
 
   async terminate (): Promise<void> {
