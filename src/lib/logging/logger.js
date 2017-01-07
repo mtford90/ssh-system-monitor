@@ -4,7 +4,6 @@ import type {ServerDefinition, LoggerDatum, LogDefinition, LogSource, SSH2Error}
 import {getClient} from '../util/ssh'
 import Client from 'ssh2'
 import EventEmitter from 'events'
-import {SSH2Stream} from 'ssh2-streams'
 import InternalLogging from '../internalLogging'
 import _ from 'lodash'
 
