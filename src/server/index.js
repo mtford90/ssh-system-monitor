@@ -13,4 +13,4 @@ require("babel-core/register")({
 
 require('babel-polyfill');
 
-module.exports = require('./server.babel');
+module.exports = require('./server.babel.js');

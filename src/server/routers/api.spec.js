@@ -2,13 +2,13 @@
 
 import chai from 'chai'
 import server from '../server.babel'
-import * as http from '../../util/http'
-import {servers} from '../../../examples/config'
+import * as http from 'lib/util/http'
+import {servers} from '../../dev/config'
 import env from '../env'
-import Monitor from '../../monitors/monitor'
+import Monitor from 'lib/monitors/monitor'
 import {after, it, before, describe, afterEach} from 'mocha'
-import type {SystemStatFilter, LogFilter} from '../../storage/DataStore'
-import type {SystemDatum, LoggerDatum} from '../../../common/typedefs'
+import type {SystemStatFilter, LogFilter} from 'lib/storage/DataStore'
+import type {SystemDatum, LoggerDatum} from 'lib/typedefs/data'
 import EventEmitter from 'events'
 
 const assert = chai.assert

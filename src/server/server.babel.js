@@ -3,17 +3,17 @@
 import express from 'express'
 import bodyParser from 'body-parser'
 import cors from 'cors'
-import Monitor from '../monitors/monitor'
+import Monitor from '../lib/monitors/monitor'
 import favicon from 'serve-favicon'
 import path from 'path'
 import env from './env'
 import ws from 'socket.io'
 
-import getApiRouter from './routers/api'
-import getAppRouter from './routers/app'
-import type {SystemDatum, LoggerDatum} from '../../common/typedefs'
+import getApiRouter from './routers/apiRouter'
+import getAppRouter from './routers/appRouter'
+import type {SystemDatum, LoggerDatum} from '../lib/typedefs/data'
 
-import InternalLogging from '../internalLogging'
+import InternalLogging from '../lib/internalLogging'
 
 export type ApiOptions = {
   cors?: boolean,

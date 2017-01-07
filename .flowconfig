@@ -3,6 +3,10 @@
 [include]
 
 [libs]
+flow-typed/npm
 
 [options]
 esproposal.decorators=ignore
+module.name_mapper='^lib/\(.*\)'->'<PROJECT_ROOT>/src/lib/\1'
+module.name_mapper='^dev/\(.*\)'->'<PROJECT_ROOT>/src/dev/\1'
+module.name_mapper='^app/\(.*\)'->'<PROJECT_ROOT>/src/app/\1'

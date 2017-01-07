@@ -4,12 +4,12 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "mocha ./tests/**/*.spec.js --require ./tests/babelHook.js",
+    "test": "NODE_PATH=$NODE_PATH:./src mocha ./src/**/*.spec.js --require ./src/dev/babelHook.js",
     "type-check": "flow check",
     "example-log-monitor": "babel-node examples/log-monitor -b es2015,stage-0",
     "example-api-express-nedb": "node examples/api-express-nedb",
     "example-alert-slack": "babel-node examples/alert-slack -b es2015,stage-0",
-    "dev": "node examples/api-express-nedb"
+    "dev": "NODE_PATH=$NODE_PATH:./src node examples/api-express-nedb"
   },
   "author": "",
   "license": "ISC",

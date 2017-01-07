@@ -1,6 +1,6 @@
 /* @flow */
 
-import Monitor from '../../src/monitors/monitor'
+import Monitor from '../../src/lib/monitors/monitor'
 import start from '../../src/server/server.babel'
 import child_process from 'child_process'
 

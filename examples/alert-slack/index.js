@@ -1,6 +1,6 @@
 import {monitors, alerting, DataTypes} from '../../src'
 
-import {servers} from '../config'
+import {servers} from '../../src/dev/config'
 
 const monitor = monitors.log(servers)
 
