@@ -3,18 +3,20 @@ import {render} from 'react-dom';
 import './style.scss';
 import {Provider} from 'react-redux'
 import routes from './routes'
-import {getStore} from './redux/store'
+import {getStore} from './store'
+import {State} from "../lib/typedefs/redux";
 
 // Needed for onTouchTap
-import injectTapEventPlugin from 'react-tap-event-plugin';
+const injectTapEventPlugin = require('react-tap-event-plugin')
 injectTapEventPlugin();
 
 const rootEl = document.getElementById('root');
 
-const NODE_ENV = process.env.NODE_ENV
-const IS_PROD  = NODE_ENV === 'production'
+const processEnv: any = process.env;
+const NODE_ENV = processEnv.NODE_ENV
+const IS_PROD = NODE_ENV === 'production'
 
-const PRELOADED_STATE = window.__PRELOADED_STATE__
+const PRELOADED_STATE: State = window['__PRELOADED_STATE__']
 
 const store = getStore(PRELOADED_STATE)
 

@@ -1,8 +1,9 @@
 import {Client} from 'ssh2'
-import keymirror from 'keymirror'
-import _ from 'lodash'
+import * as _ from 'lodash'
 import {execute} from '../../util/ssh'
 import {SystemAverageLoad} from '../../typedefs/data'
+
+const keymirror = require('keymirror')
 
 const MEM_INFO_KEY = keymirror({
   MemTotal:          null,
@@ -65,7 +66,7 @@ export async function memoryInfo (client: Client): Promise<Object> {
   kv.pop(); // Remove spurious last val.
   kv = _.map(kv, function (x) {
     const key = x[0];
-    let val   = x[1];
+    let val: any   = x[1];
     if (val) {
       val = val.trim();
       if (val.indexOf('kB') != -1) val = val.substring(0, val.length - 3);
@@ -135,6 +136,6 @@ export async function percentageDiskSpaceUsed (client: Client, path: string): Pr
     return percentageUsed
   }
   else {
-    throw new Error(`Unexpected value returned when querying for percentage disk space used @ ${path}`, data)
+    throw new Error(`Unexpected value returned when querying for percentage disk space used @ ${path}`)
   }
 }

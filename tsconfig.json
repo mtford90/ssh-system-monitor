@@ -2,12 +2,13 @@
   "compilerOptions": {
     "strictNullChecks": true,
     "allowJs": true,
+    "jsx": "react",
     "baseUrl": ".",
+    "experimentalDecorators": true,
     "paths": {
       "*": [
-        "*",
         "src/*",
-        "node_modules/*"
+        "*"
       ]
     },
     "target": "ES6"

@@ -1,17 +1,18 @@
 /* @flow */
 
-import express from 'express'
-import bodyParser from 'body-parser'
-import cors from 'cors'
 import Monitor from 'lib/monitors/monitor'
-import favicon from 'serve-favicon'
-import path from 'path'
+import * as path from 'path'
 import env from './env'
-import ws from 'socket.io'
 
 import getApiRouter from './routers/apiRouter'
 import getAppRouter from './routers/appRouter'
 import {SystemDatum, LoggerDatum} from '../lib/typedefs/data'
+
+const express = require('express')
+const ws = require('socket.io')
+const cors = require('cors')
+const bodyParser = require('body-parser')
+const favicon = require('serve-favicon')
 
 import InternalLogging from '../lib/internalLogging'
 
@@ -23,10 +24,10 @@ export type ApiOptions = {
 const log = InternalLogging.server
 
 
-export default function start (monitor: Monitor, opts?: ApiOptions = {}) {
+export default function start(monitor: Monitor, opts: ApiOptions = {}) {
 
   const _opts: ApiOptions = {
-    cors:        true,
+    cors: true,
     serveClient: true,
     ...opts,
   }

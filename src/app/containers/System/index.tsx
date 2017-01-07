@@ -1,9 +1,9 @@
 /* @flow */
 
-import React, {Component, PropTypes} from 'react';
+import * as React from 'react';
 import {connect} from 'react-redux'
-import type {ServerDefinition, HostStatsCollection, LatestHostStats} from 'data.d.ts'
-import _ from 'lodash'
+import {ServerDefinition, HostStatsCollection, LatestHostStats} from 'lib/typedefs/data'
+import * as _ from 'lodash'
 import SystemStatisticsPanel from '../../components/SystemStatisticsPanel'
 
 type Props = {
@@ -11,16 +11,14 @@ type Props = {
   config: {[host:string]: ServerDefinition},
 }
 
-class System extends Component {
-  props: Props
-
+class System extends React.Component<Props, {}> {
   render () {
     const latestStats: LatestHostStats = this.props.latest
 
     return (
       <div style={{backgroundColor: 'white'}}>
         {_.map(latestStats, (serverStats: HostStatsCollection, host: string) => {
-          const server: ? ServerDefinition = this.props.config[host]
+          const server = this.props.config[host]
 
           if (server && serverStats) {
             return (
@@ -50,8 +48,8 @@ export default connect(
       config: state.root.config,
     }
   },
-  null,
-  (stateProps, dispatchProps) => {
+  undefined,
+  (stateProps: any, dispatchProps: any) => {
     return {
       ...stateProps,
       ...dispatchProps,

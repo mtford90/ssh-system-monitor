@@ -1,11 +1,12 @@
-import Router from 'express'
 import Monitor from 'lib/monitors/monitor'
 import {cleanServer} from 'lib/util/data'
-import _ from 'lodash'
+import * as _ from 'lodash'
 import {stringify} from 'lib/util/json'
-import {LatestHostStats, SystemDatum, LoggerDatum, DataType} from 'lib/typedefs/data'
+import {LatestHostStats, SystemDatum, LoggerDatum, DataType, HostStatsCollection} from 'lib/typedefs/data'
 import {SystemStatFilter, LogFilter} from 'lib/storage/DataStore'
 import InternalLogging from 'lib/internalLogging'
+
+const Router = require('express')
 
 const log = InternalLogging.routers.api
 
@@ -30,10 +31,12 @@ export default function (monitor: Monitor) {
       res.status(200).send(stringify({ok: true, value}))
     }
     else {
-      const data = {}
-      _.forEach(monitor.latest, (stats, host) => {
+      const data: {[host:string]: HostStatsCollection} = {}
+
+      _.forEach(monitor.latest, (stats: HostStatsCollection, host: string) => {
         data[host] = stats[stat]
       })
+
       res.status(200).send(stringify({ok: true, data}))
     }
   })
@@ -46,7 +49,7 @@ export default function (monitor: Monitor) {
   /**
    * Ensure data types (in the query string, everything is a string)
    */
-  function getQuerySystemStatsParams (query: Object): SystemStatFilter {
+  function getQuerySystemStatsParams (query: any): SystemStatFilter {
     let params: SystemStatFilter = {}
 
     const timestamp = query.timestamp
@@ -59,14 +62,17 @@ export default function (monitor: Monitor) {
       params.type          = type
     }
     if (query.extra) {
-      const extra  = {}
-      params.extra = extra
+      const extra: any  = {}
+
       if (query.extra.path) {
         extra.path = query.extra.path.toString()
       }
       if (query.extra.process) {
-        const process        = {}
-        params.extra.process = process
+        const process: any        = {}
+        params.extra = {
+          ...extra,
+          process,
+        }
         if (query.extra.process.id) {
           process.id = query.extra.process.id.toString()
         }
@@ -94,7 +100,7 @@ export default function (monitor: Monitor) {
   /**
    * Ensure data types (in the query string, everything is a string)
    */
-  function getQueryLogsParams (query: Object): LogFilter {
+  function getQueryLogsParams (query: any): LogFilter {
     let params: LogFilter = {}
 
     if (query.source) params.source = query.source.toString()

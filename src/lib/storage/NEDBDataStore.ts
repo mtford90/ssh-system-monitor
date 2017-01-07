@@ -1,10 +1,10 @@
-import {SystemDatum, LoggerDatum, NEDBOptions} from '../typedefs/data'
-import DataStore from 'nedb'
+import {SystemDatum, LoggerDatum} from '../typedefs/data'
 import {LogFilter, SystemStatFilter, TimestampQueryParams, SSHDataStore} from './DataStore'
 import InternalLogging from '../internalLogging'
-import _ from 'lodash'
+import * as _ from 'lodash'
+import * as DataStore from 'nedb'
 
-const INDICES = [
+const INDICES: string[] = [
   'type',
   'value',
   'timestamp',
@@ -20,7 +20,7 @@ const log = InternalLogging.storage.NEDBDataStore
 export default class NEDBDataStore implements SSHDataStore {
   db: DataStore
 
-  constructor (opts?: NEDBOptions = {}) {
+  constructor (opts?) {
     this.db = new DataStore(opts)
   }
 
@@ -31,7 +31,7 @@ export default class NEDBDataStore implements SSHDataStore {
   }
 
   _ensureIndex (fieldName: string): Promise<void> {
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       this.db.ensureIndex({fieldName}, err => {
         if (err) {
           log.error(`error creating index for ${fieldName}`)
@@ -50,7 +50,7 @@ export default class NEDBDataStore implements SSHDataStore {
   }
 
   storeSystemDatum (datum: SystemDatum): Promise<void> {
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       this.db.insert(datum, (err) => {
         if (err) reject(err)
         else resolve()
@@ -59,7 +59,7 @@ export default class NEDBDataStore implements SSHDataStore {
   }
 
   storeLoggerDatum (datum: LoggerDatum): Promise<void> {
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       this.db.insert(datum, (err) => {
         if (err) reject(err)
         else resolve()
@@ -67,7 +67,7 @@ export default class NEDBDataStore implements SSHDataStore {
     })
   }
 
-  queryLogs (params?: LogFilter = {}): Promise<LoggerDatum[]> {
+  queryLogs (params: LogFilter = {}): Promise<LoggerDatum[]> {
     return new Promise((resolve, reject) => {
       const q: Object = {
         logger: {
@@ -95,10 +95,10 @@ export default class NEDBDataStore implements SSHDataStore {
 
       if (text) {
         if (_.isString(text)) {
-          q.text = new RegExp(text)
+          q['text'] = new RegExp(text)
         }
         else {
-          q.text = text
+          q['texr'] = text
         }
       }
 
@@ -117,7 +117,7 @@ export default class NEDBDataStore implements SSHDataStore {
     })
   }
 
-  querySystemStats (params?: SystemStatFilter = {}): Promise<SystemDatum[]> {
+  querySystemStats (params: SystemStatFilter = {}): Promise<SystemDatum[]> {
     return new Promise((resolve, reject) => {
       const q: Object = {
         type:  {
@@ -165,7 +165,7 @@ export default class NEDBDataStore implements SSHDataStore {
     })
   }
 
-  _constructTimestampQuery (q: Object, timestamp: TimestampQueryParams) {
+  _constructTimestampQuery (q: any, timestamp: TimestampQueryParams) {
     q.timestamp = {}
     if (timestamp.gt) {
       q.timestamp.$gt = timestamp.gt

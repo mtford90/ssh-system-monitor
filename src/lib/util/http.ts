@@ -9,9 +9,9 @@ import InternalLogging from '../internalLogging'
 
 const log = InternalLogging.util.http
 
-function _encodeQueryParams (obj: Object, urlEncode?: boolean = false): string {
-  function flattenObj (x: Object, path: Array<string> = []): Array<Object> {
-    const result = [];
+function _encodeQueryParams (obj: Object, urlEncode: boolean = false): string {
+  function flattenObj (x: Object, path: Array<string> = []): Array<any> {
+    const result: Array<any> = [];
 
     Object.keys(x).forEach(function (key) {
       if (!x.hasOwnProperty(key)) return;
@@ -19,13 +19,13 @@ function _encodeQueryParams (obj: Object, urlEncode?: boolean = false): string {
       const newPath = path.slice();
       newPath.push(key);
 
-      let vals = [];
+      let vals: Array<any> = [];
       if (typeof x[key] == 'object') {
         vals = flattenObj(x[key], newPath);
       } else {
         vals.push({path: newPath, val: x[key]});
       }
-      vals.forEach(function (obj) {
+      vals.forEach((obj: any) => {
         return result.push(obj);
       });
     });
@@ -58,20 +58,6 @@ function _encodeQueryParams (obj: Object, urlEncode?: boolean = false): string {
   }
 }
 
-// https://developer.mozilla.org/en-US/docs/Web/API/GlobalFetch/fetch
-export type FetchOptions = {
-  method?: 'POST' | 'GET' | 'DELETE' | 'HEAD' | 'OPTIONS' | 'PATCH' | 'PUT' | null,
-  headers?: Object | null,
-  body?: string | Blob | FormData | URLSearchParams | null,
-  mode?: 'cors' | 'no-cors' | 'same-origin' | null,
-  credentials?: 'omit' | 'same-origin' | 'include' | null,
-  cache?: 'default' | 'no-store' | 'reload' | 'no-cache' | 'force-cache' | 'only-if-cached' | null,
-  redirect?: 'follow' | 'error' | 'manual' | null,
-  referrer?: 'no-referrer' | 'client' | string | null,
-  referrerPolicy?: 'no-referrer' | 'no-referrer-when-downgrade' | 'origin-only' | 'origin-when-cross-origin' | 'unsafe-url' | '' | null,
-  integrity?: string | null,
-}
-
 export class APIError extends Error {
   code: number
 
@@ -81,7 +67,7 @@ export class APIError extends Error {
 }
 
 export async function post (path: string, params: Object, body: Object) {
-  const opts: FetchOptions = {
+  const opts: RequestInit = {
     method:  'POST',
     headers: {
       'Accept':       'application/json',
@@ -140,7 +126,7 @@ export async function get (path: string, params?: Object): Promise<string> {
 export async function getJSON (path: string, params?: Object): Promise<Object> {
   const responseText: string = await get(path, params)
 
-  let responseObject: Object | null = null
+  let responseObject: any | null = null
 
   try {
     responseObject = JSON.parse(responseText)
@@ -150,7 +136,7 @@ export async function getJSON (path: string, params?: Object): Promise<Object> {
   }
 
   if (!responseObject.ok) {
-    const err = new APIError(responseText.message || 'Error')
+    const err = new APIError(responseObject.message || 'Error')
     err.code  = responseObject.code
     throw err
   }

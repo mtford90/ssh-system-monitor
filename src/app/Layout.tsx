@@ -1,31 +1,23 @@
-/* @flow */
-
-// import React from 'react';
-import React, {Component} from 'react';
+import * as React from 'react';
 import AppBar from 'material-ui/AppBar';
 import Drawer from 'material-ui/Drawer';
 import MenuItem from 'material-ui/MenuItem';
 import RaisedButton from 'material-ui/RaisedButton';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
-import {withRouter} from 'react-router'
+import {withRouter, Router} from 'react-router'
 import {connect} from 'react-redux'
-import type {Connector} from 'react-redux'
-import type {Dispatch} from 'redux.d.ts'
-import type {SystemDatum} from 'data.d.ts'
+import {Dispatch} from 'lib/typedefs/redux'
+import {SystemDatum} from 'lib/typedefs/data'
 
 type Props = {
   title: string,
   onClick: () => void,
   children?: any,
   dispatch: Dispatch,
+  router: any, // TODO: the typings definition for react-router is super old :(
 };
 
-@withRouter
-class Layout extends Component {
-  state: {
-    open: boolean,
-  };
-
+class Layout extends React.Component<Props, {open: boolean}>{
   static defaultProps = {
     visited: false
   }
@@ -42,10 +34,16 @@ class Layout extends Component {
   }
 
   componentDidMount () {
-    const socket = window.io.connect();
-    socket.on('data', (datum: SystemDatum) => {
-      this.props.dispatch({type: 'root/RECEIVE_MONITOR_DATUM', datum})
-    });
+    const io = window['io'];
+    if (io) {
+      const socket = io.connect();
+      socket.on('data', (datum: SystemDatum) => {
+        this.props.dispatch({type: 'root/RECEIVE_MONITOR_DATUM', datum})
+      });
+    }
+    else {
+      throw new Error(`Socket IO not configured correctly`)
+    }
   }
 
   render () {
@@ -63,7 +61,7 @@ class Layout extends Component {
             }
             />
           </header>
-          <Drawer title={this.props.title} open={this.state.open}>
+          <Drawer open={this.state.open}>
             <MenuItem
               onClick={
                 () => {
@@ -114,6 +112,4 @@ class Layout extends Component {
   }
 }
 
-const connector: Connector<{}, Props> = connect()
-
-export default connector(Layout)
+export default withRouter(connect()(Layout))

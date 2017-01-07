@@ -1,5 +1,5 @@
 // import {Logger, transports} from 'winston'
-import moment from 'moment'
+import * as moment from 'moment'
 
 
 type LogLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal'
@@ -63,6 +63,6 @@ class Logger {
 }
 
 
-export function getLogger (name: string, level?: LogLevel = 'trace'): Logger {
+export function getLogger (name: string, level: LogLevel = 'trace'): Logger {
   return new Logger(name, level)
 }

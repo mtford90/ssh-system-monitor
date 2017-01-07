@@ -1,10 +1,7 @@
-import chai from 'chai'
+import {assert} from 'chai'
 import Logger, {waitForLog} from './logger'
 import {servers} from '../../dev/config'
-import {describe, it} from 'mocha'
 import {LoggerDatum} from '../typedefs/data'
-
-const assert = chai.assert
 
 describe('logger', function () {
   this.timeout(20000)

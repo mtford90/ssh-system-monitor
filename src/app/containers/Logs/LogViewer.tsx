@@ -1,16 +1,12 @@
-/* @flow */
+import * as React from 'react';
+import {LoggerDatum} from 'lib/typedefs/data'
+import * as moment from 'moment'
 
-import React, {Component, PropTypes} from 'react';
-import type {LoggerDatum} from 'data.d.ts'
-import moment from 'moment'
-
-type LogViewerProps = {
+type Props = {
   logs: LoggerDatum[],
 }
 
-export default class LogViewer extends Component {
-  props: LogViewerProps
-
+export default class LogViewer extends React.Component<Props, {}> {
   render () {
     const logs = this.props.logs
 

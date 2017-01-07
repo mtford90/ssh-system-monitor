@@ -1,8 +1,7 @@
-import _ from 'lodash'
-import {constructPool, SSHPool} from '../pool'
+import * as _ from 'lodash'
 import * as system from '../platforms/linux/system'
 import * as process from '../platforms/linux/process'
-import EventEmitter from 'events'
+import {EventEmitter} from 'events'
 import {Pool} from 'generic-pool'
 import {Client} from 'ssh2'
 
@@ -24,6 +23,7 @@ import {SSHDataStore} from '../storage/DataStore'
 import NEDBDataStore from '../storage/NEDBDataStore'
 
 import InternalLogging from '../internalLogging'
+import {SSHPool, constructPool} from "../pool/index";
 const log = InternalLogging.Monitor
 
 export const ERROR_POOL_FACTORY_CREATE  = 'factoryCreateError'
@@ -99,14 +99,14 @@ export default class Monitor extends EventEmitter {
     store: SSHDataStore,
   }
   servers: ServerDefinition[]
-  pools: {[id:number]: Pool}                   = {}
+  pools: {[id:number]: SSHPool}                   = {}
   latest: {[host:string]: HostStatsCollection} = {}
   intervals: {[id:number]: Function[]}         = {}
   loggers: {[id:number]: Logger[]}             = {}
 
   constructor (
     servers: ServerDefinition[],
-    opts?: {
+    opts: {
       rate?: number,
       store?: SSHDataStore,
     } = {}
@@ -386,7 +386,7 @@ export default class Monitor extends EventEmitter {
     const numLoggers = loggers.length
 
     await Promise.all([
-      ..._.values(pools).map((pool: Pool, idx: number) => {
+      ..._.values(pools).map((pool: SSHPool, idx: number) => {
         log.debug(`Terminating pool ${idx + 1}/${numPools}`)
         return pool.terminate().then(() => {
           log.debug(`Terminated pool ${idx + 1}/${numPools}`)

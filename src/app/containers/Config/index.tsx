@@ -1,25 +1,16 @@
 /* @flow */
 
-import React, {Component, PropTypes} from 'react';
+import * as React from 'react';
 import {connect} from 'react-redux'
-import type {ServerDefinition} from '../../../lib/typedefs/data'
+import {ServerDefinition} from '../../../lib/typedefs/data'
 import {pretty} from '../../../lib/util/json'
 
 type Props = {
   config: ServerDefinition[],
 }
 
-@connect(
-  state => {
-    return {
-      config: state.root.config,
-    }
-  }
-)
-export default class Config extends Component {
-  props: Props
-
-  render () {
+class Config extends React.Component<Props, {}> {
+  render() {
     return (
       <div>
         Config!
@@ -32,3 +23,11 @@ export default class Config extends Component {
     )
   }
 }
+
+export default connect(
+  state => {
+    return {
+      config: state.root.config,
+    }
+  }
+)(Config)

@@ -1,23 +1,42 @@
+import * as React from 'react'
 import {Provider} from 'react-redux'
-import Router from 'express'
-import {getStore} from '../../app/redux/store'
+import {getStore} from '../../app/store'
 import _routes from 'app/routes'
 import {match, RouterContext} from 'react-router'
-import ReactDOMServer from 'react-dom/server'
 import env, {NodeEnv} from '../env'
-import webpack from 'webpack'
+import * as webpack from 'webpack'
 import {Dispatch} from 'lib/typedefs/redux'
 import Monitor from 'lib/monitors/monitor'
 
+const Router = require('express')
+const ReactDOMServer = require('react-dom/server')
+const injectTapEventPlugin = require('react-tap-event-plugin')
+
 // Needed for onTouchTap
-import injectTapEventPlugin from 'react-tap-event-plugin';
 injectTapEventPlugin();
 
 const NODE_ENV: NodeEnv = env.NODE_ENV
 
 export default function (monitor: Monitor) {
   // Seed the SSR app with latest data from the monitor!
-  const store = getStore({}, {logger: false})
+  const store = getStore({
+    root: {
+      latest: {},
+      config: [],
+    },
+    routing: {
+      locationBeforeTransitions: null
+    },
+    logs: {
+      selectedServer:  null,
+      selectedLog: null,
+      logs: [],
+      params: {},
+      searchString: '',
+    }
+  }, {
+    logger: false
+  })
   const dispatch: Dispatch = store.dispatch.bind(store)
 
   dispatch({type: 'root/RECEIVE_CONFIG', config: monitor.servers})
@@ -60,11 +79,11 @@ export default function (monitor: Monitor) {
   }
 
 
-  router.get('*', (req: express$Request, res: express$Response, next: express$NextFunction) => {
+  router.get('*', (req, res, next) => {
     const location = req.url
     const routes = _routes()
 
-    match({routes, location}, (err, redirectLocation, renderProps) => {
+    match({routes, location}, (err: Error, redirectLocation: Location, renderProps: any) => {
       if (err) return next(err)
 
       if (redirectLocation) {

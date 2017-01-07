@@ -1,16 +1,15 @@
-import chai from 'chai'
+import * as chai from 'chai'
 import * as process from './process'
-import _ from 'lodash'
-import {servers} from 'dev/config'
 import {getClient} from '../../util/ssh'
-import {after, before, describe, it} from 'mocha'
+import {Client} from "ssh2";
+import {servers} from "../../../dev/config";
 
 const assert = chai.assert
 
 describe('process', function () {
   this.timeout(20000)
 
-  let client = null
+  let client: Client
 
   before(async () => {
     let server = servers[0].ssh

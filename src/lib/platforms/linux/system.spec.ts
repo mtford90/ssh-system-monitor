@@ -1,29 +1,30 @@
-import chai from 'chai'
+import * as chai from 'chai'
 import * as commands from './system'
-import _ from 'lodash'
-import {servers} from 'dev/config'
+import * as _ from 'lodash'
 import {getClient} from '../../util/ssh'
+import {Client} from "ssh2";
+import {servers} from "../../../dev/config";
 
 const assert = chai.assert
 
 describe('system', function () {
   this.timeout(20000)
 
-  let conn = null
+  let client: Client
 
   before(async () => {
     let server = servers[0].ssh
-    conn       = await getClient(server)
+    client       = await getClient(server)
   })
 
   after(() => {
-    if (conn) {
-      conn.end()
+    if (client) {
+      client.end()
     }
   })
 
   it('cpuUsage', async () => {
-    const usage = await commands.cpuUsage(conn)
+    const usage = await commands.cpuUsage(client)
 
     console.log('cpuUsage', usage)
 
@@ -33,7 +34,7 @@ describe('system', function () {
   })
 
   it('memoryInfo', async () => {
-    const info = await commands.memoryInfo(conn)
+    const info = await commands.memoryInfo(client)
 
     console.log('info', info)
 
@@ -41,7 +42,7 @@ describe('system', function () {
   })
 
   it('swapUsedPercentage', async () => {
-    const perc = await commands.swapUsedPercentage(conn)
+    const perc = await commands.swapUsedPercentage(client)
 
     console.log('perc', perc)
 
@@ -50,7 +51,7 @@ describe('system', function () {
   })
 
   it('memoryUsedPercentage', async () => {
-    const perc = await commands.memoryUsedPercentage(conn)
+    const perc = await commands.memoryUsedPercentage(client)
 
     console.log('memoryUsed', perc)
 
@@ -59,7 +60,7 @@ describe('system', function () {
   })
 
   it('averageLoad', async () => {
-    const load = await commands.averageLoad(conn)
+    const load = await commands.averageLoad(client)
 
     console.log('load', load)
 
@@ -73,7 +74,7 @@ describe('system', function () {
   })
 
   it('percentage used', async () => {
-    const perc = await commands.percentageDiskSpaceUsed(conn, '/')
+    const perc = await commands.percentageDiskSpaceUsed(client, '/')
 
     console.log('perc', perc)
 

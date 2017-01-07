@@ -1,13 +1,31 @@
 {
   "globalDependencies": {
     "mocha": "registry:dt/mocha#2.2.5+20161221010438",
-    "retry": "file:typings/custom/retry.d.ts"
+    "moment": "registry:dt/moment#2.11.1+20161010105546",
+    "socket.io": "registry:dt/socket.io#1.4.4+20160915014424",
+    "whatwg-fetch": "registry:dt/whatwg-fetch#0.0.0+20161120230953"
   },
   "dependencies": {
+    "body-parser": "registry:npm/body-parser#1.15.2+20161116154925",
     "chai": "registry:npm/chai#3.5.0+20160723033700",
+    "cors": "registry:npm/cors#2.7.0+20160902012746",
     "express": "registry:npm/express#4.14.0+20160925001530",
+    "generic-pool": "registry:npm/generic-pool#3.0.0+20161114202855",
+    "keymirror": "registry:dt/keymirror#0.1.1+20170105193853",
     "lodash": "registry:npm/lodash#4.0.0+20161015015725",
+    "material-ui": "registry:npm/material-ui#0.15.1+20160817172421",
+    "nedb": "registry:dt/nedb#0.0.0+20160726220304",
+    "react": "registry:npm/react#15.0.1+20170104200836",
+    "react-dom": "registry:npm/react-dom#15.0.1+20160826174104",
+    "react-redux": "registry:npm/react-redux#4.4.0+20160614222153",
+    "react-router": "registry:npm/react-router#2.4.0+20160915183637",
+    "react-router-redux": "registry:npm/react-router-redux#4.0.0+20160602212457",
+    "react-tap-event-plugin": "registry:dt/react-tap-event-plugin#0.0.0+20160726072212",
+    "redux-logger": "registry:dt/redux-logger#2.6.0+20160726205300",
+    "redux-thunk": "registry:npm/redux-thunk#2.0.0+20160525185520",
+    "serve-favicon": "registry:dt/serve-favicon#2.2.0+20161128184045",
     "ssh2": "registry:dt/ssh2#0.5.0+20161228203806",
-    "ssh2-streams": "registry:dt/ssh2-streams#0.1.9+20161003195033"
+    "ssh2-streams": "registry:dt/ssh2-streams#0.1.9+20161003195033",
+    "webpack": "registry:npm/webpack#1.12.9+20160418172948"
   }
 }

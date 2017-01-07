@@ -1,5 +1,5 @@
-import {receiveSystemDatum} from 'lib/util/data'
-import {LatestHostStats, ServerDefinition, SystemDatum} from "lib/typedefs/data";
+import {receiveSystemDatum} from '../../lib/util/data'
+import {LatestHostStats, ServerDefinition, SystemDatum} from "../../lib/typedefs/data";
 
 export const ACTION_TYPE_RECEIVE_LATEST        = 'root/RECEIVE_LATEST'
 export const ACTION_TYPE_RECEIVE_CONFIG        = 'root/RECEIVE_CONFIG'

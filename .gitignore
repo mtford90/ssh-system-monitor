@@ -5,4 +5,3 @@ npm-debug.log*
 .tags_swap
 typings/globals
 typings/modules
-typings/index.d.ts

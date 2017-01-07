@@ -1,5 +1,5 @@
-import {ServerDefinition, LogDefinition, LoggerDatum} from 'lib/typedefs/data'
-import {LogFilter} from 'lib/storage/DataStore'
+import {ServerDefinition, LogDefinition, LoggerDatum} from '../../lib/typedefs/data'
+import {LogFilter} from '../../lib/storage/DataStore'
 
 export type LogsAction = {
   type: 'logs/SET_SELECTED_SERVER',

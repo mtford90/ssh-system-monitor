@@ -1,32 +1,26 @@
-/* @flow */
-
-import React, {Component, PropTypes} from 'react';
-import type {ServerDefinition} from 'data.d.ts'
+import * as React from 'react';
+import {ServerDefinition} from 'lib/typedefs/data'
 import DropDownMenu from 'material-ui/DropDownMenu'
 import MenuItem from 'material-ui/MenuItem'
 
-type ServerDropdownProps = {
+interface Props {
   servers: ServerDefinition[],
   selected?: ServerDefinition | null,
   onSelect?: (ServerDefinition) => void,
 }
 
-export default class ServerDropdown extends Component {
-  props: ServerDropdownProps
+export default class ServerDropdown extends React.Component<Props, {}> {
+  props: Props
 
-  constructor (props: ServerDropdownProps) {
-    super(props)
-  }
-
-  handleChange = (event: *, index: number) => {
+  handleChange(_event, key: number) {
     if (this.props.onSelect) {
-      this.props.onSelect(this.props.servers[index])
+      this.props.onSelect(this.props.servers[key])
     }
   }
 
-  render () {
-    const servers: ServerDefinition[]         = this.props.servers
-    const selected: ? ServerDefinition | null = this.props.selected
+  render() {
+    const servers: ServerDefinition[] = this.props.servers
+    const selected = this.props.selected
 
     const idx = selected ? this.props.servers.indexOf(selected) : null
 

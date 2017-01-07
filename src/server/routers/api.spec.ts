@@ -1,19 +1,15 @@
-/* @flow */
-
-import chai from 'chai'
+import {assert} from 'chai'
 import server from '../index'
-import * as http from 'http.ts'
+import * as http from 'lib/util/http'
 import {servers} from '../../dev/config'
 import env from '../env'
-import Monitor from 'monitor.ts'
-import {after, it, before, describe, afterEach} from 'mocha'
-import {SystemStatFilter, LogFilter} from 'DataStore.ts'
-import {SystemDatum, LoggerDatum} from 'data.d.ts'
-import EventEmitter from 'events'
+import Monitor from 'lib/monitors/monitor'
+import {SystemStatFilter, LogFilter} from 'lib/storage/DataStore.ts'
+import {SystemDatum, LoggerDatum} from 'lib/typedefs/data'
+import {EventEmitter} from 'events'
 
-const assert = chai.assert
 
-function once (emitter: EventEmitter, event: string,): Promise<any> {
+function once(emitter: EventEmitter, event: string,): Promise<any> {
   return new Promise(resolve => {
     emitter.on(event, (x: any) => {
       resolve(x)
@@ -30,38 +26,38 @@ describe('/api', function () {
   const operatorDev = servers[0]
 
   describe("latest", function () {
-    before(async () => {
+    before(async() => {
       m = new Monitor([operatorDev], {rate: 1000})
       await m.start()
       app = server(m, {serveClient: false})
     })
 
-    after(async () => {
+    after(async() => {
       await m.terminate()
       app.close()
     })
 
-    it("latest stat for all hosts", async () => {
-      const data          = await once(m, 'data')
-      const stat          = data.type
-      const body          = await http.getJSON(`http://localhost:${env.PORT}/api/latest/${stat}`)
-      const host          = data.server.ssh.host
-      const monitorValue  = m.latest[host][stat]
+    it("latest stat for all hosts", async() => {
+      const data = await once(m, 'data')
+      const stat = data.type
+      const body: any = await http.getJSON(`http://localhost:${env.PORT}/api/latest/${stat}`)
+      const host = data.server.ssh.host
+      const monitorValue = m.latest[host][stat]
       const returnedValue = body.data[host]
       assert.equal(monitorValue['1'], returnedValue['1'])
       assert.equal(monitorValue['5'], returnedValue['5'])
       assert.equal(monitorValue['15'], returnedValue['15'])
     })
 
-    it("latest stat for a host", async () => {
+    it("latest stat for a host", async() => {
       const data = await once(m, 'data')
       const stat = data.type
       const host = data.server.ssh.host
-      const body = await http.getJSON(`http://localhost:${env.PORT}/api/latest/${stat}`, {host})
+      const body: any = await http.getJSON(`http://localhost:${env.PORT}/api/latest/${stat}`, {host})
 
       const latest = m.latest
 
-      const monitorValue  = latest[host][stat]
+      const monitorValue = latest[host][stat]
       const returnedValue = body.value
 
       assert(monitorValue !== undefined && monitorValue !== null)
@@ -71,7 +67,7 @@ describe('/api', function () {
       assert.equal(monitorValue['15'], returnedValue['15'])
     })
 
-    it("config", async () => {
+    it("config", async() => {
       const body = await http.getJSON(`http://localhost:${env.PORT}/api/config`)
     })
   })
@@ -84,8 +80,8 @@ describe('/api', function () {
       }
     })
 
-    it("system stats", async () => {
-      m   = new Monitor([operatorDev], {rate: 1000})
+    it("system stats", async() => {
+      m = new Monitor([operatorDev], {rate: 1000})
       app = server(m, {serveClient: false})
 
       const params: SystemStatFilter = {
@@ -94,21 +90,21 @@ describe('/api', function () {
         }
       }
 
-      const mockData = [
+      const mockData: SystemDatum[] = [
         {
-          server:    operatorDev,
-          type:      'percentageDiskSpaceUsed',
-          value:     0.17,
-          extra:     {
+          server: operatorDev,
+          type: 'percentageDiskSpaceUsed',
+          value: 0.17,
+          extra: {
             path: '/'
           },
           timestamp: 90,
         },
         {
-          server:    operatorDev,
-          type:      'percentageDiskSpaceUsed',
-          value:     0.17,
-          extra:     {
+          server: operatorDev,
+          type: 'percentageDiskSpaceUsed',
+          value: 0.17,
+          extra: {
             path: '/xyz'
           },
           timestamp: 100,
@@ -117,11 +113,11 @@ describe('/api', function () {
 
       const store = m.opts.store
 
-      await Promise.all(mockData.map(d => {
+      await Promise.all(mockData.map((d: SystemDatum) => {
         return store.storeSystemDatum(d)
       }))
 
-      const res = await http.getJSON(`http://localhost:${env.PORT}/api/system/stats`, params)
+      const res: any = await http.getJSON(`http://localhost:${env.PORT}/api/system/stats`, params)
 
       console.log('res', res)
 
@@ -132,8 +128,8 @@ describe('/api', function () {
     })
 
     describe("logs", function () {
-      it("timestamp", async () => {
-        m   = new Monitor([operatorDev], {rate: 1000})
+      it("timestamp", async() => {
+        m = new Monitor([operatorDev], {rate: 1000})
         app = server(m, {serveClient: false})
 
         const params: LogFilter = {
@@ -145,11 +141,11 @@ describe('/api', function () {
 
         const mockData: LoggerDatum[] = [
           {
-            source:    'stdout',
-            text:      'yoyoyo',
+            source: 'stdout',
+            text: 'yoyoyo',
             timestamp: 90,
-            server:    operatorDev,
-            logger:    {
+            server: operatorDev,
+            logger: {
               name: 'xyz',
               grep: 'asdasd',
               type: 'command',
@@ -157,22 +153,22 @@ describe('/api', function () {
           },
 
           {
-            source:    'stdout',
-            text:      'yoyoyo',
+            source: 'stdout',
+            text: 'yoyoyo',
             timestamp: 100,
-            server:    operatorDev,
-            logger:    {
+            server: operatorDev,
+            logger: {
               name: 'xyz',
               grep: 'asdasd',
               type: 'command',
             }
           },
           {
-            source:    'stdout',
-            text:      'yoyoyo',
+            source: 'stdout',
+            text: 'yoyoyo',
             timestamp: 120,
-            server:    operatorDev,
-            logger:    {
+            server: operatorDev,
+            logger: {
               name: 'xyz',
               grep: 'asdasd',
               type: 'command',
@@ -186,15 +182,15 @@ describe('/api', function () {
           return store.storeLoggerDatum(d)
         }))
 
-        const res = await http.getJSON(`http://localhost:${env.PORT}/api/logs`, params)
+        const res: any = await http.getJSON(`http://localhost:${env.PORT}/api/logs`, params)
 
         console.log('res', res)
 
         const logs: LoggerDatum[] = res.data
         assert.equal(logs.length, 1)
       })
-      it("regexp", async () => {
-        m   = new Monitor([operatorDev], {rate: 1000})
+      it("regexp", async() => {
+        m = new Monitor([operatorDev], {rate: 1000})
         app = server(m, {serveClient: false})
 
         const params: LogFilter = {
@@ -203,22 +199,22 @@ describe('/api', function () {
 
         const mockData: LoggerDatum[] = [
           {
-            source:    'stdout',
-            text:      'yoyoyo',
+            source: 'stdout',
+            text: 'yoyoyo',
             timestamp: 90,
-            server:    operatorDev,
-            logger:    {
+            server: operatorDev,
+            logger: {
               name: 'xyz',
               grep: 'asdasd',
               type: 'command',
             }
           },
           {
-            source:    'stdout',
-            text:      '23yoyo423',
+            source: 'stdout',
+            text: '23yoyo423',
             timestamp: 120,
-            server:    operatorDev,
-            logger:    {
+            server: operatorDev,
+            logger: {
               name: 'xyz',
               grep: 'asdasd',
               type: 'command',
@@ -232,7 +228,7 @@ describe('/api', function () {
           return store.storeLoggerDatum(d)
         }))
 
-        const res = await http.getJSON(`http://localhost:${env.PORT}/api/logs`, params)
+        const res: any = await http.getJSON(`http://localhost:${env.PORT}/api/logs`, params)
 
         console.log('res', res)
 

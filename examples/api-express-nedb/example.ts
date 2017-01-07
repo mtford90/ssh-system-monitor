@@ -2,7 +2,7 @@
 
 import Monitor from '../../src/lib/monitors/monitor'
 import start from '../../src/server/index'
-import child_process from 'child_process'
+import * as child_process from 'child_process'
 
 const privateKey = child_process.execSync('cat /Users/mike/.ssh/id_rsa').toString()
 

@@ -1,9 +1,9 @@
 /* @flow */
 
-import React, {Component, PropTypes} from 'react';
+import * as React from 'react';
 import {connect} from 'react-redux'
 
-class Home extends Component {
+class Home extends React.Component<{}, {}> {
   render () {
     return (
       <div style={{backgroundColor: 'white'}}>

@@ -1,9 +1,7 @@
-/* @flow */
+import * as React from 'react';
+import {ServerDefinition, HostStatsCollection} from 'lib/typedefs/data'
 
-import React, {Component, PropTypes, Element} from 'react';
-import type {ServerDefinition, HostStatsCollection} from 'data.d.ts'
-
-type SystemStatisticsPanelProps = {
+type Props = {
   stats: HostStatsCollection,
   server: ServerDefinition,
 };
@@ -12,9 +10,7 @@ function toPercentage (n: number) {
   return (n * 100).toFixed(0) + '%'
 }
 
-export default class SystemStatisticsPanel extends Component {
-  props: SystemStatisticsPanelProps;
-
+export default class SystemStatisticsPanel extends React.Component<Props, {}> {
   render () {
     const {cpuUsage, swapUsedPercentage, memoryUsedPercentage} = this.props.stats
 

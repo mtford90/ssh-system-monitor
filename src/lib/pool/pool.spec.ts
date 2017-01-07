@@ -1,10 +1,9 @@
-import chai from 'chai'
+import {assert}  from 'chai'
 import {constructPool} from './index'
-import _ from 'lodash'
+import * as _ from 'lodash'
 import {cpuUsage} from '../platforms/linux/system'
 import {servers} from '../../dev/config'
 
-const assert = chai.assert
 
 describe('pool', function () {
   this.timeout(20000)

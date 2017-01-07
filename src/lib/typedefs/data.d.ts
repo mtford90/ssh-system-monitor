@@ -88,18 +88,6 @@ export type LoggerDatum = {
   logger: LogDefinition,
 }
 
-// https://github.com/louischatriot/nedb
-export type NEDBOptions = {
-  filename?: string,
-  inMemoryOnly?: boolean,
-  timestampData?: boolean,
-  autoload?: boolean,
-  afterSerialization?: (data: string) => string,
-  beforeDeserialization?: (data: string) => string,
-  corruptAlertThreshold?: number,
-  compareStrings?: (a: string, b: string) => -1 | 0 | 1,
-}
-
 export type LatestHostStats = {[host:string]: HostStatsCollection}
 
 export type DataType =  'cpuUsage' | 'swapUsedPercentage' | 'memoryUsedPercentage' | 'averageLoad' | 'percentageDiskSpaceUsed' | 'processInfo'

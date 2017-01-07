@@ -1,8 +1,9 @@
 import {applyMiddleware, createStore, Store} from 'redux'
 import thunkMiddleware from 'redux-thunk'
 import reducers from './reducers'
-import createLogger from 'redux-logger'
-import {State} from "lib/typedefs/redux";
+import {State} from "../lib/typedefs/redux";
+
+const createLogger = require('redux-logger')
 
 let _store: Store<State>
 

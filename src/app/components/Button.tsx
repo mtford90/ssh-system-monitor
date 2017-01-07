@@ -1,6 +1,6 @@
 /* @flow */
 
-import React, {Component, PropTypes, Element} from 'react';
+import * as React from 'react';
 
 type Props = {
   title: string,
@@ -8,13 +8,7 @@ type Props = {
   onClick: () => void,
 };
 
-export default class Button extends Component {
-  props: Props;
-
-  state: {
-    display: 'static' | 'hover' | 'active';
-  };
-
+export default class Button extends React.Component<Props, {display: 'static' | 'hover' | 'active'}> {
   static defaultProps: {visited: boolean};
 
   onMouseEnter: () => void;

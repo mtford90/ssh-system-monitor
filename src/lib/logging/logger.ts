@@ -1,8 +1,7 @@
 import {ServerDefinition, LoggerDatum, LogDefinition, LogSource, SSH2Error} from '../typedefs/data'
 import {getClient} from '../util/ssh'
-import {Client} from 'ssh2'
+import {Client, ClientChannel} from 'ssh2'
 import {EventEmitter} from 'events'
-import {SSH2Stream} from 'ssh2-streams'
 import InternalLogging from '../internalLogging'
 import * as _ from 'lodash'
 
@@ -23,7 +22,7 @@ export type LoggerOpts = {
 export default class Logger extends EventEmitter {
   opts: LoggerOpts
   client: Client | null
-  _stream: SSH2Stream
+  _stream: ClientChannel
 
   constructor (opts: LoggerOpts) {
     super()
@@ -81,39 +80,45 @@ export default class Logger extends EventEmitter {
 
     log.trace('executing cmd', cmd)
 
-    this.client.exec(cmd, (err, stream: SSH2Stream) => {
-      if (!err) {
-        this._stream = stream
-        stream.on('data', data => {
-          const lines: string[] = _.compact(data.toString().split('\n'))
-          lines.forEach(l => {
-            log.trace(`logger "${loggerName} [stdout]:"`, l)
-            this.emitDatum('stdout', l)
+    const c = this.client;
+
+    if (c) {
+      c.exec(cmd, (err: Error, stream: ClientChannel) => {
+        if (!err) {
+          this._stream = stream
+          stream.on('data', data => {
+            const lines: string[] = _.compact<string>(data.toString().split('\n'))
+            lines.forEach(l => {
+              log.trace(`logger "${loggerName} [stdout]:"`, l)
+              this.emitDatum('stdout', l)
+            })
           })
-        })
 
-        stream.on('close', (code, signal) => {
-          if (code && code > 0) {
-            log.error(`The stream for logger ${loggerName} closed with code ${code}`)
-          }
-          else if (code != null) {
-            log.debug(`The stream for logger ${loggerName} has closed with code ${code}`)
-          }
-          else {
-            log.debug(`The stream for logger ${loggerName} has closed`)
-          }
-        })
+          stream.on('close', (code, signal) => {
+            if (code && code > 0) {
+              log.error(`The stream for logger ${loggerName} closed with code ${code}`)
+            }
+            else if (code != null) {
+              log.debug(`The stream for logger ${loggerName} has closed with code ${code}`)
+            }
+            else {
+              log.debug(`The stream for logger ${loggerName} has closed`)
+            }
+          })
 
-        stream.stderr.on('data', data => {
-          const text = data.toString().replace(/\n/g, '')
-          log.trace(`logger "${loggerName} [stderr]:"`, text)
-          this.emitDatum('stderr', text)
-        })
-      }
-      else {
-        throw err
-      }
-    })
+          stream.stderr.on('data', data => {
+            const text = data.toString().replace(/\n/g, '')
+            log.trace(`logger "${loggerName} [stderr]:"`, text)
+            this.emitDatum('stderr', text)
+          })
+        }
+        else {
+          throw err
+        }
+      })
+    }
+
+
 
     log.info(`Started logger "${loggerName}"`)
   }

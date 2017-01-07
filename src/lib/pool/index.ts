@@ -1,9 +1,9 @@
-import genericPool, {Pool} from 'generic-pool'
+import {Pool, createPool, Factory} from 'generic-pool'
 import {Client} from 'ssh2'
-import EventEmitter from 'events'
+import {EventEmitter} from 'events'
 import {SSH2Error, ServerDefinition} from '../typedefs/data'
-import retry from 'retry'
-import _ from 'lodash'
+import {operation} from 'retry'
+import * as _ from 'lodash'
 import InternalLogging from '../internalLogging'
 
 const log = InternalLogging.pool
@@ -18,24 +18,26 @@ export type SSHPoolOptions = {
   },
 }
 
+type OngoingOperation = {
+  promise: Promise<any>,
+  desc: string,
+}
+
 export class SSHPool extends EventEmitter {
-  genericPool: Pool
+  genericPool: Pool<Client>
   server: ServerDefinition
   _currentOperations: {
-    [id:number]: {
-      promise: Promise<any>,
-      desc: string,
-    }
-  }                      = {} // Keep track of current operations to ensure clean termination
-  _terminated: boolean   = false
+    [id: number]: OngoingOperation
+  } = {} // Keep track of current operations to ensure clean termination
+  _terminated: boolean = false
   _numOperations: number = 0
 
-  constructor (server: ServerDefinition, opts?: SSHPoolOptions = {}) {
+  constructor(server: ServerDefinition, opts: SSHPoolOptions = {}) {
     super()
     this.server = server
 
-    const factory = {
-      create:  () => {
+    const factory: Factory<Client> = {
+      create: (): Promise<Client> => {
         return new Promise((resolve, reject) => {
           const client = new Client()
 
@@ -82,8 +84,8 @@ export class SSHPool extends EventEmitter {
           client.connect(ssh)
         })
       },
-      destroy: client => {
-        return new Promise(resolve => {
+      destroy: (client: Client): Promise<void> => {
+        return new Promise<void>(resolve => {
           client.once('end', () => resolve())
           client.end()
         })
@@ -96,7 +98,7 @@ export class SSHPool extends EventEmitter {
       ...(opts.pool || {}),
     }
 
-    this.genericPool = genericPool.createPool(factory, poolOpts)
+    this.genericPool = createPool<Client>(factory, poolOpts)
 
     this.genericPool.on('factoryDestroyError', err => this.emit('factoryDestroyError', err))
     this.genericPool.on('factoryCreateError', err => this.emit('factoryCreateError', err))
@@ -110,7 +112,7 @@ export class SSHPool extends EventEmitter {
     }
   }
 
-  acquire (): Promise<Client> {
+  acquire(): Promise<Client> {
     if (!this._terminated) {
       return this.genericPool.acquire()
     }
@@ -119,21 +121,20 @@ export class SSHPool extends EventEmitter {
     }
   }
 
-  release (client: Client): Promise<void> {
-    const host = client.config.host
+  release(client: Client): Promise<void> {
     return this.genericPool.release(client)
   }
 
-  destroy (client: Client): Promise<void> {
+  destroy(client: Client): Promise<void> {
     return this.genericPool.destroy(client)
   }
 
-  async terminate () {
+  async terminate() {
     log.debug(`
               Terminating
               pool ${this.server.ssh.host}`)
     this._terminated = true
-    const operations = _.values(this._currentOperations)
+    const operations: OngoingOperation[] = _.values<OngoingOperation>(this._currentOperations)
 
     log.debug(`Waiting for ${operations.length} operations to finish before terminating pool ${this.server.ssh.host}`)
 
@@ -153,7 +154,7 @@ export class SSHPool extends EventEmitter {
     log.info(`Terminated pool ${this.server.ssh.host}`)
   }
 
-  acquireExecuteRelease (desc: string, fn: (client: Client) => Promise<any>): Promise<any> {
+  acquireExecuteRelease(desc: string, fn: (client: Client) => Promise<any>): Promise<any> {
     return new Promise((resolve, reject) => {
       const host = this.server.ssh.host
 
@@ -163,7 +164,7 @@ export class SSHPool extends EventEmitter {
         const n = this._numOperations
 
         const retries = 10
-        const operation = retry.operation();
+        const op = operation();
 
         let client: Client
         let sshError: SSH2Error | null = null
@@ -185,8 +186,8 @@ export class SSHPool extends EventEmitter {
             })
           }
 
-          if (operation.retry(sshError || err)) {
-            sshError   = null
+          if (op.retry(sshError || err)) {
+            sshError = null
             const _err = (sshError || err)
 
             log.warn(`Attempt ${attempt}/${retries} failed: retrying ${host}<${desc}>`, _err.stack ? _err.stack : err)
@@ -194,23 +195,23 @@ export class SSHPool extends EventEmitter {
             return
           }
 
-          const mainError = operation.mainError()
+          const mainError = op.mainError()
           reject(mainError)
         }
 
 
-        operation.attempt(() => {
+        op.attempt(() => {
           if (!this._terminated) {
             this.acquire().then(_client => {
               client = _client
 
               const sshClientErrorListener = (err: SSH2Error) => {
-                client.off('error', sshClientErrorListener)
+                client.removeListener('error', sshClientErrorListener)
                 sshError = err
               }
 
               client.on('error', sshClientErrorListener)
-              const promise              = fn(client).then(res => {
+              const promise: Promise<any> = fn(client).then(res => {
                 this.release(client).catch(err => {
                   log.error(`Resource was rejected by the ${this.server.ssh.host} pool:\n`, err.stack)
                 })
@@ -240,6 +241,6 @@ export class SSHPool extends EventEmitter {
   }
 }
 
-export function constructPool (server: ServerDefinition) {
+export function constructPool(server: ServerDefinition) : SSHPool {
   return new SSHPool(server)
 }

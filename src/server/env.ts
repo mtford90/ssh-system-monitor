@@ -5,9 +5,11 @@ export type Env = {
   NODE_ENV: NodeEnv,
 }
 
+const processEnv: any = process.env || {}
+
 const env: Env = {
-  PORT:     Number(process.env.PORT || 3001),
-  NODE_ENV: process.env.NODE_ENV === 'production' ? 'production' : 'development',
+  PORT:     Number(processEnv.PORT || 3001),
+  NODE_ENV: processEnv.NODE_ENV === 'production' ? 'production' : 'development',
 }
 
 export default env

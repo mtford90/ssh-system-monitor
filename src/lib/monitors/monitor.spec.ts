@@ -1,21 +1,17 @@
-import chai from 'chai'
+import {assert} from 'chai'
 import Monitor, {waitForSystemDatum, waitForLoggerDatum} from './monitor'
-import _ from 'lodash'
+import * as _ from 'lodash'
 import {servers} from '../../dev/config'
-import {describe, it} from 'mocha'
-import {Stats} from '../typedefs/data'
 import {SystemDatum, DataType, ServerDefinition, LoggerDatum} from '../typedefs/data'
 import NEDBDataStore from '../storage/NEDBDataStore'
-
-const assert = chai.assert
 
 describe('monitor', function () {
   this.timeout(20000)
 
   describe("basic stats", function () {
-    it("emits data", async () => {
+    it("emits data", async() => {
       const _servers = servers
-      const m        = new Monitor(_servers, {rate: 1000})
+      const m = new Monitor(_servers, {rate: 1000})
       await m.start()
 
       const data: SystemDatum = await waitForSystemDatum(m)
@@ -28,7 +24,7 @@ describe('monitor', function () {
         `latest values were not configured for every host`
       )
 
-      const host               = data.server.ssh.host
+      const host = data.server.ssh.host
       const dataType: DataType = data.type
 
       assert(
@@ -39,12 +35,12 @@ describe('monitor', function () {
       await m.terminate()
     })
 
-    it("emits percentage disk space used", async () => {
+    it("emits percentage disk space used", async() => {
       const m = new Monitor(servers, {rate: 1000})
       await m.start()
 
-      const dataType = Stats.percentageDiskSpaceUsed
-      const path     = '/'
+      const dataType: DataType = 'percentageDiskSpaceUsed'
+      const path = '/'
 
       const data: SystemDatum = await waitForSystemDatum(
         m,
@@ -82,15 +78,17 @@ describe('monitor', function () {
 
   describe("processes", function () {
 
-    it("process", async () => {
+    it("process", async() => {
       const server: ServerDefinition = servers[0]
 
       const m = new Monitor([server], {rate: 1000})
       await m.start()
 
+      const expectedDataType: DataType = 'processInfo';
+
       await waitForSystemDatum(
         m,
-        datum => datum.type === Stats.processInfo
+        (datum: SystemDatum) => datum.type === expectedDataType
       )
 
       await m.terminate()
@@ -98,7 +96,7 @@ describe('monitor', function () {
   })
 
   describe("logs", function () {
-    it("receives logs", async () => {
+    it("receives logs", async() => {
       const m = new Monitor([servers[0]], {rate: 1000})
 
       await m.start()
@@ -116,11 +114,11 @@ describe('monitor', function () {
   })
 
   describe("storage", function () {
-    it("stores in nedb", async () => {
+    it("stores in nedb", async() => {
       const m = new Monitor(
         [servers[0]],
         {
-          rate:  250,
+          rate: 250,
           store: new NEDBDataStore()
         }
       )

@@ -1,7 +1,7 @@
 import {Client} from 'ssh2'
 import {faultTolerantExecute} from '../../util/ssh'
-import _ from 'lodash'
-import moment from 'moment'
+import * as _ from 'lodash'
+import * as moment from 'moment'
 import {ProcessInfo} from '../../typedefs/data'
 
 const FIELDS = [
@@ -18,15 +18,15 @@ const FIELDS = [
 FIELDS.push('args')
 
 
-function parse (process: Object[]): ProcessInfo | null {
-  const zipped = _.zipObject(FIELDS, process)
+function parse(process: Object[]): ProcessInfo | null {
+  const zipped: any = _.zipObject(FIELDS, process)
 
   if (zipped.pid) {
-    zipped.pid   = parseInt(zipped.pid)
-    zipped.size  = parseInt(zipped.size)
+    zipped.pid = parseInt(zipped.pid)
+    zipped.size = parseInt(zipped.size)
     zipped.vsize = parseInt(zipped.vsize)
-    zipped.pcpu  = parseFloat(zipped.pcpu)
-    zipped.rss   = parseFloat(zipped.rss)
+    zipped.pcpu = parseFloat(zipped.pcpu)
+    zipped.rss = parseFloat(zipped.rss)
 
     const yo = zipped.etime.split('-')
     let days = 0
@@ -37,9 +37,9 @@ function parse (process: Object[]): ProcessInfo | null {
 
     const durationString = _.last(yo)
 
-    const ms = moment.duration(durationString).add({days}).asMilliseconds()
+    const ms = moment.duration(durationString).add(moment.duration(2, 'days')).asMilliseconds()
 
-    zipped.etime   = ms
+    zipped.etime = ms
     zipped.started = Date.now() - ms
 
     return zipped
@@ -48,7 +48,7 @@ function parse (process: Object[]): ProcessInfo | null {
   return null
 }
 
-export async function info (client: Client, grep: string): Promise<ProcessInfo[]> {
+export async function info(client: Client, grep: string): Promise<ProcessInfo[]> {
   const cmd = `ps --no-headers -Ao "${FIELDS.join(',')}" | grep "${grep}" | grep -v grep`
 
   const data = await faultTolerantExecute(
@@ -56,12 +56,19 @@ export async function info (client: Client, grep: string): Promise<ProcessInfo[]
     cmd
   )
 
-  const results = data.split('\n').map(line => {
-    const arr   = _.compact(line.split(' '))
-    const other = arr.slice(0, FIELDS.length - 1)
-    const args  = arr.slice(FIELDS.length - 1, arr.length)
+  const results: string[][] = data.split('\n').map(line => {
+    const arr: string[] = _.compact(line.split(' '))
+    const other: string[] = arr.slice(0, FIELDS.length - 1)
+    const args: string[] = arr.slice(FIELDS.length - 1, arr.length)
     return [...other, args.join(' ')]
   })
 
-  return _.chain(results).map(parse).compact().value()
+  const info = results.map(parse).reduce((memo: ProcessInfo[], p: ProcessInfo | null) => {
+    if (p) {
+      memo.push(p)
+    }
+    return memo
+  }, [])
+
+  return info
 }

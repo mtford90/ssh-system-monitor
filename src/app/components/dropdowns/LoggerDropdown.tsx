@@ -1,20 +1,16 @@
-/* @flow */
-
-import React, {Component, PropTypes} from 'react';
-import type {LogDefinition} from 'data.d.ts'
+import * as React from 'react';
+import {LogDefinition} from 'lib/typedefs/data'
 import DropDownMenu from 'material-ui/DropDownMenu'
 import MenuItem from 'material-ui/MenuItem'
 
-type LoggerDropdownProps = {
+type Props = {
   logs: LogDefinition[],
   selected?: LogDefinition | null,
   onSelect?: (LogDefinition) => void,
 }
 
-export default class LoggerDropdown extends Component {
-  props: LoggerDropdownProps
-
-  constructor (props: LoggerDropdownProps) {
+export default class LoggerDropdown extends React.Component<Props, {}> {
+  constructor(props: Props) {
     super(props)
   }
 
@@ -24,16 +20,15 @@ export default class LoggerDropdown extends Component {
     }
   }
 
-  render () {
-    const logs: LogDefinition[]            = this.props.logs
-    const selected: ? LogDefinition | null = this.props.selected
-    const idx                              = selected ? this.props.logs.indexOf(selected) : null
+  render() {
+    const logs: LogDefinition[] = this.props.logs
+    const selected = this.props.selected
+    const idx = selected ? this.props.logs.indexOf(selected) : null
 
     return (
       <DropDownMenu
         value={idx}
         onChange={this.handleChange}
-        floatingLabelText="Logger"
       >
         {logs.map((logDef: LogDefinition, idx: number) => {
           const logName = logDef.name

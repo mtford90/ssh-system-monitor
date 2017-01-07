@@ -1,6 +1,6 @@
 
 import {Client} from 'ssh2'
-import retry from 'retry'
+import {operation} from 'retry'
 import  {SSH2Options} from '../typedefs/data'
 import InternalLogging from '../internalLogging'
 
@@ -38,8 +38,7 @@ export function getClient (opts: SSH2Options): Promise<Client> {
  */
 export function execute (client: Client, cmd: string): Promise<string> {
   return new Promise((resolve, reject) => {
-    const host = client.config.host
-
+    const host: string = 'TODO: Get host from somewhere'
     log.trace(`Executing \`${cmd}\` on ${host}`)
 
     client.exec(cmd, (err, stream) => {
@@ -73,17 +72,17 @@ export function execute (client: Client, cmd: string): Promise<string> {
 
 export function faultTolerantExecute (client: Client, cmd: string): Promise<string> {
   return new Promise((resolve, reject) => {
-    const operation = retry.operation();
+    const op = operation();
     // TODO: Log retry attempts
-    operation.attempt(() => {
+    op.attempt(() => {
       execute(client, cmd).then((str: string) => {
         resolve(str)
       }).catch(err => {
-        if (operation.retry(err)) {
+        if (op.retry(err)) {
           return
         }
 
-        reject(operation.mainError())
+        reject(op.mainError())
       })
     })
   })
