@@ -1,5 +1,5 @@
 /* @flow */
-import type {ServerDefinition, LogDefinition, LoggerDatum} from '../../../../types/index'
+import type {ServerDefinition, LogDefinition, LoggerDatum} from '../../../../../common/typedefs'
 import type {LogFilter} from '../../../../storage/DataStore'
 
 export type LogsAction = {

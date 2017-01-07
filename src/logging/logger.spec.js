@@ -4,7 +4,7 @@ import chai from 'chai'
 import Logger, {waitForLog} from './logger'
 import {servers} from '../../examples/config'
 import {describe, it} from 'mocha'
-import type {LoggerDatum} from '../types/index'
+import type {LoggerDatum} from '../../common/typedefs'
 
 const assert = chai.assert
 

@@ -7,7 +7,7 @@ import type {
   LatestHostStats,
   SystemDatum,
   DataType,
-} from '../types'
+} from '../../common/typedefs'
 
 /**
  * Remove any properties from server config that should never be in the logs e.g. private key

@@ -4,7 +4,7 @@ import child_process from 'child_process'
 
 const privateKey = child_process.execSync('cat /Users/mike/.ssh/id_rsa').toString()
 
-import type {ServerDefinition, ProcessDefinition} from '../src/types'
+import type {ServerDefinition, ProcessDefinition} from '../common/typedefs'
 
 const operatorProcesses: ProcessDefinition[] = [
   {

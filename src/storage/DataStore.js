@@ -1,5 +1,5 @@
 /* @flow */
-import type {SystemDatum, LoggerDatum, LogSource, DataType} from '../types/index'
+import type {SystemDatum, LoggerDatum, LogSource, DataType} from '../../common/typedefs'
 
 export type TimestampQueryParams = {
   gt?: number,

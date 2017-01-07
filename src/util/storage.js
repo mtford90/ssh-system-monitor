@@ -1,7 +1,7 @@
 /* @flow */
 
 import NEDBDataStore from '../storage/NEDBDataStore'
-import type {SystemDatum, LoggerDatum} from '../types/index'
+import type {SystemDatum, LoggerDatum} from '../../common/typedefs'
 
 export async function insertMonitorData (data: SystemDatum[], store?: NEDBDataStore): Promise<NEDBDataStore> {
   const _store = store || new NEDBDataStore() // Default to an in memory store

@@ -1,7 +1,7 @@
 /* @flow */
 
 import Logger from './logger'
-import type {ServerDefinition, LogDefinition} from '../types/index'
+import type {ServerDefinition, LogDefinition} from '../../common/typedefs'
 
 export type DockerLoggerOpts = {
   serverDefinition: ServerDefinition,

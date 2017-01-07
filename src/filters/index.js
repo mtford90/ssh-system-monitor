@@ -1,5 +1,5 @@
 /* @flow */
-import type {LoggerDatum, SystemDatum} from '../types/index'
+import type {LoggerDatum, SystemDatum} from '../../common/typedefs'
 import type {SystemStatFilter, LogFilter} from '../storage/DataStore'
 import _ from 'lodash'
 

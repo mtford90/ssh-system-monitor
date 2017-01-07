@@ -2,7 +2,7 @@
 
 import Client from 'ssh2'
 import retry from 'retry'
-import type {SSH2Options} from '../types/index'
+import type {SSH2Options} from '../../common/typedefs'
 import InternalLogging from '../internalLogging'
 
 const log = InternalLogging.platforms.linux.system

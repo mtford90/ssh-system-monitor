@@ -16,7 +16,7 @@ import type {
   SimpleDataType,
   LogDefinition,
   LoggerDatum,
-} from '../types/index'
+} from '../../common/typedefs'
 import {initLatestStats, receiveSystemDatum} from '../util/data'
 import DockerLogger from '../logging/dockerLogger'
 import Logger from '../logging/logger'

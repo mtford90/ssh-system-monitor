@@ -7,6 +7,9 @@ import type {LogsSubstate, LogsAction} from './reducers/logs'
 
 export type State = {
   root: RootSubstate,
+  routing: {
+    locationBeforeTransitions: string | null,
+  },
   logs: LogsSubstate,
 }
 

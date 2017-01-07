@@ -4,7 +4,7 @@ import Client from 'ssh2'
 import {faultTolerantExecute} from '../../util/ssh'
 import _ from 'lodash'
 import moment from 'moment'
-import type {ProcessInfo} from '../../types/index'
+import type {ProcessInfo} from '../../../common/typedefs'
 
 const FIELDS = [
   'pid',

@@ -8,7 +8,7 @@ import env from '../env'
 import Monitor from '../../monitors/monitor'
 import {after, it, before, describe, afterEach} from 'mocha'
 import type {SystemStatFilter, LogFilter} from '../../storage/DataStore'
-import type {SystemDatum, LoggerDatum} from '../../types/index'
+import type {SystemDatum, LoggerDatum} from '../../../common/typedefs'
 import EventEmitter from 'events'
 
 const assert = chai.assert

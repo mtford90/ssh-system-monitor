@@ -1,6 +1,6 @@
 /* @flow */
 
-import type {ServerDefinition, LoggerDatum, LogDefinition, LogSource, SSH2Error} from '../types/index'
+import type {ServerDefinition, LoggerDatum, LogDefinition, LogSource, SSH2Error} from '../../common/typedefs'
 import {getClient} from '../util/ssh'
 import Client from 'ssh2'
 import EventEmitter from 'events'

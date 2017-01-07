@@ -5,8 +5,8 @@ import Monitor, {waitForSystemDatum, waitForLoggerDatum} from './monitor'
 import _ from 'lodash'
 import {servers} from '../../examples/config'
 import {describe, it} from 'mocha'
-import {Stats} from '../types'
-import type {SystemDatum, DataType, ServerDefinition, LoggerDatum} from '../types/index'
+import {Stats} from '../../common/typedefs'
+import type {SystemDatum, DataType, ServerDefinition, LoggerDatum} from '../../common/typedefs'
 import NEDBDataStore from '../storage/NEDBDataStore'
 
 const assert = chai.assert

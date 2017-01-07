@@ -5,7 +5,7 @@ import Monitor from '../../monitors/monitor'
 import {cleanServer} from '../../util/data'
 import _ from 'lodash'
 import {stringify} from '../../util/json'
-import type {LatestHostStats, SystemDatum, LoggerDatum, DataType} from '../../types/index'
+import type {LatestHostStats, SystemDatum, LoggerDatum, DataType} from '../../../common/typedefs'
 import type {SystemStatFilter, LogFilter} from '../../storage/DataStore'
 import InternalLogging from '../../internalLogging'
 

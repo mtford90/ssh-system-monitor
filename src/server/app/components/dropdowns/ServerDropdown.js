@@ -1,7 +1,7 @@
 /* @flow */
 
 import React, {Component, PropTypes} from 'react';
-import type {ServerDefinition} from '../../../../types/index'
+import type {ServerDefinition} from '../../../../../common/typedefs'
 import DropDownMenu from 'material-ui/DropDownMenu'
 import MenuItem from 'material-ui/MenuItem'
 

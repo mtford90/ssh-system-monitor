@@ -1,5 +1,5 @@
 /* @flow */
-import type {ServerDefinition, LatestHostStats, SystemDatum} from '../../../../types/index'
+import type {ServerDefinition, LatestHostStats, SystemDatum} from '../../../../../common/typedefs'
 import {receiveSystemDatum} from '../../../../util/data'
 
 export const ACTION_TYPE_RECEIVE_LATEST        = 'root/RECEIVE_LATEST'

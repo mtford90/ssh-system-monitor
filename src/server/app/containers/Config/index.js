@@ -2,7 +2,7 @@
 
 import React, {Component, PropTypes} from 'react';
 import {connect} from 'react-redux'
-import type {ServerDefinition} from '../../../../types'
+import type {ServerDefinition} from '../../../../../common/typedefs'
 import {pretty} from '../../../../util/json'
 
 type Props = {

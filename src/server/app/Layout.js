@@ -11,7 +11,7 @@ import {withRouter} from 'react-router'
 import {connect} from 'react-redux'
 import type {Connector} from 'react-redux'
 import type {Dispatch} from './redux/types'
-import type {SystemDatum} from '../../types/index'
+import type {SystemDatum} from '../../../common/typedefs'
 
 type Props = {
   title: string,

@@ -4,7 +4,7 @@ import Client from 'ssh2'
 import keymirror from 'keymirror'
 import _ from 'lodash'
 import {execute} from '../../util/ssh'
-import type {SystemAverageLoad} from '../../types/index'
+import type {SystemAverageLoad} from '../../../common/typedefs'
 
 const MEM_INFO_KEY = keymirror({
   MemTotal:          null,

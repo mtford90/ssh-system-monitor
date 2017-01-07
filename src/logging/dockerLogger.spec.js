@@ -5,7 +5,7 @@ import DockerLogger from './dockerLogger'
 import {servers} from '../../examples/config'
 import {describe, it} from 'mocha'
 import {waitForLog} from './logger';
-import type {LoggerDatum} from '../types/index'
+import type {LoggerDatum} from '../../common/typedefs'
 
 const assert = chai.assert
 

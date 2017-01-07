@@ -2,7 +2,7 @@
 
 import React, {Component, PropTypes} from 'react';
 import {connect} from 'react-redux'
-import type {LogDefinition, ServerDefinition, LoggerDatum} from '../../../../types/index'
+import type {LogDefinition, ServerDefinition, LoggerDatum} from '../../../../../common/typedefs'
 import ServerDropdown from '../../components/dropdowns/ServerDropdown'
 import LoggerDropdown from '../../components/dropdowns/LoggerDropdown'
 import type {LogFilter} from '../../../../storage/DataStore'

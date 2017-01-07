@@ -2,9 +2,8 @@
 
 import genericPool, {Pool} from 'generic-pool'
 import Client from 'ssh2'
-import type {ServerDefinition} from '../types'
 import EventEmitter from 'events'
-import type {SSH2Error} from '../types/index'
+import type {SSH2Error, ServerDefinition} from '../../common/typedefs'
 import retry from 'retry'
 import _ from 'lodash'
 import InternalLogging from '../internalLogging'

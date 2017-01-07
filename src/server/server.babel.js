@@ -11,7 +11,7 @@ import ws from 'socket.io'
 
 import getApiRouter from './routers/api'
 import getAppRouter from './routers/app'
-import type {SystemDatum, LoggerDatum} from '../types/index'
+import type {SystemDatum, LoggerDatum} from '../../common/typedefs'
 
 import InternalLogging from '../internalLogging'
 

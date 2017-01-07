@@ -1,7 +1,7 @@
 /* @flow */
 
 import React, {Component, PropTypes} from 'react';
-import type {LoggerDatum} from '../../../../types/index'
+import type {LoggerDatum} from '../../../../../common/typedefs'
 import moment from 'moment'
 
 type LogViewerProps = {

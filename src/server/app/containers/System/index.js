@@ -2,7 +2,7 @@
 
 import React, {Component, PropTypes} from 'react';
 import {connect} from 'react-redux'
-import type {ServerDefinition, HostStatsCollection, LatestHostStats} from '../../../../types/index'
+import type {ServerDefinition, HostStatsCollection, LatestHostStats} from '../../../../../common/typedefs'
 import _ from 'lodash'
 import SystemStatisticsPanel from '../../components/SystemStatisticsPanel'
 

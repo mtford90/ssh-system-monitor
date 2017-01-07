@@ -4,7 +4,7 @@ import chai from 'chai'
 import _ from 'lodash'
 import {servers} from '../../examples/config'
 import {describe, it, before} from 'mocha'
-import type {SystemDatum, ServerDefinition, LoggerDatum} from '../types/index'
+import type {SystemDatum, ServerDefinition, LoggerDatum} from '../../common/typedefs'
 import {filterSystemStats, filterLogs} from './index'
 
 const assert = chai.assert

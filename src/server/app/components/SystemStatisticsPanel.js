@@ -1,7 +1,7 @@
 /* @flow */
 
 import React, {Component, PropTypes, Element} from 'react';
-import type {ServerDefinition, HostStatsCollection} from '../../../types/index'
+import type {ServerDefinition, HostStatsCollection} from '../../../../common/typedefs'
 
 type SystemStatisticsPanelProps = {
   stats: HostStatsCollection,
