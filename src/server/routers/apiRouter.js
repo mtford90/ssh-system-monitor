@@ -21,7 +21,7 @@ export default function (monitor: Monitor) {
   })
 
   router.get('/latest/:stat', (req: express$Request, res: express$Response) => {
-    const query = req.query
+    const query = req.query 
     const host  = query.host
     const stat  = req.params.stat
 
