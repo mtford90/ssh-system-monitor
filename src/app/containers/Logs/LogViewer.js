@@ -1,7 +1,7 @@
 /* @flow */
 
 import React, {Component, PropTypes} from 'react';
-import type {LoggerDatum} from 'lib/typedefs/data'
+import type {LoggerDatum} from 'data.d.ts'
 import moment from 'moment'
 
 type LogViewerProps = {

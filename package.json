@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "NODE_PATH=$NODE_PATH:./src mocha ./src/**/*.spec.js --require ./src/dev/babelHook.js",
+    "test": "mocha -r ts-node/register src/**/test.js",
     "type-check": "flow check",
     "example-log-monitor": "babel-node examples/log-monitor -b es2015,stage-0",
     "example-api-express-nedb": "node examples/api-express-nedb",
@@ -24,7 +24,9 @@
     "node-sass": "^4.1.1",
     "react-hot-loader": "^1.3.1",
     "sass-loader": "^4.1.1",
-    "ssh2-streams": "~0.1.15"
+    "ssh2-streams": "~0.1.15",
+    "ts-node": "^2.0.0",
+    "typings": "^2.1.0"
   },
   "dependencies": {
     "babel-core": "^6.21.0",

@@ -2,17 +2,17 @@
 
 import React, {Component, PropTypes} from 'react';
 import {connect} from 'react-redux'
-import type {LogDefinition, ServerDefinition, LoggerDatum} from 'lib/typedefs/data'
+import type {LogDefinition, ServerDefinition, LoggerDatum} from 'data.d.ts'
 import ServerDropdown from '../../components/dropdowns/ServerDropdown'
 import LoggerDropdown from '../../components/dropdowns/LoggerDropdown'
-import type {LogFilter} from 'lib/storage/DataStore'
+import type {LogFilter} from 'DataStore.ts'
 import _ from 'lodash'
 import LogViewer from './LogViewer'
-import * as http from 'lib/util/http'
+import * as http from 'http.ts'
 
 import type {Connector} from 'react-redux'
 import type {State, Dispatch} from '../../../lib/typedefs/redux'
-import {filterLogs} from 'lib/filters/index'
+import {filterLogs} from 'index.ts'
 import type {LogsSubstate} from '../../redux/reducers/logs'
 
 type Props = {

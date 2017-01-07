@@ -10,8 +10,8 @@ import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import {withRouter} from 'react-router'
 import {connect} from 'react-redux'
 import type {Connector} from 'react-redux'
-import type {Dispatch} from 'lib/typedefs/redux'
-import type {SystemDatum} from 'lib/typedefs/data'
+import type {Dispatch} from 'redux.d.ts'
+import type {SystemDatum} from 'data.d.ts'
 
 type Props = {
   title: string,

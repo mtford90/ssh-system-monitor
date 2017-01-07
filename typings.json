@@ -1,0 +1,13 @@
+{
+  "globalDependencies": {
+    "mocha": "registry:dt/mocha#2.2.5+20161221010438",
+    "retry": "file:typings/custom/retry.d.ts"
+  },
+  "dependencies": {
+    "chai": "registry:npm/chai#3.5.0+20160723033700",
+    "express": "registry:npm/express#4.14.0+20160925001530",
+    "lodash": "registry:npm/lodash#4.0.0+20161015015725",
+    "ssh2": "registry:dt/ssh2#0.5.0+20161228203806",
+    "ssh2-streams": "registry:dt/ssh2-streams#0.1.9+20161003195033"
+  }
+}
