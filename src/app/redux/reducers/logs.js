@@ -1,6 +1,6 @@
 /* @flow */
 import type {ServerDefinition, LogDefinition, LoggerDatum} from 'lib/typedefs/data'
-import type {LogFilter} from 'lib/storage/DataStore'
+import type {LogFilter} from 'lib/storage/typedefs'
 
 export type LogsAction = {
   type: 'logs/SET_SELECTED_SERVER',

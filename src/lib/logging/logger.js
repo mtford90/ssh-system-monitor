@@ -24,7 +24,7 @@ export type LoggerOpts = {
 export default class Logger extends EventEmitter {
   opts: LoggerOpts
   client: Client
-  _stream: SSH2Stream
+  _stream: any // TODO: Type ss2 (ClientChannel - can use the typescript version as a start)
 
   constructor (opts: LoggerOpts) {
     super()
@@ -82,7 +82,7 @@ export default class Logger extends EventEmitter {
 
     log.trace('executing cmd', cmd)
 
-    this.client.exec(cmd, (err, stream: SSH2Stream) => {
+    this.client.exec(cmd, (err, stream: any) => {
       if (!err) {
         this._stream = stream
         stream.on('data', data => {

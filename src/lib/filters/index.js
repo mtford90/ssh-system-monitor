@@ -1,6 +1,6 @@
 /* @flow */
 import type {LoggerDatum, SystemDatum} from '../typedefs/data'
-import type {SystemStatFilter, LogFilter} from '../storage/DataStore'
+import type {SystemStatFilter, LogFilter} from 'lib/storage/typedefs'
 import _ from 'lodash'
 
 export function filterLogs (logs: LoggerDatum[], filter?: LogFilter = {}): LoggerDatum[] {

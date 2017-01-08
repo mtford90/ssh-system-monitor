@@ -1,17 +1,15 @@
 /* @flow */
 
-import chai from 'chai'
+import {assert} from 'chai'
 import server from '../server.babel'
 import * as http from 'lib/util/http'
 import {servers} from '../../dev/config'
 import env from '../env'
 import Monitor from 'lib/monitors/monitor'
 import {after, it, before, describe, afterEach} from 'mocha'
-import type {SystemStatFilter, LogFilter} from 'lib/storage/DataStore'
+import type {SystemStatFilter, LogFilter} from 'lib/storage/typedefs'
 import type {SystemDatum, LoggerDatum} from 'lib/typedefs/data'
 import EventEmitter from 'events'
-
-const assert = chai.assert
 
 function once (emitter: EventEmitter, event: string,): Promise<*> {
   return new Promise(resolve => {
@@ -44,7 +42,7 @@ describe('/api', function () {
     it("latest stat for all hosts", async () => {
       const data          = await once(m, 'data')
       const stat          = data.type
-      const body          = await http.getJSON(`http://localhost:${env.PORT}/api/latest/${stat}`)
+      const body          = await http.get(`http://localhost:${env.PORT}/api/latest/${stat}`)
       const host          = data.server.ssh.host
       const monitorValue  = m.latest[host][stat]
       const returnedValue = body.data[host]
@@ -57,7 +55,7 @@ describe('/api', function () {
       const data = await once(m, 'data')
       const stat = data.type
       const host = data.server.ssh.host
-      const body = await http.getJSON(`http://localhost:${env.PORT}/api/latest/${stat}`, {host})
+      const body = await http.get(`http://localhost:${env.PORT}/api/latest/${stat}`, {host})
 
       const latest = m.latest
 
@@ -72,7 +70,7 @@ describe('/api', function () {
     })
 
     it("config", async () => {
-      const body = await http.getJSON(`http://localhost:${env.PORT}/api/config`)
+      const body = await http.get(`http://localhost:${env.PORT}/api/config`)
     })
   })
 
@@ -121,7 +119,7 @@ describe('/api', function () {
         return store.storeSystemDatum(d)
       }))
 
-      const res = await http.getJSON(`http://localhost:${env.PORT}/api/system/stats`, params)
+      const res = await http.get(`http://localhost:${env.PORT}/api/system/stats`, params)
 
       console.log('res', res)
 
@@ -186,7 +184,7 @@ describe('/api', function () {
           return store.storeLoggerDatum(d)
         }))
 
-        const res = await http.getJSON(`http://localhost:${env.PORT}/api/logs`, params)
+        const res = await http.get(`http://localhost:${env.PORT}/api/logs`, params)
 
         console.log('res', res)
 
@@ -232,7 +230,7 @@ describe('/api', function () {
           return store.storeLoggerDatum(d)
         }))
 
-        const res = await http.getJSON(`http://localhost:${env.PORT}/api/logs`, params)
+        const res = await http.get(`http://localhost:${env.PORT}/api/logs`, params)
 
         console.log('res', res)
 

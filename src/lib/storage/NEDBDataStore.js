@@ -1,7 +1,7 @@
 /* @flow */
 import type {SystemDatum, LoggerDatum, NEDBOptions} from '../typedefs/data'
 import DataStore from 'nedb'
-import type {LogFilter, SystemStatFilter, TimestampQueryParams} from './DataStore'
+import type {LogFilter, SystemStatFilter, TimestampQueryParams} from './typedefs'
 import InternalLogging from '../internalLogging'
 import _ from 'lodash'
 

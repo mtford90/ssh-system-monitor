@@ -2,10 +2,11 @@
 
 import type {ServerDefinition, LatestHostStats, SystemDatum} from 'lib/typedefs/data'
 import {receiveSystemDatum} from 'lib/util/data'
+import * as http from 'lib/util/http'
+import type {SystemStatFilter} from 'lib/storage/typedefs'
+import type {Dispatch} from 'lib/typedefs/redux'
 
-export const ACTION_TYPE_RECEIVE_LATEST        = 'root/RECEIVE_LATEST'
-export const ACTION_TYPE_RECEIVE_CONFIG        = 'root/RECEIVE_CONFIG'
-export const ACTION_TYPE_RECEIVE_MONITOR_DATUM = 'root/RECEIVE_MONITOR_DATUM'
+import * as api from 'app/common/api'
 
 export type RootAction = {
   type: 'root/RECEIVE_LATEST',
@@ -16,6 +17,10 @@ export type RootAction = {
 } | {
   type: 'root/RECEIVE_MONITOR_DATUM',
   datum: SystemDatum,
+} | {
+  type: 'root/RECEIVE_STATS',
+  id: string,
+  data: SystemDatum[],
 }
 
 export type RootSubstate = {
@@ -26,27 +31,44 @@ export type RootSubstate = {
 const DEFAULT_STATE: RootSubstate = {
   latest: {},
   config: [],
+  stats: {},
+}
+
+export function $getSystemStats(id: string, filter: SystemStatFilter) {
+  return (dispatch: Dispatch) => {
+    return api.systemStats.get(filter).then(data => {
+      dispatch({type: 'root/RECEIVE_STATS', id, data})
+    }).catch(err => {
+      // TODO: Show an error modal
+    })
+  }
 }
 
 export default function (state: RootSubstate = DEFAULT_STATE, action: RootAction): RootSubstate {
-  if (action.type === ACTION_TYPE_RECEIVE_CONFIG) {
-    return {
-      ...state,
-      isFetchingConfig: false,
-      config:           action.config
-    }
+  switch(action.type) {
+    case 'root/RECEIVE_LATEST':
+      return {
+        ...state,
+        latest: action.latest
+      }
+    case 'root/RECEIVE_CONFIG':
+      return {
+        ...state,
+        isFetchingConfig: false,
+        config:           action.config
+      }
+    case 'root/RECEIVE_MONITOR_DATUM':
+      return {
+        ...state,
+        latest: receiveSystemDatum(state.latest, action.datum)
+      }
+    case 'root/RECEIVE_STATS':
+      return {
+        ...state,
+        id: action.id,
+        data: action.data,
+      }
+    default:
+      return state
   }
-  else if (action.type === ACTION_TYPE_RECEIVE_LATEST) {
-    return {
-      ...state,
-      latest: action.latest
-    }
-  }
-  else if (action.type === ACTION_TYPE_RECEIVE_MONITOR_DATUM) {
-    return {
-      ...state,
-      latest: receiveSystemDatum(state.latest, action.datum)
-    }
-  }
-  return state
 }

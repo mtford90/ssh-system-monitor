@@ -20,8 +20,8 @@ import type {
 import {initLatestStats, receiveSystemDatum} from '../util/data'
 import DockerLogger from '../logging/dockerLogger'
 import Logger from '../logging/logger'
-import {SSHDataStore} from '../storage/DataStore'
-import NEDBDataStore from '../storage/NEDBDataStore'
+import {SSHDataStore} from 'lib/storage/typedefs'
+import NEDBDataStore from 'lib/storage/NEDBDataStore'
 
 import InternalLogging from '../internalLogging'
 const log = InternalLogging.Monitor

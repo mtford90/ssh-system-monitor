@@ -11,7 +11,7 @@ import InternalLogging from '../internalLogging'
 
 const log = InternalLogging.util.http
 
-function _encodeQueryParams (obj: Object, urlEncode?: boolean = false): string {
+export function _encodeQueryParams (obj: any, urlEncode?: boolean = false): string {
   function flattenObj (x: Object, path: Array<string> = []): Array<Object> {
     const result = [];
 
@@ -75,10 +75,11 @@ export type FetchOptions = {
 }
 
 export class APIError extends Error {
-  code: number
+  code:? number
 
-  constructor (msg: any) {
+  constructor (msg: any, code?: number) {
     super(msg)
+    this.code = code
   }
 }
 
@@ -116,33 +117,33 @@ export async function post (path: string, params: Object, body: Object) {
   return responseBody
 }
 
-export async function get (path: string, params?: Object): Promise<string> {
+export async function get<P, T>(params: P) : Promise<T> {
+  let path = this.path
+
+  const encoded = _encodeQueryParams(params)
+  path += encoded
+
   const opts = {
-    method:  'GET',
+    method: 'GET',
     headers: {
-      'Accept':       'application/json',
+      'Accept': 'application/json',
       'Content-Type': 'application/json'
-    }
+    },
   }
 
-  if (params) {
-    const encoded = _encodeQueryParams(params)
-    path += `?${encoded}`
+  const res: any = await fetch(path, opts)
+
+  if (!res.ok) {
+    throw new APIError(`API returned status ${res.status}`, res.status)
   }
 
-  log.debug(`GET ${path}`)
+  const responseText = await res.text()
 
-  const res                  = await fetch(path, opts)
-  const responseText: string = await res.text()
-
-  return responseText
-
-}
-
-export async function getJSON (path: string, params?: Object): Promise<Object> {
-  const responseText: string = await get(path, params)
-
-  let responseObject: Object | null = null
+  let responseObject: {
+    ok: boolean,
+    data: T,
+    detail?: string,
+  }
 
   try {
     responseObject = JSON.parse(responseText)
@@ -151,11 +152,10 @@ export async function getJSON (path: string, params?: Object): Promise<Object> {
     throw new APIError(`API didn't return JSON...`)
   }
 
-  if (!responseObject.ok) {
-    const err = new APIError(responseText.message || 'Error')
-    err.code  = responseObject.code
-    throw err
+  if (responseObject.ok) {
+    return responseObject.data
   }
-
-  return responseObject
+  else {
+    throw new APIError(`${responseObject.detail || 'Unknown Error'}`, res.status)
+  }
 }

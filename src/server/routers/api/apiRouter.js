@@ -1,13 +1,14 @@
 /* @flow */
 
 import Router from 'express'
-import Monitor from 'lib/monitors/monitor'
-import {cleanServer} from 'lib/util/data'
+import Monitor from '../../../lib/monitors/monitor'
+import {cleanServer} from '../../../lib/util/data'
 import _ from 'lodash'
-import {stringify} from 'lib/util/json'
-import type {LatestHostStats, SystemDatum, LoggerDatum, DataType} from 'lib/typedefs/data'
-import type {SystemStatFilter, LogFilter} from 'lib/storage/DataStore'
-import InternalLogging from 'lib/internalLogging'
+import {stringify} from '../../../lib/util/json'
+import type {LatestHostStats, SystemDatum, LoggerDatum, DataType} from '../../../lib/typedefs/data'
+import type {SystemStatFilter, LogFilter} from '../../../lib/storage/typedefs'
+import InternalLogging from '../../../lib/internalLogging'
+import {sendAPIResponse} from './typedefs'
 
 const log = InternalLogging.routers.api
 
@@ -21,7 +22,7 @@ export default function (monitor: Monitor) {
   })
 
   router.get('/latest/:stat', (req: express$Request, res: express$Response) => {
-    const query = req.query 
+    const query = req.query
     const host  = query.host
     const stat  = req.params.stat
 
@@ -125,30 +126,31 @@ export default function (monitor: Monitor) {
     return params
   }
 
-
   router.get('/system/stats', (req: express$Request, res: express$Response) => {
     const params: SystemStatFilter = getQuerySystemStatsParams(req.query)
 
-    log.info(`/system/stats`, params)
+    log.info(`GET /system/stats`, params)
 
     const store = monitor.opts.store
     store.querySystemStats(params).then((data: SystemDatum[]) => {
-      res.status(200).send(stringify({ok: true, data}))
+      sendAPIResponse(res, {data})
     }).catch(err => {
       log.error('error getting system stats', err.stack)
-      res.status(500).send(stringify({ok: false, detail: err.message}))
+      sendAPIResponse(res, {statusCode: 500, detail: err.message})
     })
   })
 
   router.get('/logs', (req: express$Request, res: express$Response) => {
     const params: LogFilter = getQueryLogsParams(req.query)
 
+    log.info(`GET /logs`, params)
+
     const store = monitor.opts.store
     store.queryLogs(params).then((data: LoggerDatum[]) => {
-      res.status(200).send(stringify({ok: true, data}))
+      sendAPIResponse(res, {data})
     }).catch(err => {
       log.error('error getting log stats', err.stack)
-      res.status(500).send(stringify({ok: false, detail: err.message}))
+      sendAPIResponse(res, {statusCode: 500, detail: err.message})
     })
   })
 

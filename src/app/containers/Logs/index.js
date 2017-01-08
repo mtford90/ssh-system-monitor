@@ -5,7 +5,7 @@ import {connect} from 'react-redux'
 import type {LogDefinition, ServerDefinition, LoggerDatum} from 'lib/typedefs/data'
 import ServerDropdown from '../../components/dropdowns/ServerDropdown'
 import LoggerDropdown from '../../components/dropdowns/LoggerDropdown'
-import type {LogFilter} from 'lib/storage/DataStore'
+import type {LogFilter} from 'lib/storage/typedefs'
 import _ from 'lodash'
 import LogViewer from './LogViewer'
 import * as http from 'lib/util/http'
@@ -24,7 +24,7 @@ type Props = {
 
 export function $fetchLogs (params: LogFilter)  {
   return (dispatch: Dispatch) => {
-    http.getJSON('/api/logs', params).then(res => {
+    http.get('/api/logs', params).then(res => {
       const logs: LoggerDatum[] = res.data
       dispatch({type: 'logs/RECEIVE_LOGS', params, logs})
     })

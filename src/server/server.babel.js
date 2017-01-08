@@ -9,7 +9,7 @@ import path from 'path'
 import env from './env'
 import ws from 'socket.io'
 
-import getApiRouter from './routers/apiRouter'
+import getApiRouter from './routers/api/apiRouter'
 import getAppRouter from './routers/appRouter'
 import type {SystemDatum, LoggerDatum} from '../lib/typedefs/data'
 
