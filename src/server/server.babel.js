@@ -46,27 +46,27 @@ export default function start (monitor: Monitor, opts?: ApiOptions = {}) {
   app.use('/api', apiRouter)
 
 
-  if (_opts.serveClient) {
+  // if (_opts.serveClient) {
     const appRouter = getAppRouter(monitor)
     app.use('/', appRouter)
-  }
+  // }
 
   const port = env.PORT
 
   const server = app.listen(port, () => {
     log.info(`App is running at http://localhost:${port}/`)
   })
-
-  const io = ws(server)
-
-  io.on('connection', socket => {
-    monitor.on('data', (datum: SystemDatum) => {
-      socket.emit('data', datum);
-    })
-    monitor.on('log', (datum: LoggerDatum) => {
-      socket.emit('log', datum);
-    })
-  })
-
+  //
+  // const io = ws(server)
+  //
+  // io.on('connection', socket => {
+  //   monitor.on('data', (datum: SystemDatum) => {
+  //     socket.emit('data', datum);
+  //   })
+  //   monitor.on('log', (datum: LoggerDatum) => {
+  //     socket.emit('log', datum);
+  //   })
+  // })
+  //
   return server
 }

@@ -2,11 +2,13 @@
 
 import type {ServerDefinition, LatestHostStats, SystemDatum} from 'lib/typedefs/data'
 import {receiveSystemDatum} from 'lib/util/data'
-import * as http from 'lib/util/http'
 import type {SystemStatFilter} from 'lib/storage/typedefs'
 import type {Dispatch} from 'lib/typedefs/redux'
 
 import * as api from 'app/common/api'
+
+import type {APIResponse} from 'server/routers/api/typedefs'
+import uuid from '../../../lib/util/uuid'
 
 export type RootAction = {
   type: 'root/RECEIVE_LATEST',
@@ -31,21 +33,28 @@ export type RootSubstate = {
 const DEFAULT_STATE: RootSubstate = {
   latest: {},
   config: [],
-  stats: {},
+  stats:  {},
 }
 
-export function $getSystemStats(id: string, filter: SystemStatFilter) {
-  return (dispatch: Dispatch) => {
-    return api.systemStats.get(filter).then(data => {
-      dispatch({type: 'root/RECEIVE_STATS', id, data})
-    }).catch(err => {
-      // TODO: Show an error modal
-    })
+export function $getSystemStats (id: string, filter: SystemStatFilter) {
+  return async (dispatch: Dispatch) => {
+    const res: APIResponse<SystemDatum[]> = await api.systemStats.get(filter)
+    if (res.isOk() && res.data) {
+      dispatch({type: 'root/RECEIVE_STATS', id, data: res.data})
+    }
+    else {
+      dispatch({type: 'notifications/ADD_NOTIFICATION', notification: {
+        id:       uuid(),
+        level:    'error',
+        position: 'tr',
+        message:  res.getReadableDetail()
+      }})
+    }
   }
 }
 
 export default function (state: RootSubstate = DEFAULT_STATE, action: RootAction): RootSubstate {
-  switch(action.type) {
+  switch (action.type) {
     case 'root/RECEIVE_LATEST':
       return {
         ...state,
@@ -65,7 +74,7 @@ export default function (state: RootSubstate = DEFAULT_STATE, action: RootAction
     case 'root/RECEIVE_STATS':
       return {
         ...state,
-        id: action.id,
+        id:   action.id,
         data: action.data,
       }
     default:

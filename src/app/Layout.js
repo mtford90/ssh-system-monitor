@@ -12,6 +12,8 @@ import {connect} from 'react-redux'
 import type {Connector} from 'react-redux'
 import type {Dispatch} from 'lib/typedefs/redux'
 import type {SystemDatum} from 'lib/typedefs/data'
+import Notifications from 'app/containers/Notifications'
+import uuid from '../lib/util/uuid'
 
 type Props = {
   title: string,
@@ -46,6 +48,15 @@ class Layout extends Component {
     socket.on('data', (datum: SystemDatum) => {
       this.props.dispatch({type: 'root/RECEIVE_MONITOR_DATUM', datum})
     });
+
+    setTimeout(() => {
+      this.props.dispatch('notifications/ADD_NOTIFICATION', {
+        id:       uuid(),
+        level:    'error',
+        message:  'wtf',
+        position: 'tr',
+      })
+    }, 2000)
   }
 
   render () {
@@ -105,6 +116,7 @@ class Layout extends Component {
               Config
             </MenuItem>
           </Drawer>
+          <Notifications/>
           <div className="ContentContainer">
             {this.props.children}
           </div>

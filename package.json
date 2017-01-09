@@ -42,6 +42,7 @@
   },
   "dependencies": {
     "body-parser": "^1.15.2",
+    "classnames": "^2.2.5",
     "cors": "^2.8.1",
     "express": "^4.14.0",
     "generic-pool": "^3.1.5",
@@ -53,6 +54,7 @@
     "react": "^15.4.1",
     "react-chartjs-2": "^1.6.2",
     "react-dom": "^15.4.1",
+    "react-notification-system": "^0.2.11",
     "react-redux": "^5.0.1",
     "react-router": "^3.0.0",
     "react-router-redux": "^4.0.7",
@@ -65,6 +67,7 @@
     "slack-node": "^0.1.8",
     "socket.io": "^1.7.2",
     "ssh2": "^0.5.4",
+    "uuid": "^3.0.1",
     "winston": "^2.3.0"
   }
 }

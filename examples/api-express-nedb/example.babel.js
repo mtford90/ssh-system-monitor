@@ -8,87 +8,7 @@ const privateKey = child_process.execSync('cat /Users/mike/.ssh/id_rsa').toStrin
 
 const monitor = new Monitor([
   {
-    name:      'Operator Prod',
-    ssh:       {
-      host:     'operator.barchick.com',
-      username: 'root',
-      privateKey,
-    },
-    paths:     [
-      '/'
-    ],
-    processes: [
-      {
-        grep: 'node /app/src/push.js',
-        id:   'push',
-        name: 'Push Service'
-      },
-      {
-        grep: 'node /app/src/paying.js',
-        id:   'paying',
-        name: 'Paying Service'
-      },
-    ],
-    logs:      [
-      {
-        grep: 'services.paying.1',
-        type: 'docker',
-        name: 'services.paying',
-      },
-      {
-        grep: 'services.campaignMonitor.1',
-        type: 'docker',
-        name: 'services.campaignMonitor',
-      },
-      {
-        grep: 'services.bookingslackbot.1',
-        type: 'docker',
-        name: 'services.bookingslackbot',
-      },
-      {
-        grep: 'services.rethink.1',
-        type: 'docker',
-        name: 'services.rethink',
-      },
-      {
-        grep: 'services.welcome.1',
-        type: 'docker',
-        name: 'services.welcome',
-      },
-      {
-        grep: 'services.away.1',
-        type: 'docker',
-        name: 'services.away',
-      },
-      {
-        grep: 'services.pushbookings.1',
-        type: 'docker',
-        name: 'services.pushbookings',
-      },
-      {
-        grep: 'services.adminunread.1',
-        type: 'docker',
-        name: 'services.adminunread',
-      },
-      {
-        grep: 'services.indexer.1',
-        type: 'docker',
-        name: 'services.indexer',
-      },
-      {
-        grep: 'services.push.1',
-        type: 'docker',
-        name: 'services.push',
-      },
-      {
-        grep: 'services.slackbot.1',
-        type: 'docker',
-        name: 'services.slackbot',
-      }
-    ]
-  },
-  {
-    name: 'Operator Dev',
+    name:      'Operator Dev',
     ssh:       {
       host:     'operator-dev.barchick.com',
       username: 'root',
@@ -109,7 +29,7 @@ const monitor = new Monitor([
         name: 'Paying Service'
       },
     ],
-    logs: [
+    logs:      [
       {
         grep: 'services.push.1',
         type: 'docker',

@@ -1,0 +1,38 @@
+.notifications-wrapper {
+  .notification {
+    position: relative;
+
+    .message {
+      font-size: 14px;
+    }
+
+    i {
+      font-size: 22px;
+      position: absolute;
+      left: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      margin-top: -1px;
+      opacity: 0.8;
+    }
+
+    &.notification-info,
+    &.notification-warning,
+    &.notification-error {
+      i {
+        left: 21px;
+        margin-top: 0;
+      }
+    }
+
+    .notification-dismiss {
+      opacity: 0.5;
+    }
+
+    &:hover {
+      .notification-dismiss {
+        opacity: 0.8;
+      }
+    }
+  }
+}
