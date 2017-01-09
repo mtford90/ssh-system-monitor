@@ -1,6 +1,7 @@
 /* @flow */
 
 import React, {Component, PropTypes} from 'react';
+import ReactDOM from 'react-dom'
 import type {LoggerDatum} from 'lib/typedefs/data'
 import moment from 'moment'
 
@@ -11,12 +12,40 @@ type LogViewerProps = {
 export default class LogViewer extends Component {
   props: LogViewerProps
 
+  scrollPane: any
+
+  calculateOffset () {
+    const node = ReactDOM.findDOMNode(this.scrollPane)
+    return (node.scrollHeight - node.scrollTop) - node.offsetHeight
+  }
+
+  scrollToBottom () {
+    const scrollPane = this.scrollPane
+
+    if (scrollPane) {
+      let node       = ReactDOM.findDOMNode(scrollPane)
+      node.scrollTop = node.scrollHeight
+    }
+  }
+
+  _isPrettyMuchScrolledToBottom (n: number = 150) {
+    const offset = this.calculateOffset()
+    return offset < n
+  }
+
+  scrollToBottomIfNotScrolled () {
+    if (this._isPrettyMuchScrolledToBottom()) {
+      this.scrollToBottom()
+    }
+  }
+
   render () {
     const logs = this.props.logs
 
     return (
       <div
         className="LogViewer"
+        ref={e => this.scrollPane = e}
       >
         {
           logs.map(

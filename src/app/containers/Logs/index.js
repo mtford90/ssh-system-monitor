@@ -22,7 +22,7 @@ type Props = {
   rState: LogsSubstate,
 }
 
-export function $fetchLogs (params: LogFilter)  {
+export function $fetchLogs (params: LogFilter) {
   return (dispatch: Dispatch) => {
     http.get('/api/logs', params).then(res => {
       const logs: LoggerDatum[] = res.data
@@ -31,7 +31,7 @@ export function $fetchLogs (params: LogFilter)  {
   }
 }
 
-export function $listen (filter: LogFilter)  {
+export function $listen (filter: LogFilter) {
   return (dispatch: Dispatch) => {
     const socket   = window.io.connect();
     const listener = (datum: LoggerDatum) => {
@@ -49,6 +49,7 @@ export function $listen (filter: LogFilter)  {
 
 class Logs extends Component {
   props: Props
+  logViewer: LogViewer
 
   stopListening: () => void = () => {}
 
@@ -94,9 +95,14 @@ class Logs extends Component {
     const currentHost = selectedServer ? selectedServer.ssh.host : null
     const nextHost    = nextSelectedServer ? nextSelectedServer.ssh.host : null
 
-    if (currentHost !== nextHost) {
+    const hostChanged = currentHost !== nextHost
+
+    if (hostChanged) {
       this.setSelectedServerAndFirstLog(nextSelectedServer)
     }
+
+    const currentNumLogs = this.props.rState.logs.length
+    const nextNumLogs    = nextProps.rState.logs.length
   }
 
   setSelectedServer (server: ServerDefinition | null) {
@@ -175,6 +181,7 @@ class Logs extends Component {
           />
         </div>
         <LogViewer
+          ref={e => this.logViewer = e}
           logs={sortedLogs}
         />
         <input
