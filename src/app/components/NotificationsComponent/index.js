@@ -1,15 +1,10 @@
 /* @flow */
 
-import {Component, PropTypes} from 'react';
-import {connect} from 'react-redux';
+import React, {Component} from 'react';
 import NotificationSystem from 'react-notification-system';
 import cn from 'classnames';
 
-import type {Connector} from 'react-redux'
-import type {Notification} from 'app/common/notifications/typedefs'
-import type {Dispatch} from 'lib/typedefs/redux'
-import type {State} from '../../../lib/typedefs/redux'
-import type {NotificationsSubstate} from '../../redux/reducers/notifications'
+import type {Notification} from '../../common/notifications/typedefs'
 
 const styles = {
   Containers: {
@@ -43,17 +38,17 @@ const styles = {
   },
 };
 
-type Props = {
+type NotificationsProps = {
   notifications: Notification[],
-  dispatch: Dispatch,
+  removeNotification: (notificationId: string) => void,
 }
 
-class Notifications extends Component {
-  props: Props
+export default class NotificationsComponent extends Component {
+  props: NotificationsProps
 
   notificationSystem: any
 
-  constructor (props: Props) {
+  constructor (props: NotificationsProps) {
     super(props);
   }
 
@@ -61,7 +56,7 @@ class Notifications extends Component {
     this.props.notifications.map((n: Notification) => this.addNotification(n));
   }
 
-  componentWillReceiveProps (nextProps: Props) {
+  componentWillReceiveProps (nextProps: NotificationsProps) {
     nextProps.notifications.map((n: Notification) => this.addNotification(n));
   }
 
@@ -95,7 +90,7 @@ class Notifications extends Component {
                    ),
     });
 
-    this.props.dispatch({type: 'notifications/REMOVE_NOTIFICATION', id: n.id});
+    this.props.removeNotification(n.id)
   }
 
   render () {
@@ -107,12 +102,3 @@ class Notifications extends Component {
     );
   }
 }
-
-const connector: Connector<{}, Props> = connect((state: State) => {
-  const notifications: NotificationsSubstate = state.notifications
-  return {
-    ...notifications
-  }
-})
-
-export default connector(Notifications)

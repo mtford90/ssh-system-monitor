@@ -12,14 +12,17 @@ import {connect} from 'react-redux'
 import type {Connector} from 'react-redux'
 import type {Dispatch} from 'lib/typedefs/redux'
 import type {SystemDatum} from 'lib/typedefs/data'
-import Notifications from 'app/containers/Notifications'
-import uuid from '../lib/util/uuid'
+import NotificationsComponent from './components/NotificationsComponent'
+import type {State} from '../lib/typedefs/redux'
+import type {Notification} from './common/notifications/typedefs'
+import {errorAction} from './redux/reducers/notifications'
 
 type Props = {
   title: string,
   onClick: () => void,
   children?: any,
   dispatch: Dispatch,
+  notifications: Notification[]
 };
 
 @withRouter
@@ -48,15 +51,6 @@ class Layout extends Component {
     socket.on('data', (datum: SystemDatum) => {
       this.props.dispatch({type: 'root/RECEIVE_MONITOR_DATUM', datum})
     });
-
-    setTimeout(() => {
-      this.props.dispatch('notifications/ADD_NOTIFICATION', {
-        id:       uuid(),
-        level:    'error',
-        message:  'wtf',
-        position: 'tr',
-      })
-    }, 2000)
   }
 
   render () {
@@ -116,7 +110,12 @@ class Layout extends Component {
               Config
             </MenuItem>
           </Drawer>
-          <Notifications/>
+          <NotificationsComponent
+            notifications={this.props.notifications}
+            removeNotification={(id: string) => {
+              this.props.dispatch({type: 'notifications/REMOVE_NOTIFICATION', id})
+            }}
+          />
           <div className="ContentContainer">
             {this.props.children}
           </div>
@@ -126,6 +125,8 @@ class Layout extends Component {
   }
 }
 
-const connector: Connector<{}, Props> = connect()
+const connector: Connector<{}, Props> = connect((state: State) => {
+  return state.notifications
+})
 
 export default connector(Layout)

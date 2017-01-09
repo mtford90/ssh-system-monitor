@@ -14,8 +14,10 @@ import type {Dispatch} from 'lib/typedefs/redux'
 import Monitor from 'lib/monitors/monitor'
 
 // Needed for onTouchTap
-import injectTapEventPlugin from 'react-tap-event-plugin';
+import injectTapEventPlugin from 'react-tap-event-plugin'
+
 injectTapEventPlugin();
+
 
 const NODE_ENV: NodeEnv = env.NODE_ENV
 
@@ -47,12 +49,12 @@ export default function (monitor: Monitor) {
         assets:       false,
         chunks:       false,
         modules:      false,
-        reasons:      false,
+        reasons:      true,
         children:     false,
         source:       false,
-        errors:       false,
-        errorDetails: false,
-        warnings:     false,
+        errors:       true,
+        errorDetails: true,
+        warnings:     true,
         publicPath:   false,
       }
     })
@@ -125,7 +127,9 @@ export default function (monitor: Monitor) {
 </html>`
           res.send(html)
         })
-        .catch((err) => next())
+        .catch((err) => {
+          next(err)
+        })
 
     })
   })
