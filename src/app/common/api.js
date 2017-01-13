@@ -104,7 +104,7 @@ export class APIMethod<T, P: $Subtype<Object>> {
     let responseObject: APIResponse<T>
 
     try {
-      responseObject = JSON.parse(responseText)
+      responseObject = new APIResponse(JSON.parse(responseText))
     }
     catch (err) {
       responseObject = new APIResponse({

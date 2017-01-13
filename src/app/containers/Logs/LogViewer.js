@@ -1,6 +1,6 @@
 /* @flow */
 
-import React, {Component, PropTypes} from 'react';
+import React, {Component} from 'react';
 import ReactDOM from 'react-dom'
 import type {LoggerDatum} from 'lib/typedefs/data'
 import moment from 'moment'

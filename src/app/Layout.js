@@ -15,7 +15,6 @@ import type {SystemDatum} from 'lib/typedefs/data'
 import NotificationsComponent from './components/NotificationsComponent'
 import type {State} from '../lib/typedefs/redux'
 import type {Notification} from './common/notifications/typedefs'
-import {errorAction} from './redux/reducers/notifications'
 
 type Props = {
   title: string,
@@ -47,10 +46,10 @@ class Layout extends Component {
   }
 
   componentDidMount () {
-    const socket = window.io.connect();
-    socket.on('data', (datum: SystemDatum) => {
-      this.props.dispatch({type: 'root/RECEIVE_MONITOR_DATUM', datum})
-    });
+    // const socket = window.io.connect();
+    // socket.on('data', (datum: SystemDatum) => {
+    //   // this.props.dispatch({type: 'root/RECEIVE_MONITOR_DATUM', datum})
+    // });
   }
 
   render () {

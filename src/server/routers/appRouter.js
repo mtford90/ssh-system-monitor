@@ -22,10 +22,11 @@ injectTapEventPlugin();
 const NODE_ENV: NodeEnv = env.NODE_ENV
 
 export default function (monitor: Monitor) {
-  // Seed the SSR app with latest data from the monitor!
+  // Ensure that the default
   const store = getStore({}, {logger: false})
   const dispatch: Dispatch = store.dispatch.bind(store)
 
+  // Seed the SSR app with latest data from the monitor!
   dispatch({type: 'root/RECEIVE_CONFIG', config: monitor.servers})
   dispatch({type: 'root/RECEIVE_LATEST', latest: monitor.latest})
 
@@ -36,26 +37,26 @@ export default function (monitor: Monitor) {
   if (NODE_ENV === 'development') {
     console.log('NOT IN PRODUCTION SO USING WEBPACK HOT RELOAD')
 
-    const config   = require('dev/webpack/webpack.config.js')
+    const config = require('dev/webpack/webpack.config.js')
     const compiler = webpack(config);
 
     const devMiddleware = require('webpack-dev-middleware')(compiler, {
       publicPath: config.output.publicPath,
       // Silence at last
-      stats:      {
-        hash:         false,
-        version:      false,
-        timings:      false,
-        assets:       false,
-        chunks:       false,
-        modules:      false,
-        reasons:      true,
-        children:     false,
-        source:       false,
-        errors:       true,
+      stats: {
+        hash: false,
+        version: false,
+        timings: false,
+        assets: false,
+        chunks: false,
+        modules: false,
+        reasons: true,
+        children: false,
+        source: false,
+        errors: true,
         errorDetails: true,
-        warnings:     true,
-        publicPath:   false,
+        warnings: true,
+        publicPath: false,
       }
     })
 
@@ -67,7 +68,7 @@ export default function (monitor: Monitor) {
 
   router.get('*', (req: express$Request, res: express$Response, next: express$NextFunction) => {
     const location = req.url
-    const routes   = _routes()
+    const routes = _routes()
 
     match({routes, location}, (err, redirectLocation, renderProps) => {
       if (err) return next(err)
@@ -102,7 +103,7 @@ export default function (monitor: Monitor) {
           )
 
           const state = store.getState()
-          const html  = `<!DOCTYPE html>
+          const html = `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">

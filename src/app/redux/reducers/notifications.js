@@ -10,7 +10,7 @@ export type NotificationsAction = {
   id: string,
 }
 
-export function errorAction(message: string) {
+export function errorAction (message: string) {
   return {
     type:         'notifications/ADD_NOTIFICATION',
     notification: {
@@ -22,7 +22,7 @@ export function errorAction(message: string) {
   }
 }
 
-export function warningAction(message: string) {
+export function warningAction (message: string) {
   return {
     type:         'notifications/ADD_NOTIFICATION',
     notification: {
@@ -34,7 +34,7 @@ export function warningAction(message: string) {
   }
 }
 
-export function successAction(message: string) {
+export function successAction (message: string) {
   return {
     type:         'notifications/ADD_NOTIFICATION',
     notification: {
@@ -46,7 +46,7 @@ export function successAction(message: string) {
   }
 }
 
-export function infoAction(message: string) {
+export function infoAction (message: string) {
   return {
     type:         'notifications/ADD_NOTIFICATION',
     notification: {
@@ -62,11 +62,11 @@ export type NotificationsSubstate = {
   notifications: Notification[]
 }
 
-const DEFAULT_STATE: NotificationsSubstate = {
+export const DefaultNotificationsSubstate: NotificationsSubstate = {
   notifications: [],
 };
 
-export default function notifications (state: NotificationsSubstate = DEFAULT_STATE, action: NotificationsAction) {
+export default function notifications (state: NotificationsSubstate = DefaultNotificationsSubstate, action: NotificationsAction) {
   switch (action.type) {
     case 'notifications/ADD_NOTIFICATION': {
       const notifications = [action.notification, ...state.notifications]

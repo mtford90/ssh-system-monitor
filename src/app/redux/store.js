@@ -12,12 +12,13 @@ type StoreOptions = {
   logger: boolean,
 }
 
-export function getStore (preloadedState: Object = {}, opts: StoreOptions = {logger: true}) : Store {
+export function getStore (preloadedState?: $Subtype<Object> = {}, opts: StoreOptions = {logger: true}): Store {
   const middleware = [thunkMiddleware]
 
   if (opts.logger) middleware.push(createLogger())
 
   if (!_store) {
+    console.log('initialising store with preloaded state', preloadedState)
     _store = _createStore(
       reducers,
       preloadedState,

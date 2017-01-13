@@ -29,7 +29,7 @@ export type LogsSubstate = {
   searchString: string,
 }
 
-const DEFAULT_STATE: LogsSubstate = {
+export const DefaultLogsSubstate: LogsSubstate = {
   selectedServer: null,
   selectedLog:    null,
   logs:           [],
@@ -37,8 +37,11 @@ const DEFAULT_STATE: LogsSubstate = {
   searchString:   '',
 }
 
-export default function reducer (state: LogsSubstate = DEFAULT_STATE, action: LogsAction): LogsSubstate {
-  switch(action.type) {
+export default function reducer (
+  state: LogsSubstate = DefaultLogsSubstate,
+  action: LogsAction,
+): LogsSubstate {
+  switch (action.type) {
     case 'logs/SET_SELECTED_SERVER':
       return {
         ...state,

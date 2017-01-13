@@ -1,12 +1,12 @@
 /* @flow */
 
 export const Stats = {
-  cpuUsage:                'cpuUsage',
-  swapUsedPercentage:      'swapUsedPercentage',
-  memoryUsedPercentage:    'memoryUsedPercentage',
-  averageLoad:             'averageLoad',
+  cpuUsage: 'cpuUsage',
+  swapUsedPercentage: 'swapUsedPercentage',
+  memoryUsedPercentage: 'memoryUsedPercentage',
+  averageLoad: 'averageLoad',
   percentageDiskSpaceUsed: 'percentageDiskSpaceUsed',
-  processInfo:             'processInfo',
+  processInfo: 'processInfo',
 }
 
 // Logs to be consumed
@@ -113,6 +113,15 @@ export type NEDBOptions = {
 
 export type LatestHostStats = {[host:string]: HostStatsCollection}
 
-export type DataType =  'cpuUsage' | 'swapUsedPercentage' | 'memoryUsedPercentage' | 'averageLoad' | 'percentageDiskSpaceUsed' | 'processInfo'
+export const DataTypes = {
+  'cpuUsage': 'cpuUsage',
+  'swapUsedPercentage': 'swapUsedPercentage',
+  'memoryUsedPercentage': 'memoryUsedPercentage',
+  'averageLoad': 'averageLoad',
+  'percentageDiskSpaceUsed': 'percentageDiskSpaceUsed',
+  'processInfo': 'processInfo',
+}
+
+export type DataType = $Keys<typeof DataTypes>
 export type SimpleDataType = 'cpuUsage' | 'swapUsedPercentage' | 'memoryUsedPercentage' | 'averageLoad'
 
