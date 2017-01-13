@@ -68,7 +68,7 @@ export type HostStatsCollection = {
   },
   processInfo: {
     [processId:string]: ProcessInfo | null
-  }
+  },
 }
 
 // Info about a process obtained from 'ps' command
