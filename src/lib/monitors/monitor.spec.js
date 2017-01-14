@@ -22,21 +22,7 @@ describe('monitor', function () {
 
       const data: SystemDatum = await waitForSystemDatum(m)
 
-      console.log('data', data)
-      console.log('m.latest', m.latest)
-
-      assert(
-        _.every(_.map(_servers, s => m.latest[s.ssh.host])),
-        `latest values were not configured for every host`
-      )
-
-      const host               = data.server.ssh.host
-      const dataType: DataType = data.type
-
-      assert(
-        m.latest[host][dataType] !== undefined,
-        `Latest data wasn't stored for data type ${host}.${dataType}`
-      )
+      assert(data)
 
       await m.terminate()
     })
@@ -53,29 +39,9 @@ describe('monitor', function () {
         datum => datum.type === dataType
       )
 
-      const latest = m.latest
-
-      console.log('latest', latest)
-      const host = data.server.ssh.host
-
-      assert(
-        _.every(_.map(servers, s => latest[s.ssh.host])),
-        `latest values were not configured for every host`
-      )
-
-      assert(
-        latest[host][dataType][path] !== undefined,
-        `Latest data wasn't stored for data type ${host}.${dataType}`
-      )
-
       assert(
         data.extra.path === path,
         `path variable on the datum doesnt match path`,
-      )
-
-      assert(
-        latest[host][dataType][path] === data.value,
-        `value for disk space used emitted doesnt match the latest!`,
       )
 
       await m.terminate()

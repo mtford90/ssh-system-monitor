@@ -46,10 +46,10 @@ export default function start (monitor: Monitor, opts?: ApiOptions = {}) {
   app.use('/api', apiRouter)
 
 
-  // if (_opts.serveClient) {
+  if (_opts.serveClient) {
     const appRouter = getAppRouter(monitor)
     app.use('/', appRouter)
-  // }
+  }
 
   const port = env.PORT
 

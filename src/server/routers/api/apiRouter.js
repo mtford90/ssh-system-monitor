@@ -3,9 +3,7 @@
 import Router from 'express'
 import Monitor from '../../../lib/monitors/monitor'
 import {cleanServer} from '../../../lib/util/data'
-import _ from 'lodash'
-import {stringify} from '../../../lib/util/json'
-import type {LatestHostStats, SystemDatum, LoggerDatum, DataType} from '../../../lib/typedefs/data'
+import type {SystemDatum, LoggerDatum, DataType} from '../../../lib/typedefs/data'
 import type {SystemStatFilter, LogFilter} from '../../../lib/storage/typedefs'
 import InternalLogging from '../../../lib/internalLogging'
 import {sendAPIResponse} from './typedefs'
@@ -15,35 +13,10 @@ const log = InternalLogging.routers.api
 export default function (monitor: Monitor) {
   const router: express$Router = Router()
 
-  router.get('/latest', (req: express$Request, res: express$Response) => {
-    const latest: LatestHostStats = monitor.latest
-
-    res.status(200).send(stringify({ok: true, latest}))
-  })
-
-  router.get('/latest/:stat', (req: express$Request, res: express$Response) => {
-    const query = req.query
-    const host  = query.host
-    const stat  = req.params.stat
-
-    log.info(`/latest/${stat}`, query)
-
-    if (host) {
-      const value = monitor.latest[host][stat]
-      res.status(200).send(stringify({ok: true, value}))
-    }
-    else {
-      const data = {}
-      _.forEach(monitor.latest, (stats, host) => {
-        data[host] = stats[stat]
-      })
-      res.status(200).send(stringify({ok: true, data}))
-    }
-  })
 
   router.get('/config', (req: express$Request, res: express$Response) => {
     const servers = monitor.servers
-    res.status(200).send(stringify({ok: true, config: servers.map(s => cleanServer(s))}))
+    sendAPIResponse(res, {data: servers.map(s => cleanServer(s))})
   })
 
   /**
@@ -59,16 +32,16 @@ export default function (monitor: Monitor) {
     if (query.name) params.name = query.name.toString()
     if (query.type) {
       const type: DataType = query.type.toString()
-      params.type          = type
+      params.type = type
     }
     if (query.extra) {
-      const extra  = {}
+      const extra = {}
       params.extra = extra
       if (query.extra.path) {
         extra.path = query.extra.path.toString()
       }
       if (query.extra.process) {
-        const process        = {}
+        const process = {}
         params.extra.process = process
         if (query.extra.process.id) {
           process.id = query.extra.process.id.toString()

@@ -41,9 +41,9 @@ export function _encodeQueryParams (obj: any, urlEncode?: boolean = false): stri
   // convert to array notation:
   parts = parts.map(function (varInfo) {
     if (varInfo.path.length == 1) varInfo.path = varInfo.path[0]; else {
-      const first               = varInfo.path[0];
+      const first = varInfo.path[0];
       const rest: Array<string> = varInfo.path.slice(1);
-      varInfo.path              = first + '[' + rest.join('][') + ']';
+      varInfo.path = first + '[' + rest.join('][') + ']';
     }
     return varInfo;
   }); // parts.map
@@ -75,7 +75,7 @@ export type FetchOptions = {
 }
 
 export class APIError extends Error {
-  code:? number
+  code: ? number
 
   constructor (msg: any, code?: number) {
     super(msg)
@@ -85,9 +85,9 @@ export class APIError extends Error {
 
 export async function post (path: string, params: Object, body: Object) {
   const opts: FetchOptions = {
-    method:  'POST',
+    method: 'POST',
     headers: {
-      'Accept':       'application/json',
+      'Accept': 'application/json',
       'Content-Type': 'application/json',
     }
   }
@@ -108,8 +108,8 @@ export async function post (path: string, params: Object, body: Object) {
   const responseBody = await res.json()
 
   if (!responseBody.ok) {
-    const err   = new APIError(responseBody.message || 'Error')
-    err.code    = responseBody.code
+    const err = new APIError(responseBody.message || 'Error')
+    err.code = responseBody.code
     err.message = responseBody.message
     throw err
   }
@@ -117,11 +117,9 @@ export async function post (path: string, params: Object, body: Object) {
   return responseBody
 }
 
-export async function get<P, T>(params: P) : Promise<T> {
-  let path = this.path
-
+export async function get (uri: string, params?: $Subtype<Object> = {}): Promise<*> {
   const encoded = _encodeQueryParams(params)
-  path += encoded
+  uri += encoded
 
   const opts = {
     method: 'GET',
@@ -131,31 +129,11 @@ export async function get<P, T>(params: P) : Promise<T> {
     },
   }
 
-  const res: any = await fetch(path, opts)
+  const res: any = await fetch(uri, opts)
 
   if (!res.ok) {
     throw new APIError(`API returned status ${res.status}`, res.status)
   }
 
-  const responseText = await res.text()
-
-  let responseObject: {
-    ok: boolean,
-    data: T,
-    detail?: string,
-  }
-
-  try {
-    responseObject = JSON.parse(responseText)
-  }
-  catch (err) {
-    throw new APIError(`API didn't return JSON...`)
-  }
-
-  if (responseObject.ok) {
-    return responseObject.data
-  }
-  else {
-    throw new APIError(`${responseObject.detail || 'Unknown Error'}`, res.status)
-  }
+  return await res.json()
 }

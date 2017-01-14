@@ -3,14 +3,15 @@
 import {_encodeQueryParams} from 'lib/util/http'
 import type {SystemStatFilter} from 'lib/storage/typedefs'
 import {APIResponse} from '../../server/routers/api/typedefs'
-import type {SystemDatum} from '../../lib/typedefs/data'
+import type {SystemDatum, ServerDefinition, LoggerDatum} from '../../lib/typedefs/data'
+import type {LogFilter} from '../../lib/storage/typedefs'
 
 export class APIMethod<T, P: $Subtype<Object>> {
   path: string
   baseUrl: string
 
   constructor (path: string, baseUrl?: string = '') {
-    this.path    = path
+    this.path = path
     this.baseUrl = baseUrl
   }
 
@@ -24,8 +25,8 @@ export class APIMethod<T, P: $Subtype<Object>> {
     }
     catch (err) {
       const apiResponse: APIResponse<T> = new APIResponse({
-        statusCode:     res.status,
-        detail:         responseText.trim() || "API errored out & didn't return json",
+        statusCode: res.status,
+        detail: responseText.trim() || "API errored out & didn't return json",
         readableDetail: "Unknown server error",
       })
       return apiResponse
@@ -36,25 +37,25 @@ export class APIMethod<T, P: $Subtype<Object>> {
     }
 
     if (!responseObject.detail && !responseObject.readableDetail) {
-      responseObject.detail         = "API didn't return any error details"
+      responseObject.detail = "API didn't return any error details"
       responseObject.readableDetail = "Unknown server error"
     }
 
     return responseObject
   }
 
-  async get (params: P): Promise<APIResponse<T>> {
+  async get (params?: P): Promise<APIResponse<T>> {
     let path = this.path
 
-    if (Object.keys(params).length) {
+    if (Object.keys(params || {}).length) {
       const encoded = _encodeQueryParams(params)
       path += `?${encoded}`
     }
 
     const opts = {
-      method:  'GET',
+      method: 'GET',
       headers: {
-        'Accept':       'application/json',
+        'Accept': 'application/json',
         'Content-Type': 'application/json'
       },
     }
@@ -71,7 +72,7 @@ export class APIMethod<T, P: $Subtype<Object>> {
     catch (err) {
       return new APIResponse({
         statusCode: null,
-        error:      err,
+        error: err,
       })
     }
 
@@ -85,7 +86,7 @@ export class APIMethod<T, P: $Subtype<Object>> {
     catch (err) {
       return new APIResponse({
         statusCode: null,
-        error:      err,
+        error: err,
       })
     }
 
@@ -97,7 +98,7 @@ export class APIMethod<T, P: $Subtype<Object>> {
     catch (err) {
       return new APIResponse({
         statusCode: res.status,
-        error:      err,
+        error: err,
       })
     }
 
@@ -108,8 +109,8 @@ export class APIMethod<T, P: $Subtype<Object>> {
     }
     catch (err) {
       responseObject = new APIResponse({
-        statusCode:     res.status,
-        detail:         "API request succeeded but couldn't parse JSON",
+        statusCode: res.status,
+        detail: "API request succeeded but couldn't parse JSON",
         readableDetail: "Unknown server error",
       })
     }
@@ -119,3 +120,5 @@ export class APIMethod<T, P: $Subtype<Object>> {
 }
 
 export const systemStats: APIMethod<SystemDatum[],SystemStatFilter> = new APIMethod('/api/system/stats')
+export const logs: APIMethod<LoggerDatum[],LogFilter> = new APIMethod('/api/logs')
+export const config: APIMethod<ServerDefinition,{}> = new APIMethod('/api/config')

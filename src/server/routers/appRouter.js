@@ -10,7 +10,6 @@ import ReactDOMServer from 'react-dom/server'
 import env from '../env'
 import type {NodeEnv} from '../env'
 import webpack from 'webpack'
-import type {Dispatch} from 'lib/typedefs/redux'
 import Monitor from 'lib/monitors/monitor'
 
 // Needed for onTouchTap
@@ -22,15 +21,6 @@ injectTapEventPlugin();
 const NODE_ENV: NodeEnv = env.NODE_ENV
 
 export default function (monitor: Monitor) {
-  // Ensure that the default
-  const store = getStore({}, {logger: false})
-  const dispatch: Dispatch = store.dispatch.bind(store)
-
-  // Seed the SSR app with latest data from the monitor!
-  dispatch({type: 'root/RECEIVE_CONFIG', config: monitor.servers})
-  dispatch({type: 'root/RECEIVE_LATEST', latest: monitor.latest})
-
-  monitor.on('data', () => dispatch({type: 'root/RECEIVE_LATEST', latest: monitor.latest}))
 
   const router = Router()
 
@@ -71,6 +61,7 @@ export default function (monitor: Monitor) {
     const routes = _routes()
 
     match({routes, location}, (err, redirectLocation, renderProps) => {
+
       if (err) return next(err)
 
       if (redirectLocation) {
@@ -93,6 +84,13 @@ export default function (monitor: Monitor) {
       const fetchData = (Comp && Comp.fetchData) || (() => Promise.resolve())
 
       const {location, params, history} = renderProps
+
+      // Ensure that the default
+      const store = getStore({
+        root: {
+          config: monitor.servers,
+        },
+      }, {logger: false})
 
       fetchData({store, location, params, history})
         .then(() => {

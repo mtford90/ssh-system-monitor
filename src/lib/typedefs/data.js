@@ -57,20 +57,6 @@ export type SystemDatum = {
   timestamp: number,
 }
 
-// A collection of all the latest data from a host
-export type HostStatsCollection = {
-  cpuUsage: number | null,
-  swapUsedPercentage: number | null,
-  memoryUsedPercentage: number | null,
-  averageLoad: SystemAverageLoad | null,
-  percentageDiskSpaceUsed: {
-    [path:string]: number | null
-  },
-  processInfo: {
-    [processId:string]: ProcessInfo | null
-  },
-}
-
 // Info about a process obtained from 'ps' command
 export type ProcessInfo = {
   pid: number,
@@ -110,8 +96,6 @@ export type NEDBOptions = {
   corruptAlertThreshold?: number,
   compareStrings?: (a: string, b: string) => -1 | 0 | 1,
 }
-
-export type LatestHostStats = {[host:string]: HostStatsCollection}
 
 export const DataTypes = {
   'cpuUsage': 'cpuUsage',

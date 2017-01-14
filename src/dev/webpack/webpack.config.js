@@ -5,7 +5,7 @@ import loaders from './loaders.config'
 import plugins from './plugins.config'
 
 module.exports = {
-  devtool: null,
+  devtool: 'source-map',
   entry:   [
     'webpack-hot-middleware/client',
     'babel-polyfill',

@@ -13,6 +13,9 @@ export type LogsAction = {
   params: LogFilter,
   logs: LoggerDatum[]
 } | {
+  type: 'logs/FETCH_LOGS',
+  params: LogFilter
+} | {
   type: 'logs/RECEIVE_LOG',
   params: LogFilter,
   log: LoggerDatum
@@ -31,10 +34,11 @@ export type LogsSubstate = {
 
 export const DefaultLogsSubstate: LogsSubstate = {
   selectedServer: null,
-  selectedLog:    null,
-  logs:           [],
-  params:         {},
-  searchString:   '',
+  selectedLog: null,
+  logs: [],
+  params: {},
+  searchString: '',
+  fetching: false,
 }
 
 export default function reducer (
@@ -52,17 +56,24 @@ export default function reducer (
         ...state,
         selectedLog: action.log,
       }
+    case 'logs/FETCH_LOGS':
+      return {
+        ...state,
+        fetching: true,
+        params: action.params,
+      }
     case 'logs/RECEIVE_LOGS':
       return {
         ...state,
+        fetching: false,
         params: action.params,
-        logs:   action.logs,
+        logs: action.logs,
       }
     case 'logs/RECEIVE_LOG':
       return {
         ...state,
         params: action.params,
-        logs:   [action.log, ...state.logs],
+        logs: [action.log, ...state.logs],
       }
     case 'logs/SET_SEARCH_STRING':
       return {

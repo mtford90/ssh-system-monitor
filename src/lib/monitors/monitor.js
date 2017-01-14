@@ -11,13 +11,11 @@ import type {
   ServerDefinition,
   SystemDatum,
   ProcessDefinition,
-  HostStatsCollection,
   ProcessInfo,
   SimpleDataType,
   LogDefinition,
   LoggerDatum,
 } from '../typedefs/data'
-import {initLatestStats, receiveSystemDatum} from '../util/data'
 import DockerLogger from '../logging/dockerLogger'
 import Logger from '../logging/logger'
 import {SSHDataStore} from 'lib/storage/typedefs'
@@ -26,7 +24,7 @@ import NEDBDataStore from 'lib/storage/NEDBDataStore'
 import InternalLogging from '../internalLogging'
 const log = InternalLogging.Monitor
 
-export const ERROR_POOL_FACTORY_CREATE  = 'factoryCreateError'
+export const ERROR_POOL_FACTORY_CREATE = 'factoryCreateError'
 export const ERROR_POOL_FACTORY_DESTROY = 'factoryDestroyError'
 
 function asyncInterval (fn: Function, n: number = 10000): Function {
@@ -99,10 +97,9 @@ export default class Monitor extends EventEmitter {
     store: SSHDataStore,
   }
   servers: ServerDefinition[]
-  pools: {[id:number]: Pool}                   = {}
-  latest: {[host:string]: HostStatsCollection} = {}
-  intervals: {[id:number]: Function[]}         = {}
-  loggers: {[id:number]: Logger[]}             = {}
+  pools: {[id:number]: Pool} = {}
+  intervals: {[id:number]: Function[]} = {}
+  loggers: {[id:number]: Logger[]} = {}
 
   constructor (
     servers: ServerDefinition[],
@@ -122,11 +119,9 @@ export default class Monitor extends EventEmitter {
     }
 
     this.opts = {
-      rate:  opts.rate || 10000,
+      rate: opts.rate || 10000,
       store: _store
     }
-
-    this.latest = initLatestStats(servers)
   }
 
   acquireExecuteRelease (id: number, desc: string, fn: (client: Client) => Promise<*>): Promise<*> {
@@ -145,19 +140,18 @@ export default class Monitor extends EventEmitter {
   // TODO: Can't be doing this
   simpleCommandInterval (id: number, dataType: SimpleDataType): Function {
     return asyncInterval(async () => {
-      const cmd: Function            = system[dataType]
-      const value                    = await this.acquireExecuteRelease(id, dataType, client => cmd(client))
+      const cmd: Function = system[dataType]
+      const value = await this.acquireExecuteRelease(id, dataType, client => cmd(client))
       const server: ServerDefinition = this.servers[id]
 
       const datum: SystemDatum = {
-        type:      dataType,
+        type: dataType,
         server,
         value,
-        extra:     {},
+        extra: {},
         timestamp: Date.now()
       }
 
-      this.latest = receiveSystemDatum(this.latest, datum)
       this.emitData(datum)
     }, this.opts.rate)
   }
@@ -196,7 +190,7 @@ export default class Monitor extends EventEmitter {
 
   _configureSSHPools () {
     _.forEach(this.servers, (server: ServerDefinition, idx: number) => {
-      const pool      = constructPool(server)
+      const pool = constructPool(server)
       this.pools[idx] = pool
 
       pool.on(ERROR_POOL_FACTORY_CREATE, err => {
@@ -213,25 +207,9 @@ export default class Monitor extends EventEmitter {
     })
   }
 
-  _configureLatest () {
-    this.servers.map((s: ServerDefinition) => {
-      const paths         = s.paths || []
-      const host          = s.ssh.host
-      const latest        = this.latest[host]
-      const diskSpaceUsed = {}
-
-      paths.forEach(path => {
-        diskSpaceUsed[path] = null
-      })
-
-      latest.percentageDiskSpaceUsed = diskSpaceUsed
-      this.latest[host]              = latest
-    })
-  }
-
   _configureCommands () {
     _.forEach(this.servers, (server: ServerDefinition, idx: number) => {
-      const paths: string[]                = (server.paths || [])
+      const paths: string[] = (server.paths || [])
       const processes: ProcessDefinition[] = (server.processes || [])
 
       const _intervals = [
@@ -244,16 +222,15 @@ export default class Monitor extends EventEmitter {
             const value: number = (await this.acquireExecuteRelease(idx, `percentageDiskSpaceUsed(${path})`, client => system.percentageDiskSpaceUsed(client, path)))
 
             const datum: SystemDatum = {
-              type:      'percentageDiskSpaceUsed',
+              type: 'percentageDiskSpaceUsed',
               server,
               value,
-              extra:     {
+              extra: {
                 path,
               },
               timestamp: Date.now()
             }
 
-            this.latest = receiveSystemDatum(this.latest, datum)
             this.emitData(datum)
 
           }, this.opts.rate)
@@ -263,16 +240,15 @@ export default class Monitor extends EventEmitter {
             const value: ProcessInfo = await this.acquireExecuteRelease(idx, `processInfo(${p.id})`, client => process.info(client, p.grep))
 
             const datum: SystemDatum = {
-              type:      'processInfo',
+              type: 'processInfo',
               server,
               value,
-              extra:     {
+              extra: {
                 process: p
               },
               timestamp: Date.now()
             }
 
-            this.latest = receiveSystemDatum(this.latest, datum)
             this.emitData(datum)
           }, this.opts.rate)
         })
@@ -295,8 +271,8 @@ export default class Monitor extends EventEmitter {
           case 'command': {
             const logger = new Logger({
               serverDefinition: server,
-              logDefinition:    l,
-              cmd:              l.grep
+              logDefinition: l,
+              cmd: l.grep
             })
             logger.on('data', (datum: LoggerDatum) => this.emitLogData(datum))
             loggerPromises.push(
@@ -316,7 +292,7 @@ export default class Monitor extends EventEmitter {
           case 'docker': {
             const logger = new DockerLogger({
               serverDefinition: server,
-              logDefinition:    l,
+              logDefinition: l,
             })
             logger.on('data', (datum: LoggerDatum) => this.emitLogData(datum))
 
@@ -359,7 +335,6 @@ export default class Monitor extends EventEmitter {
 
     log.debug(`Monitor starting up - monitoring ${numServers} servers`)
 
-    this._configureLatest()
     this._configureSSHPools()
     this._configureCommands()
 
@@ -382,10 +357,10 @@ export default class Monitor extends EventEmitter {
     _.flatten(_.values(this.intervals)).forEach((fn: Function) => fn())
     log.debug('Cleared intervals')
 
-    const pools    = this.pools
+    const pools = this.pools
     const numPools = _.keys(pools).length
 
-    const loggers    = _.chain(this.loggers).values().flatten().compact().value()
+    const loggers = _.chain(this.loggers).values().flatten().compact().value()
     const numLoggers = loggers.length
 
     await Promise.all([

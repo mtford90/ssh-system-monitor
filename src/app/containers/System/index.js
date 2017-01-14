@@ -2,9 +2,8 @@
 
 import React, {Component, PropTypes} from 'react';
 import {connect} from 'react-redux'
-import type {ServerDefinition, HostStatsCollection, LatestHostStats} from 'lib/typedefs/data'
+import type {ServerDefinition} from 'lib/typedefs/data'
 import _ from 'lodash'
-import SystemStatisticsPanel from '../../components/SystemStatisticsPanel'
 import {Line} from 'react-chartjs-2';
 import type {SystemSubstate} from '../../redux/reducers/system'
 import {$listen} from '../../redux/reducers/system'
@@ -15,7 +14,6 @@ import TimePicker from 'material-ui/TimePicker';
 import moment from 'moment'
 
 type Props = {
-  latest: LatestHostStats,
   config: {[host:string]: ServerDefinition},
   system: SystemSubstate,
   dispatch: Dispatch
@@ -93,6 +91,12 @@ class System extends Component {
   }
 
   componentDidMount () {
+    this.$fetchSystemStats()
+  }
+
+  $fetchSystemStats () {
+    if (this._stopListener) this._stopListener()
+
     const fromDateTime = this._getFromDateTime()
     const toDateTime = this._getToDateTime()
 
@@ -121,6 +125,10 @@ class System extends Component {
     else {
       throw new TypeError(`$listen should return a function to stop listening`)
     }
+  }
+
+  componentWillUnmount() {
+    if (this._stopListener) this._stopListener()
   }
 
   _getDateTime (date: Timestamp, time: Timestamp): Timestamp {
@@ -186,8 +194,6 @@ class System extends Component {
   }
 
   render () {
-    const latestStats: LatestHostStats = this.props.latest
-
     const data = {
       labels: [
         "January",
@@ -278,26 +284,6 @@ class System extends Component {
             onChange={this.onToTimeChange}
           />
         </div>
-
-        {_.map(latestStats, (serverStats: HostStatsCollection, host: string) => {
-          const server: ? ServerDefinition = this.props.config[host]
-
-          if (server && serverStats) {
-            return (
-              <SystemStatisticsPanel
-                key={host}
-                server={server}
-                stats={serverStats}
-              />
-            )
-          }
-
-          return (
-            <div key={host}>
-              Loading...
-            </div>
-          )
-        })}
         <Line
           data={data}
           options={options}
@@ -310,7 +296,6 @@ class System extends Component {
 export default connect(
   state => {
     return {
-      latest: state.root.latest,
       config: state.root.config,
       system: state.system,
     }

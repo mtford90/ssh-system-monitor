@@ -7,6 +7,7 @@ import {syncHistoryWithStore} from 'react-router-redux'
 import Config from './containers/Config/index'
 import System from './containers/System/index'
 import Logs from './containers/Logs/index'
+import NotFound from './containers/NotFound/index'
 
 export default function routes (store) {
   let history = browserHistory
@@ -40,6 +41,10 @@ export default function routes (store) {
           <Route
             path="config"
             component={Config}
+          />
+          <Route
+            path="*"
+            component={NotFound}
           />
         </Route>
       </Route>

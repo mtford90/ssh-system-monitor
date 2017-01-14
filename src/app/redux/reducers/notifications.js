@@ -1,6 +1,7 @@
 /* @flow */
 import type {Notification} from 'app/common/notifications/typedefs'
 import uuid from '../../../lib/util/uuid'
+import type {NotificationPosition} from '../../common/notifications/typedefs'
 
 export type NotificationsAction = {
   type: 'notifications/ADD_NOTIFICATION',
@@ -10,50 +11,50 @@ export type NotificationsAction = {
   id: string,
 }
 
-export function errorAction (message: string) {
+export function createErrorAction (message: string, position?: NotificationPosition = 'tr') {
   return {
-    type:         'notifications/ADD_NOTIFICATION',
+    type: 'notifications/ADD_NOTIFICATION',
     notification: {
-      id:       uuid(),
-      message:  message,
-      level:    'error',
-      position: 'tr',
+      id: uuid(),
+      message: message,
+      level: 'error',
+      position,
     }
   }
 }
 
-export function warningAction (message: string) {
+export function createWarningAction (message: string, position?: NotificationPosition = 'tr') {
   return {
-    type:         'notifications/ADD_NOTIFICATION',
+    type: 'notifications/ADD_NOTIFICATION',
     notification: {
-      id:       uuid(),
-      message:  message,
-      level:    'warning',
-      position: 'tr',
+      id: uuid(),
+      message: message,
+      level: 'warning',
+      position,
     }
   }
 }
 
-export function successAction (message: string) {
+export function createSuccessAction (message: string, position?: NotificationPosition = 'tr') {
   return {
-    type:         'notifications/ADD_NOTIFICATION',
+    type: 'notifications/ADD_NOTIFICATION',
     notification: {
-      id:       uuid(),
-      message:  message,
-      level:    'success',
-      position: 'tr',
+      id: uuid(),
+      message: message,
+      level: 'success',
+      position,
     }
   }
 }
 
-export function infoAction (message: string) {
+export function createInfoAction (message: string, position?: NotificationPosition = 'tr') {
   return {
-    type:         'notifications/ADD_NOTIFICATION',
+    type: 'notifications/ADD_NOTIFICATION',
     notification: {
-      id:       uuid(),
-      message:  message,
-      level:    'info',
-      position: 'tr',
+      id: uuid(),
+      message: message,
+      level: 'info',
+      position,
     }
   }
 }
@@ -76,7 +77,7 @@ export default function notifications (state: NotificationsSubstate = DefaultNot
       }
     }
     case 'notifications/REMOVE_NOTIFICATION': {
-      const id            = action.id
+      const id = action.id
       const notifications = state.notifications.filter((n: Notification) => n.id !== id)
       return {
         ...state,
