@@ -2,11 +2,10 @@
 
 import chai from 'chai'
 import Monitor, {waitForSystemDatum, waitForLoggerDatum} from './monitor'
-import _ from 'lodash'
 import {servers} from '../../dev/config'
 import {describe, it} from 'mocha'
 import {Stats} from '../typedefs/data'
-import type {SystemDatum, DataType, ServerDefinition, LoggerDatum} from '../typedefs/data'
+import type {SystemDatum, DiskspaceUsedValue, ServerDefinition, LoggerDatum} from '../typedefs/data'
 import NEDBDataStore from '../storage/NEDBDataStore'
 
 const assert = chai.assert
@@ -20,7 +19,7 @@ describe('monitor', function () {
       const m        = new Monitor(_servers, {rate: 1000})
       await m.start()
 
-      const data: SystemDatum = await waitForSystemDatum(m)
+      const data: SystemDatum<*> = await waitForSystemDatum(m)
 
       assert(data)
 
@@ -34,13 +33,13 @@ describe('monitor', function () {
       const dataType = Stats.percentageDiskSpaceUsed
       const path     = '/'
 
-      const data: SystemDatum = await waitForSystemDatum(
+      const datum: SystemDatum<DiskspaceUsedValue> = await waitForSystemDatum(
         m,
         datum => datum.type === dataType
       )
 
       assert(
-        data.extra.path === path,
+        datum.value.path === path,
         `path variable on the datum doesnt match path`,
       )
 
@@ -99,7 +98,7 @@ describe('monitor', function () {
         m,
       )
 
-      const systemDatum: SystemDatum = await waitForSystemDatum(
+      const systemDatum: SystemDatum<*> = await waitForSystemDatum(
         m,
       )
 

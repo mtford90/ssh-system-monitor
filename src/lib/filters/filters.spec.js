@@ -4,202 +4,184 @@ import chai from 'chai'
 import _ from 'lodash'
 import {servers} from '../../dev/config'
 import {describe, it, before} from 'mocha'
-import type {SystemDatum, ServerDefinition, LoggerDatum} from '../typedefs/data'
+import type {SystemDatum, ServerDefinition, LoggerDatum, DiskspaceUsedValue} from '../typedefs/data'
 import {filterSystemStats, filterLogs} from './index'
 
 const assert = chai.assert
 
 describe("filters", function () {
   const operatorDev = servers[0]
-  const portalDev   = servers[2]
+  const portalDev = servers[2]
 
   describe("system", function () {
     it("empty", () => {
-      const mockData: SystemDatum[] = [{
-        server:    operatorDev,
-        type:      'cpuUsage',
-        value:     0.17,
-        extra:     {},
+      const mockData: SystemDatum<*>[] = [{
+        server: operatorDev,
+        type: 'cpuUsage',
+        value: 0.17,
         timestamp: 90,
       }]
 
-      const filtered: SystemDatum[] = filterSystemStats(mockData, {})
+      const filtered: SystemDatum<*>[] = filterSystemStats(mockData, {})
 
       assert.equal(filtered.length, 1)
     })
 
     it("name", () => {
-      const mockData              = [
+      const mockData = [
         {
-          server:    operatorDev,
-          type:      'cpuUsage',
-          value:     0.17,
-          extra:     {},
+          server: operatorDev,
+          type: 'cpuUsage',
+          value: 0.17,
           timestamp: 90,
         },
         {
-          server:    portalDev,
-          type:      'cpuUsage',
-          value:     0.17,
-          extra:     {},
+          server: portalDev,
+          type: 'cpuUsage',
+          value: 0.17,
           timestamp: 100,
         },
         {
-          server:    operatorDev,
-          type:      'cpuUsage',
-          value:     0.17,
-          extra:     {},
+          server: operatorDev,
+          type: 'cpuUsage',
+          value: 0.17,
           timestamp: 120,
         }
       ]
       const portalDevName: string = portalDev.name
 
-      const systemStats: SystemDatum[] = filterSystemStats(mockData, {name: portalDevName})
+      const systemStats: SystemDatum<*>[] = filterSystemStats(mockData, {name: portalDevName})
 
       assert.equal(systemStats.length, 1)
       assert(_.every(systemStats, s => s.server.name === portalDevName))
     })
 
     it("host", () => {
-      let mockData: SystemDatum[] = [
+      let mockData: SystemDatum<*>[] = [
         {
-          server:    operatorDev,
-          type:      'cpuUsage',
-          value:     0.17,
-          extra:     {},
+          server: operatorDev,
+          type: 'cpuUsage',
+          value: 0.17,
           timestamp: 90,
         },
         {
-          server:    portalDev,
-          type:      'cpuUsage',
-          value:     0.17,
-          extra:     {},
+          server: portalDev,
+          type: 'cpuUsage',
+          value: 0.17,
           timestamp: 100,
         },
         {
-          server:    operatorDev,
-          type:      'cpuUsage',
-          value:     0.17,
-          extra:     {},
+          server: operatorDev,
+          type: 'cpuUsage',
+          value: 0.17,
           timestamp: 120,
         }
       ]
 
       const portalDevHost: string = portalDev.ssh.host
 
-      const systemStats: SystemDatum[] = filterSystemStats(mockData, {host: portalDevHost})
+      const systemStats: SystemDatum<*>[] = filterSystemStats(mockData, {host: portalDevHost})
       assert.equal(systemStats.length, 1)
       assert(_.every(systemStats, s => s.server.ssh.host === portalDevHost))
     })
 
     it("type", () => {
-      let mockData: SystemDatum[]
+      let mockData: SystemDatum<*>[]
 
       mockData = [
         {
-          server:    operatorDev,
-          type:      'cpuUsage',
-          value:     0.17,
-          extra:     {},
+          server: operatorDev,
+          type: 'cpuUsage',
+          value: 0.17,
           timestamp: 90,
         },
         {
-          server:    portalDev,
-          type:      'memoryUsedPercentage',
-          value:     0.17,
-          extra:     {},
+          server: portalDev,
+          type: 'memoryUsedPercentage',
+          value: 0.17,
           timestamp: 100,
         },
       ]
 
-      const systemStats: SystemDatum[] = filterSystemStats(mockData, {type: 'cpuUsage'})
+      const systemStats: SystemDatum<*>[] = filterSystemStats(mockData, {type: 'cpuUsage'})
       assert.equal(systemStats.length, 1)
       assert(_.every(systemStats, s => s.type === 'cpuUsage'))
     })
 
-    it("extra.path", () => {
-      let mockData: SystemDatum[]
+    it("value.path", () => {
+      let mockData: SystemDatum<DiskspaceUsedValue>[]
 
       mockData = [
         {
-          server:    operatorDev,
-          type:      'percentageDiskSpaceUsed',
-          value:     0.17,
-          extra:     {
-            path: '/'
+          server: operatorDev,
+          type: 'percentageDiskSpaceUsed',
+          value: {
+            path: '/',
+            perc: 0.17
           },
           timestamp: 90,
         },
         {
-          server:    operatorDev,
-          type:      'percentageDiskSpaceUsed',
-          value:     0.17,
-          extra:     {
-            path: '/xyz'
+          server: operatorDev,
+          type: 'percentageDiskSpaceUsed',
+          value: {
+            path: '/xyz',
+            perc: 0.17,
           },
           timestamp: 100,
         },
       ]
 
-      const systemStats: SystemDatum[] = filterSystemStats(mockData, {extra: {path: '/'}})
+      const systemStats: SystemDatum<*>[] = filterSystemStats(mockData, {value: {path: '/'}})
       assert.equal(systemStats.length, 1)
     })
 
-    it("extra.process.id", () => {
-      let mockData: SystemDatum[]
+    it("value.process.id", () => {
+      let mockData: SystemDatum<*>[]
 
       mockData = [
         {
-          server:    operatorDev,
-          type:      'processInfo',
-          value:     0.17,
-          extra:     {
-            process: {
-              id:   '2',
-              grep: 'xyz',
-            }
+          server: operatorDev,
+          type: 'processInfo',
+          value: {
+            processId: '2',
+            info: {},
           },
           timestamp: 90,
         },
         {
-          server:    operatorDev,
-          type:      'processInfo',
-          value:     0.17,
-          extra:     {
-            process: {
-              id:   '1',
-              grep: 'xyz',
-            }
+          server: operatorDev,
+          type: 'processInfo',
+          value: {
+            processId: '1',
+            info: {},
           },
           timestamp: 100,
         },
       ]
 
-      const systemStats: SystemDatum[] = filterSystemStats(mockData, {extra: {process: {id: '1'}}})
+      const systemStats: SystemDatum<*>[] = filterSystemStats(mockData, {value: {process: {id: '1'}}})
       assert.equal(systemStats.length, 1)
     })
 
     describe("timestamp", function () {
-      let mockData: SystemDatum[] = [
+      let mockData: SystemDatum<mixed>[] = [
         {
-          server:    operatorDev,
-          type:      'cpuUsage',
-          value:     0.17,
-          extra:     {},
+          server: operatorDev,
+          type: 'cpuUsage',
+          value: 0.17,
           timestamp: 90,
         },
         {
-          server:    operatorDev,
-          type:      'cpuUsage',
-          value:     0.17,
-          extra:     {},
+          server: operatorDev,
+          type: 'cpuUsage',
+          value: 0.17,
           timestamp: 100,
         },
         {
-          server:    operatorDev,
-          type:      'cpuUsage',
-          value:     0.17,
-          extra:     {},
+          server: operatorDev,
+          type: 'cpuUsage',
+          value: 0.17,
           timestamp: 120,
         }
       ]
@@ -207,7 +189,7 @@ describe("filters", function () {
       it("gt", () => {
         const n = 100
 
-        const results: SystemDatum[] = filterSystemStats(mockData, {
+        const results: SystemDatum<*>[] = filterSystemStats(mockData, {
           timestamp: {
             gt: n,
           }
@@ -225,7 +207,7 @@ describe("filters", function () {
       it("gte", () => {
         const n = 100
 
-        const results: SystemDatum[] = filterSystemStats(mockData, {
+        const results: SystemDatum<*>[] = filterSystemStats(mockData, {
           timestamp: {
             gte: n,
           }
@@ -243,7 +225,7 @@ describe("filters", function () {
       it("lt", () => {
         const n = 100
 
-        const stats: SystemDatum[] = filterSystemStats(mockData, {
+        const stats: SystemDatum<*>[] = filterSystemStats(mockData, {
           timestamp: {
             lt: n,
           }
@@ -261,7 +243,7 @@ describe("filters", function () {
       it("lte", () => {
         const n = 100
 
-        const stats: SystemDatum[] = filterSystemStats(mockData, {
+        const stats: SystemDatum<*>[] = filterSystemStats(mockData, {
           timestamp: {
             lte: n,
           }
@@ -280,7 +262,7 @@ describe("filters", function () {
         const lt = 120
         const gt = 90
 
-        const stats: SystemDatum[] = filterSystemStats(mockData, {
+        const stats: SystemDatum<*>[] = filterSystemStats(mockData, {
           timestamp: {
             lt,
             gt
@@ -303,11 +285,11 @@ describe("filters", function () {
   describe("logs", function () {
     it("empty query", () => {
       const mockData: LoggerDatum[] = [{
-        source:    'stdout',
-        text:      'yoyoyo',
+        source: 'stdout',
+        text: 'yoyoyo',
         timestamp: 100,
-        server:    operatorDev,
-        logger:    {
+        server: operatorDev,
+        logger: {
           name: 'xyz',
           grep: 'asdasd',
           type: 'command',
@@ -322,22 +304,22 @@ describe("filters", function () {
     it("name", () => {
       const mockData: LoggerDatum[] = [
         {
-          source:    'stdout',
-          text:      'yoyoyo',
+          source: 'stdout',
+          text: 'yoyoyo',
           timestamp: 100,
-          server:    operatorDev,
-          logger:    {
+          server: operatorDev,
+          logger: {
             name: 'xyz',
             grep: 'asdasd',
             type: 'command',
           }
         },
         {
-          source:    'stdout',
-          text:      'yoyoyo',
+          source: 'stdout',
+          text: 'yoyoyo',
           timestamp: 100,
-          server:    operatorDev,
-          logger:    {
+          server: operatorDev,
+          logger: {
             name: 'abc',
             grep: 'asdasd',
             type: 'command',
@@ -353,22 +335,22 @@ describe("filters", function () {
     it("text", () => {
       const mockData: LoggerDatum[] = [
         {
-          source:    'stdout',
-          text:      'yoyoyo',
+          source: 'stdout',
+          text: 'yoyoyo',
           timestamp: 100,
-          server:    operatorDev,
-          logger:    {
+          server: operatorDev,
+          logger: {
             name: 'xyz',
             grep: 'asdasd',
             type: 'command',
           }
         },
         {
-          source:    'stdout',
-          text:      '22yo22yo',
+          source: 'stdout',
+          text: '22yo22yo',
           timestamp: 100,
-          server:    operatorDev,
-          logger:    {
+          server: operatorDev,
+          logger: {
             name: 'abc',
             grep: 'asdasd',
             type: 'command',
@@ -387,22 +369,22 @@ describe("filters", function () {
     it("source", () => {
       const mockData: LoggerDatum[] = [
         {
-          source:    'stdout',
-          text:      'yoyoyo',
+          source: 'stdout',
+          text: 'yoyoyo',
           timestamp: 100,
-          server:    operatorDev,
-          logger:    {
+          server: operatorDev,
+          logger: {
             name: 'xyz',
             grep: 'asdasd',
             type: 'command',
           }
         },
         {
-          source:    'stderr',
-          text:      'yoyoyo',
+          source: 'stderr',
+          text: 'yoyoyo',
           timestamp: 100,
-          server:    operatorDev,
-          logger:    {
+          server: operatorDev,
+          logger: {
             name: 'abc',
             grep: 'asdasd',
             type: 'command',
@@ -418,11 +400,11 @@ describe("filters", function () {
     describe("timestamp", () => {
       let mockData: LoggerDatum[] = [
         {
-          source:    'stdout',
-          text:      'yoyoyo',
+          source: 'stdout',
+          text: 'yoyoyo',
           timestamp: 90,
-          server:    operatorDev,
-          logger:    {
+          server: operatorDev,
+          logger: {
             name: 'xyz',
             grep: 'asdasd',
             type: 'command',
@@ -430,22 +412,22 @@ describe("filters", function () {
         },
 
         {
-          source:    'stdout',
-          text:      'yoyoyo',
+          source: 'stdout',
+          text: 'yoyoyo',
           timestamp: 100,
-          server:    operatorDev,
-          logger:    {
+          server: operatorDev,
+          logger: {
             name: 'xyz',
             grep: 'asdasd',
             type: 'command',
           }
         },
         {
-          source:    'stdout',
-          text:      'yoyoyo',
+          source: 'stdout',
+          text: 'yoyoyo',
           timestamp: 120,
-          server:    operatorDev,
-          logger:    {
+          server: operatorDev,
+          logger: {
             name: 'xyz',
             grep: 'asdasd',
             type: 'command',
@@ -551,22 +533,22 @@ describe("filters", function () {
     it("host", () => {
       const mockData: LoggerDatum[] = [
         {
-          source:    'stdout',
-          text:      'yoyoyo',
+          source: 'stdout',
+          text: 'yoyoyo',
           timestamp: 100,
-          server:    operatorDev,
-          logger:    {
+          server: operatorDev,
+          logger: {
             name: 'xyz',
             grep: 'asdasd',
             type: 'command',
           }
         },
         {
-          source:    'stdout',
-          text:      'yoyoyo',
+          source: 'stdout',
+          text: 'yoyoyo',
           timestamp: 100,
-          server:    portalDev,
-          logger:    {
+          server: portalDev,
+          logger: {
             name: 'abc',
             grep: 'asdasd',
             type: 'command',

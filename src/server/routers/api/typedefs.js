@@ -53,7 +53,7 @@ export class APIResponse<T> {
   }
 }
 
-export class SystemStatsAPIResponse extends APIResponse<SystemDatum[]> {}
+export class SystemStatsAPIResponse extends APIResponse<SystemDatum<*>[]> {}
 export class LogsAPIResponse extends APIResponse<LoggerDatum[]> {}
 
 export function sendAPIResponse<T> (res: express$Response, opts: APIResponseOptions<T>) {

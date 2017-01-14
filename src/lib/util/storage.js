@@ -3,7 +3,7 @@
 import NEDBDataStore from '../storage/NEDBDataStore'
 import type {SystemDatum, LoggerDatum} from '../typedefs/data'
 
-export async function insertMonitorData (data: SystemDatum[], store?: NEDBDataStore): Promise<NEDBDataStore> {
+export async function insertMonitorData (data: SystemDatum<any>[], store?: NEDBDataStore): Promise<NEDBDataStore> {
   const _store = store || new NEDBDataStore() // Default to an in memory store
 
   await Promise.all(data.map(d => {

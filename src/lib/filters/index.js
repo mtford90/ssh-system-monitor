@@ -1,7 +1,6 @@
 /* @flow */
-import type {LoggerDatum, SystemDatum} from '../typedefs/data'
+import type {LoggerDatum, SystemDatum, DataType, DiskspaceUsedValue} from '../typedefs/data'
 import type {SystemStatFilter, LogFilter} from 'lib/storage/typedefs'
-import _ from 'lodash'
 
 export function filterLogs (logs: LoggerDatum[], filter?: LogFilter = {}): LoggerDatum[] {
   return logs.filter((loggerDatum: LoggerDatum) => {
@@ -63,10 +62,13 @@ export function filterLogs (logs: LoggerDatum[], filter?: LogFilter = {}): Logge
   })
 }
 
-export function filterSystemStats (stats: SystemDatum[], filter?: SystemStatFilter = {}): SystemDatum[] {
+export function filterSystemStats (stats: SystemDatum<mixed>[], filter?: SystemStatFilter = {}): SystemDatum<*>[] {
   const timestamp = filter.timestamp
+  const filterType: ? DataType = filter.type
 
-  return stats.filter((s: SystemDatum) => {
+  return stats.filter((s: SystemDatum<mixed>) => {
+    const datumType = s.type
+
     if (timestamp) {
       const {gt, gte, lt, lte} = timestamp
 
@@ -93,10 +95,9 @@ export function filterSystemStats (stats: SystemDatum[], filter?: SystemStatFilt
       if (s.server.name !== name) return false
     }
 
-    const type = filter.type
 
-    if (type) {
-      if (s.type !== type) return false
+    if (filterType) {
+      if (datumType !== filterType) return false
     }
 
     const host = filter.host
@@ -105,27 +106,44 @@ export function filterSystemStats (stats: SystemDatum[], filter?: SystemStatFilt
       if (s.server.ssh.host !== host) return false
     }
 
-    const extra = filter.extra
+    const filterValue = filter.value
 
-    if (extra) {
-      const path = extra.path
+    if (filterValue) {
+      const filterPath: ? string = filterValue.path
 
-      if (path) {
-        if (s.extra.path !== path) return false
-      }
-
-      const process = extra.process
-
-      if (process) {
-        const processId = process.id
-        if (processId) {
-          if (s.extra.process) {
-            if (s.extra.process.id !== processId) {
-              return false
+      if (filterPath) {
+        if (typeof s.value === 'object' && s.value) {
+          const {path, perc} = s.value
+          if (typeof path === 'string' && typeof perc === 'number') {
+            const diskSpaceVal: DiskspaceUsedValue = {
+              perc,
+              path,
             }
+            if (diskSpaceVal.path !== filterPath) return false
           }
           else {
             return false
+          }
+        }
+        else {
+          return false
+        }
+      }
+
+      const filterProcess = filterValue.process
+
+      if (filterProcess) {
+        const filterProcessId = filterProcess.id
+        if (filterProcessId) {
+          const datumValue = s.value
+
+          if (datumValue && typeof datumValue === 'object') {
+            const {processId} = datumValue
+            if (typeof processId === 'string') {
+              if (processId !== filterProcessId) {
+                return false
+              }
+            }
           }
         }
       }

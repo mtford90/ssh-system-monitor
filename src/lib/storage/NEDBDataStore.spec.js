@@ -24,17 +24,16 @@ describe('NEDBDataStore', function () {
           server:    operatorDev,
           type:      'cpuUsage',
           value:     0.17,
-          extra:     {},
           timestamp: 90,
         }]
         store                       = await insertMonitorData(mockData)
-        const stats: SystemDatum[] = await store.querySystemStats()
+        const stats: SystemDatum<*>[] = await store.querySystemStats()
         assert.equal(stats.length, mockData.length)
         console.log('stats', JSON.stringify(stats))
       })
 
       describe("timestamp", function () {
-        let mockData: SystemDatum[]
+        let mockData: SystemDatum<*>[]
 
         before(async () => {
           const operatorDev = servers[0]
@@ -44,21 +43,18 @@ describe('NEDBDataStore', function () {
               server:    operatorDev,
               type:      'cpuUsage',
               value:     0.17,
-              extra:     {},
               timestamp: 90,
             },
             {
               server:    operatorDev,
               type:      'cpuUsage',
               value:     0.17,
-              extra:     {},
               timestamp: 100,
             },
             {
               server:    operatorDev,
               type:      'cpuUsage',
               value:     0.17,
-              extra:     {},
               timestamp: 120,
             }
           ]
@@ -69,7 +65,7 @@ describe('NEDBDataStore', function () {
         it("gt", async () => {
           const n = 100
 
-          const stats: SystemDatum[] = await store.querySystemStats({
+          const stats: SystemDatum<*>[] = await store.querySystemStats({
             timestamp: {
               gt: n,
             }
@@ -87,7 +83,7 @@ describe('NEDBDataStore', function () {
         it("gte", async () => {
           const n = 100
 
-          const stats: SystemDatum[] = await store.querySystemStats({
+          const stats: SystemDatum<*>[] = await store.querySystemStats({
             timestamp: {
               gte: n,
             }
@@ -105,7 +101,7 @@ describe('NEDBDataStore', function () {
         it("lt", async () => {
           const n = 100
 
-          const stats: SystemDatum[] = await store.querySystemStats({
+          const stats: SystemDatum<*>[] = await store.querySystemStats({
             timestamp: {
               lt: n,
             }
@@ -123,7 +119,7 @@ describe('NEDBDataStore', function () {
         it("lte", async () => {
           const n = 100
 
-          const stats: SystemDatum[] = await store.querySystemStats({
+          const stats: SystemDatum<*>[] = await store.querySystemStats({
             timestamp: {
               lte: n,
             }
@@ -142,7 +138,7 @@ describe('NEDBDataStore', function () {
           const lt = 120
           const gt = 90
 
-          const stats: SystemDatum[] = await store.querySystemStats({
+          const stats: SystemDatum<*>[] = await store.querySystemStats({
             timestamp: {
               lt,
               gt
@@ -162,7 +158,7 @@ describe('NEDBDataStore', function () {
       })
 
       it("name", async () => {
-        let mockData: SystemDatum[]
+        let mockData: SystemDatum<*>[]
         let operatorDev: ServerDefinition = servers[0]
         let portalDev: ServerDefinition   = servers[2]
 
@@ -171,21 +167,18 @@ describe('NEDBDataStore', function () {
             server:    operatorDev,
             type:      'cpuUsage',
             value:     0.17,
-            extra:     {},
             timestamp: 90,
           },
           {
             server:    portalDev,
             type:      'cpuUsage',
             value:     0.17,
-            extra:     {},
             timestamp: 100,
           },
           {
             server:    operatorDev,
             type:      'cpuUsage',
             value:     0.17,
-            extra:     {},
             timestamp: 120,
           }
         ]
@@ -196,13 +189,13 @@ describe('NEDBDataStore', function () {
 
         console.log('mockData', mockData)
 
-        const systemStats: SystemDatum[]  = await store.querySystemStats({name: portalDevName})
+        const systemStats: SystemDatum<*>[]  = await store.querySystemStats({name: portalDevName})
         assert.equal(systemStats.length, 1)
         assert(_.every(systemStats, s => s.server.name === portalDevName))
       })
 
       it("host", async () => {
-        let mockData: SystemDatum[]
+        let mockData: SystemDatum<*>[]
         let operatorDev: ServerDefinition = servers[0]
         let portalDev: ServerDefinition   = servers[2]
 
@@ -211,21 +204,18 @@ describe('NEDBDataStore', function () {
             server:    operatorDev,
             type:      'cpuUsage',
             value:     0.17,
-            extra:     {},
             timestamp: 90,
           },
           {
             server:    portalDev,
             type:      'cpuUsage',
             value:     0.17,
-            extra:     {},
             timestamp: 100,
           },
           {
             server:    operatorDev,
             type:      'cpuUsage',
             value:     0.17,
-            extra:     {},
             timestamp: 120,
           }
         ]
@@ -234,13 +224,13 @@ describe('NEDBDataStore', function () {
 
         const portalDevHost: string = portalDev.ssh.host
 
-        const systemStats: SystemDatum[]  = await store.querySystemStats({host: portalDevHost})
+        const systemStats: SystemDatum<*>[]  = await store.querySystemStats({host: portalDevHost})
         assert.equal(systemStats.length, 1)
         assert(_.every(systemStats, s => s.server.ssh.host === portalDevHost))
       })
 
       it("type", async () => {
-        let mockData: SystemDatum[]
+        let mockData: SystemDatum<*>[]
         let operatorDev: ServerDefinition = servers[0]
         let portalDev: ServerDefinition   = servers[2]
 
@@ -249,45 +239,43 @@ describe('NEDBDataStore', function () {
             server:    operatorDev,
             type:      'cpuUsage',
             value:     0.17,
-            extra:     {},
             timestamp: 90,
           },
           {
             server:    portalDev,
             type:      'memoryUsedPercentage',
             value:     0.17,
-            extra:     {},
             timestamp: 100,
           },
         ]
 
         store = await insertMonitorData(mockData)
 
-        const systemStats: SystemDatum[]  = await store.querySystemStats({type: 'cpuUsage'})
+        const systemStats: SystemDatum<*>[]  = await store.querySystemStats({type: 'cpuUsage'})
         assert.equal(systemStats.length, 1)
         assert(_.every(systemStats, s => s.type === 'cpuUsage'))
       })
 
       it("extra.path", async () => {
-        let mockData: SystemDatum[]
+        let mockData: SystemDatum<*>[]
         let operatorDev: ServerDefinition = servers[0]
 
         mockData = [
           {
             server:    operatorDev,
             type:      'percentageDiskSpaceUsed',
-            value:     0.17,
-            extra:     {
-              path: '/'
+            value: {
+              path: '/',
+              perc: 0.17,
             },
             timestamp: 90,
           },
           {
             server:    operatorDev,
             type:      'percentageDiskSpaceUsed',
-            value:     0.17,
-            extra:     {
-              path: '/xyz'
+            value: {
+              path: '/xyz',
+              perc: 0.17,
             },
             timestamp: 100,
           },
@@ -295,12 +283,12 @@ describe('NEDBDataStore', function () {
 
         store = await insertMonitorData(mockData)
 
-        const systemStats: SystemDatum[]  = await store.querySystemStats({extra: {path: '/'}})
+        const systemStats: SystemDatum<*>[]  = await store.querySystemStats({extra: {path: '/'}})
         assert.equal(systemStats.length, 1)
       })
 
       it("extra.process.id", async () => {
-        let mockData: SystemDatum[]
+        let mockData: SystemDatum<*>[]
         let operatorDev: ServerDefinition = servers[0]
 
         mockData = [
@@ -308,6 +296,7 @@ describe('NEDBDataStore', function () {
             server:    operatorDev,
             type:      'processInfo',
             value:     0.17,
+
             extra:     {
               process: {
                 id:   '2',
@@ -332,7 +321,7 @@ describe('NEDBDataStore', function () {
 
         store = await insertMonitorData(mockData)
 
-        const systemStats: SystemDatum[]  = await store.querySystemStats({extra: {process: {id: '1'}}})
+        const systemStats: SystemDatum<*>[]  = await store.querySystemStats({extra: {process: {id: '1'}}})
         assert.equal(systemStats.length, 1)
       })
     })

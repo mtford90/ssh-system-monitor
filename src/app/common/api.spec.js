@@ -136,10 +136,10 @@ describe('/api', function () {
 
     describe("system", function () {
       it("system stats", async () => {
-        const method: APIMethod<SystemDatum[],SystemStatFilter> = new APIMethod('/api/system/stats', `http://localhost:${env.PORT}`)
+        const method: APIMethod<SystemDatum<*>[],SystemStatFilter> = new APIMethod('/api/system/stats', `http://localhost:${env.PORT}`)
 
         const params: SystemStatFilter = {
-          extra: {
+          value: {
             path: '/xyz'
           }
         }
@@ -148,17 +148,17 @@ describe('/api', function () {
           {
             server: operatorDev,
             type: 'percentageDiskSpaceUsed',
-            value: 0.17,
-            extra: {
-              path: '/'
+            value: {
+              path: '/',
+              perc: 0.17
             },
             timestamp: 90,
           },
           {
             server: operatorDev,
             type: 'percentageDiskSpaceUsed',
-            value: 0.17,
-            extra: {
+            value: {
+              perc: 0.17,
               path: '/xyz'
             },
             timestamp: 100,
@@ -171,9 +171,9 @@ describe('/api', function () {
           return store.storeSystemDatum(d)
         }))
 
-        const res: APIResponse<SystemDatum[]> = await method.get(params)
+        const res: APIResponse<SystemDatum<*>[]> = await method.get(params)
 
-        const systemStats: SystemDatum[] = res.data
+        const systemStats: SystemDatum<*>[] = res.data
 
         console.log('systemStats', systemStats)
 
@@ -185,7 +185,7 @@ describe('/api', function () {
     describe("config", function () {
       it("config", async () => {
         const method: APIMethod<ServerDefinition[],{}> = new APIMethod('/api/config', `http://localhost:${env.PORT}`)
-        const res: APIResponse<SystemDatum[]> = await method.get()
+        const res: APIResponse<SystemDatum<*>[]> = await method.get()
 
         console.log('res', res)
         assert.equal(res.statusCode, 200)
@@ -196,23 +196,23 @@ describe('/api', function () {
 
   describe('errors', function () {
     it("404", async () => {
-      const method: APIMethod<SystemDatum[],SystemStatFilter> = new APIMethod('/asfat3rf', `http://localhost:${env.PORT}`)
+      const method: APIMethod<SystemDatum<*>[],SystemStatFilter> = new APIMethod('/asfat3rf', `http://localhost:${env.PORT}`)
 
       const params: SystemStatFilter = {
         host: operatorDev.ssh.host
       }
-      const res: APIResponse<SystemDatum[]> = await method.get(params)
+      const res: APIResponse<SystemDatum<*>[]> = await method.get(params)
 
       assert.equal(res.statusCode, 404)
     })
 
     it("totally invalid host", async () => {
-      const method: APIMethod<SystemDatum[],SystemStatFilter> = new APIMethod('/asfat3rf')
+      const method: APIMethod<SystemDatum<*>[],SystemStatFilter> = new APIMethod('/asfat3rf')
 
       const params: SystemStatFilter = {
         host: operatorDev.ssh.host
       }
-      const res: APIResponse<SystemDatum[]> = await method.get(params)
+      const res: APIResponse<SystemDatum<*>[]> = await method.get(params)
 
       console.log('detail', res.getDetail())
 

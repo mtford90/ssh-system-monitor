@@ -15,6 +15,8 @@ import type {
   SimpleDataType,
   LogDefinition,
   LoggerDatum,
+  DiskspaceUsedValue,
+  ProcessInfoValue
 } from '../typedefs/data'
 import DockerLogger from '../logging/dockerLogger'
 import Logger from '../logging/logger'
@@ -71,8 +73,8 @@ function waitForDatum (
 
 export function waitForSystemDatum (
   monitor: Monitor,
-  check: (datum: SystemDatum) => boolean = () => true
-): Promise<SystemDatum> {
+  check: (datum: SystemDatum<*>) => boolean = () => true
+): Promise<SystemDatum<*>> {
   return waitForDatum(
     monitor,
     'data',
@@ -129,7 +131,7 @@ export default class Monitor extends EventEmitter {
     return pool.acquireExecuteRelease(desc, fn)
   }
 
-  emitData (datum: SystemDatum) {
+  emitData (datum: SystemDatum<*>) {
     this.emit('data', datum)
   }
 
@@ -144,11 +146,10 @@ export default class Monitor extends EventEmitter {
       const value = await this.acquireExecuteRelease(id, dataType, client => cmd(client))
       const server: ServerDefinition = this.servers[id]
 
-      const datum: SystemDatum = {
+      const datum: SystemDatum<*> = {
         type: dataType,
         server,
         value,
-        extra: {},
         timestamp: Date.now()
       }
 
@@ -167,7 +168,7 @@ export default class Monitor extends EventEmitter {
       await store.init().then(() => {
         log.debug(`Initalised store`)
 
-        this.on('data', (datum: SystemDatum) => {
+        this.on('data', (datum: SystemDatum<*>) => {
           store.storeSystemDatum(datum).then(() => {
             log.trace('successfully stored monitor datum', datum)
           }).catch(err => {
@@ -219,37 +220,41 @@ export default class Monitor extends EventEmitter {
         this.simpleCommandInterval(idx, 'averageLoad'),
         ...paths.map(path => {
           return asyncInterval(async () => {
-            const value: number = (await this.acquireExecuteRelease(idx, `percentageDiskSpaceUsed(${path})`, client => system.percentageDiskSpaceUsed(client, path)))
+            const perc: number = (await this.acquireExecuteRelease(idx, `percentageDiskSpaceUsed(${path})`, client => system.percentageDiskSpaceUsed(client, path)))
 
-            const datum: SystemDatum = {
-              type: 'percentageDiskSpaceUsed',
-              server,
-              value,
-              extra: {
-                path,
-              },
-              timestamp: Date.now()
+            const diskSpaceUsedValue: DiskspaceUsedValue = {
+              path,
+              perc,
             }
 
-            this.emitData(datum)
+            this.emitData(
+              {
+                type: 'percentageDiskSpaceUsed',
+                server,
+                value: diskSpaceUsedValue,
+                timestamp: Date.now()
+              }
+            )
 
           }, this.opts.rate)
         }),
         ...processes.map((p: ProcessDefinition) => {
           return asyncInterval(async () => {
-            const value: ProcessInfo = await this.acquireExecuteRelease(idx, `processInfo(${p.id})`, client => process.info(client, p.grep))
+            const info: ProcessInfo = await this.acquireExecuteRelease(idx, `processInfo(${p.id})`, client => process.info(client, p.grep))
 
-            const datum: SystemDatum = {
-              type: 'processInfo',
-              server,
-              value,
-              extra: {
-                process: p
-              },
-              timestamp: Date.now()
+            const processInfoValue: ProcessInfoValue = {
+              processId: p.id,
+              info,
             }
 
-            this.emitData(datum)
+            this.emitData(
+              {
+                type: 'processInfo',
+                server,
+                value: processInfoValue,
+                timestamp: Date.now()
+              }
+            )
           }, this.opts.rate)
         })
       ]

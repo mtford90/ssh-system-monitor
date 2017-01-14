@@ -46,15 +46,21 @@ export type ProcessDefinition = {
 }
 
 // Defines the data type emitted by monitors
-export type SystemDatum = {
+export type SystemDatum<T> = {
   server: ServerDefinition,
   type: DataType,
-  value: any,
-  extra: {
-    path?: string, // when type is percentageDiskSpaceUsed
-    process?: ProcessDefinition // when type is processInfo
-  },
+  value: T,
   timestamp: number,
+}
+
+export type DiskspaceUsedValue = {
+  path: string,
+  perc: number,
+}
+
+export type ProcessInfoValue = {
+  processId: string,
+  info: ProcessInfo,
 }
 
 // Info about a process obtained from 'ps' command

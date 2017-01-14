@@ -4,7 +4,7 @@ import type {ServerDefinition, SystemDatum} from 'lib/typedefs/data'
 
 export type RootAction =  {
   type: 'root/RECEIVE_MONITOR_DATUM',
-  datum: SystemDatum,
+  datum: SystemDatum<*>,
 }
 
 export type RootSubstate = {

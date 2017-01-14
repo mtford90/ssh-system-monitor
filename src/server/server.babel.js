@@ -60,7 +60,7 @@ export default function start (monitor: Monitor, opts?: ApiOptions = {}) {
   const io = ws(server)
 
   io.on('connection', socket => {
-    monitor.on('data', (datum: SystemDatum) => {
+    monitor.on('data', (datum: SystemDatum<any>) => {
       socket.emit('data', datum);
     })
     monitor.on('log', (datum: LoggerDatum) => {

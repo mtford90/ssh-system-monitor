@@ -50,7 +50,7 @@ export default class NEDBDataStore {
     return Promise.all(fieldNames.map((fieldName: string) => this._ensureIndex(fieldName)))
   }
 
-  storeSystemDatum (datum: SystemDatum): Promise<void> {
+  storeSystemDatum (datum: SystemDatum<any>): Promise<void> {
     return new Promise((resolve, reject) => {
       this.db.insert(datum, (err) => {
         if (err) reject(err)
@@ -118,7 +118,7 @@ export default class NEDBDataStore {
     })
   }
 
-  querySystemStats (params?: SystemStatFilter = {}): Promise<SystemDatum[]> {
+  querySystemStats (params?: SystemStatFilter = {}): Promise<SystemDatum<*>[]> {
     return new Promise((resolve, reject) => {
       const q: Object = {
         type:  {
@@ -129,7 +129,7 @@ export default class NEDBDataStore {
         },
       }
 
-      const {timestamp, name, host, type, extra} = params
+      const {timestamp, name, host, type, value} = params
 
       if (timestamp) {
         this._constructTimestampQuery(q, timestamp)
@@ -147,19 +147,19 @@ export default class NEDBDataStore {
         q['type'] = type
       }
 
-      if (extra) {
-        if (extra.path) {
-          q['extra.path'] = extra.path
+      if (value) {
+        if (value.path) {
+          q['value.path'] = value.path
         }
 
-        if (extra.process) {
-          if (extra.process.id) {
-            q['extra.process.id'] = extra.process.id
+        if (value.process) {
+          if (value.process.id) {
+            q['value.process.id'] = value.process.id
           }
         }
       }
 
-      this.db.find(q, function (err, docs: SystemDatum[]) {
+      this.db.find(q, function (err, docs: SystemDatum<*>[]) {
         if (err) reject(err)
         else resolve(docs)
       })

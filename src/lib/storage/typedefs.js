@@ -20,7 +20,7 @@ export type SystemStatFilter = {
   name?: string,
   host?: string,
   type?: DataType,
-  extra?: {
+  value?: {
     path?: string,
     process?: {
       id?: string,
@@ -31,8 +31,8 @@ export type SystemStatFilter = {
 
 export interface SSHDataStore {
   init() : Promise<void>;
-  storeSystemDatum(datum: SystemDatum) : Promise<void>;
+  storeSystemDatum(datum: SystemDatum<any>) : Promise<void>;
   storeLoggerDatum(datum: LoggerDatum) : Promise<void>;
   queryLogs(params?: LogFilter) : Promise<LoggerDatum[]>;
-  querySystemStats(params?: SystemStatFilter) : Promise<SystemDatum[]>;
+  querySystemStats(params?: SystemStatFilter) : Promise<SystemDatum<*>[]>;
 }

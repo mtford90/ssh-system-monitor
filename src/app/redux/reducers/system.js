@@ -26,10 +26,10 @@ export type SystemAction = {
   date: number,
 } | {
   type: 'system/RECEIVE_STATS',
-  data: SystemDatum[],
+  data: SystemDatum<*>[],
 } | {
   type: 'system/RECEIVE_STAT',
-  datum: SystemDatum,
+  datum: SystemDatum<*>,
 } | {
   type: 'system/FETCH_STATS',
   filter: SystemStatFilter,
@@ -40,7 +40,7 @@ export type SystemSubstate = {
   fromDate: number | null,
   fromTime: number | null,
   toTime: number | null,
-  systemStats: SystemDatum[],
+  systemStats: SystemDatum<*>[],
   filter: SystemStatFilter,
 }
 
@@ -55,7 +55,7 @@ export const DefaultSystemSubstate: SystemSubstate = {
 
 export function $fetchSystemStats (filter: SystemStatFilter) {
   return async (dispatch: Dispatch) => {
-    const res: APIResponse<SystemDatum[]> = await api.systemStats.get(filter)
+    const res: APIResponse<SystemDatum<*>[]> = await api.systemStats.get(filter)
     dispatch({type: 'system/FETCH_STATS', filter})
     if (res.isOk() && res.data) {
       dispatch({type: 'system/RECEIVE_STATS', data: res.data})
@@ -76,9 +76,9 @@ export function $fetchSystemStats (filter: SystemStatFilter) {
 export function $listen (filter: SystemStatFilter) {
   return (dispatch: Dispatch) => {
     const socket = window.io.connect();
-    const listener = (datum: SystemDatum) => {
+    const listener = (datum: SystemDatum<*>) => {
       const data = filterSystemStats([datum], filter)
-      data.forEach((datum: SystemDatum) => {
+      data.forEach((datum: SystemDatum<*>) => {
         dispatch({type: 'system/RECEIVE_STAT', datum})
       })
     }

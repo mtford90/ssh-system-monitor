@@ -34,17 +34,18 @@ export default function (monitor: Monitor) {
       const type: DataType = query.type.toString()
       params.type = type
     }
-    if (query.extra) {
-      const extra = {}
-      params.extra = extra
-      if (query.extra.path) {
-        extra.path = query.extra.path.toString()
+
+    if (query.value) {
+      const value = {}
+      params.value = value
+      if (query.value.path) {
+        value.path = query.value.path.toString()
       }
-      if (query.extra.process) {
+      if (query.value.process) {
         const process = {}
-        params.extra.process = process
-        if (query.extra.process.id) {
-          process.id = query.extra.process.id.toString()
+        params.value.process = process
+        if (query.value.process.id) {
+          process.id = query.value.process.id.toString()
         }
       }
     }
@@ -105,7 +106,7 @@ export default function (monitor: Monitor) {
     log.info(`GET /system/stats`, params)
 
     const store = monitor.opts.store
-    store.querySystemStats(params).then((data: SystemDatum[]) => {
+    store.querySystemStats(params).then((data: SystemDatum<any>[]) => {
       sendAPIResponse(res, {data})
     }).catch(err => {
       log.error('error getting system stats', err.stack)

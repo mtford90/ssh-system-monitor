@@ -119,6 +119,6 @@ export class APIMethod<T, P: $Subtype<Object>> {
   }
 }
 
-export const systemStats: APIMethod<SystemDatum[],SystemStatFilter> = new APIMethod('/api/system/stats')
+export const systemStats: APIMethod<SystemDatum<*>[],SystemStatFilter> = new APIMethod('/api/system/stats')
 export const logs: APIMethod<LoggerDatum[],LogFilter> = new APIMethod('/api/logs')
 export const config: APIMethod<ServerDefinition,{}> = new APIMethod('/api/config')
