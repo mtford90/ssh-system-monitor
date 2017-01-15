@@ -154,7 +154,7 @@ export default class NEDBDataStore {
 
         if (value.process) {
           if (value.process.id) {
-            q['value.process.id'] = value.process.id
+            q['value.processId'] = value.process.id
           }
         }
       }
