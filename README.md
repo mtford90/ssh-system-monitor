@@ -1,6 +1,8 @@
 WIP
 ===
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/mtford90/ssh-system-monitor.svg)](https://greenkeeper.io/)
+
 This project aims to provide a ridiculously simple way to set up monitoring on linux:
 
 * system stats
